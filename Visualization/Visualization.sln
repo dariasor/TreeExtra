@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vis_effect", "..\win\vis_effect\vis_effect.vcxproj", "{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vis_iplot", "..\win\vis_iplot\vis_iplot.vcxproj", "{F2EF2C55-F16C-4D7E-A9FB-16599193F316}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Debug|Win32.Build.0 = Debug|Win32
+		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Release|Win32.ActiveCfg = Release|Win32
+		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Release|Win32.Build.0 = Release|Win32
+		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Debug|Win32.Build.0 = Debug|Win32
+		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Release|Win32.ActiveCfg = Release|Win32
+		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
