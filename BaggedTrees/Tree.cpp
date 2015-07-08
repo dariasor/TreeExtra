@@ -28,11 +28,16 @@ public:
 		idpairv* pAttrCounts = pJD->pAttrCounts;
 
 		double nodeV = 0;
+		double entropy = 0;
+		double* pEntropy = NULL;
 		if(pAttrCounts)
+		{
 			nodeV = curNH.first->getNodeV();
+			pEntropy = &entropy;
+		}
 		double h = curNH.second;
 		double curAlpha = (pJD->H == 0) ? 1 : pow(2, - ( pJD->b +  pJD->H) * h /  pJD->H +  pJD->b);
-		bool notLeaf = curNH.first->split(curAlpha);
+		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
 		
 		nodesCond.Lock();
 		if(notLeaf)
@@ -42,7 +47,7 @@ public:
 			*pJD->pToDoN += 1;
 
 			if(pAttrCounts)
-				(*pAttrCounts)[curNH.first->getDivAttr()].second += nodeV;
+				(*pAttrCounts)[curNH.first->getDivAttr()].second += nodeV / entropy;
 		}
 		else
 			*pJD->pToDoN -= 1;
@@ -81,17 +86,21 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 		nodes.pop();
 		
 		double nodeV = 0;
+		double entropy = 0;
+		double* pEntropy = NULL;
 		if(doFS)
+		{
 			nodeV = curNH.first->getNodeV();
-
+			pEntropy = &entropy;
+		}	
 		double h = curNH.second;
 		double curAlpha = (H == 0) ? 1 : pow(2, - (b + H) * h / H + b);
-		bool notLeaf = curNH.first->split(curAlpha);
+		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
 	
 		if(notLeaf)
 		{//process child nodes of this node
 			if(doFS)
-				attrCounts[curNH.first->getDivAttr()].second += nodeV;
+				attrCounts[curNH.first->getDivAttr()].second += nodeV / entropy;
 			nodes.push(nodeip(curNH.first->left, curNH.second + 1));
 			nodes.push(nodeip(curNH.first->right, curNH.second + 1));
 		}

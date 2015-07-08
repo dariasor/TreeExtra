@@ -175,7 +175,7 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 // Returns true if succeeds, false if this node becomes a leaf
 // input: alpha - min possible ratio of internal node train subset volume to the whole train set size, 
 //		when surpassed,	the node becomes a leaf
-bool CTreeNode::split(double alpha)
+bool CTreeNode::split(double alpha, double* pEntropy)
 {	
 //1. check basic leaf conditions
 	double nodeV, nodeSum, realNodeV;
@@ -198,6 +198,9 @@ bool CTreeNode::split(double alpha)
 	}
 
 	//at this point the best splitting is found and set
+//2a. If requested, return entropy of the winning feature
+	if(pEntropy)
+		*pEntropy = getEntropy(getActiveANo(splitting.divAttr));
 
 //3. Generate two child nodes
 	
@@ -342,6 +345,39 @@ double CTreeNode::getNodeV()
 		return pItemSet->size();
 }
 
+//returns the attribute order number in the active attributes list
+int CTreeNode::getActiveANo(int attrId)
+{
+	for(int attrNo = 0; attrNo < pAttrs->size(); pAttrs++)
+		if((*pAttrs)[attrNo] == attrId)
+			return attrNo;
+	return -1;
+}
+	
+double CTreeNode::getEntropy(int attrNo)
+{//get entropy of this feature in this node
+	
+	double nodeV = getNodeV();
+	double entropy = 0;
+	fipairv& sorted = (*pSorted)[attrNo];
+	double curcount = 0;
+	double curVal = QNAN;
+	for(int sortedNo = 0; sortedNo < sorted.size(); sortedNo++)
+	{
+		double value = sorted[sortedNo].first;
+		if(sortedNo == 0)
+			curVal = value;
+		if(sortedNo && (value != curVal))
+		{
+			entropy -= curcount / nodeV * log(curcount / nodeV) / log(2);
+			curVal = value;
+			curcount = 0;
+		}
+		curcount += (*pItemSet)[sorted[sortedNo].second].coef;			
+	}
+	entropy -= curcount / nodeV * log(curcount / nodeV) / log(2);
+} 
+	
 //This node becomes a leaf
 //Cleans out node contents that are not used anymore and saves prediction of the node
 void CTreeNode::makeLeaf(double nodeMean)
