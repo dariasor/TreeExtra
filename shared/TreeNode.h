@@ -87,9 +87,6 @@ private:
 	//evaluates boolean split when missing values present in the data
 	double evalBoolMV(SplitInfo& canSplit, double nodeV, double nodeSum, double missV, double missSum);
 
-	//returns the attribute order number in the active attributes list
-	int getActiveANo(int attrId);
-
 public:
 	CTreeNode*	left;		//pointer to the left child
 	CTreeNode*	right;		//pointer to the right child

@@ -199,8 +199,8 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 	//at this point the best splitting is found and set
 //2a. If requested, return entropy of the winning feature
-	if(pEntropy)
-		*pEntropy = getEntropy(getActiveANo(splitting.divAttr));
+	if(pEntropy != NULL)
+		*pEntropy = getEntropy(splitting.divAttr);
 
 //3. Generate two child nodes
 	
@@ -345,37 +345,20 @@ double CTreeNode::getNodeV()
 		return pItemSet->size();
 }
 
-//returns the attribute order number in the active attributes list
-int CTreeNode::getActiveANo(int attrId)
-{
-	for(int attrNo = 0; attrNo < pAttrs->size(); pAttrs++)
-		if((*pAttrs)[attrNo] == attrId)
-			return attrNo;
-	return -1;
-}
-	
-double CTreeNode::getEntropy(int attrNo)
+double CTreeNode::getEntropy(int attrId)
 {//get entropy of this feature in this node
+	
+	ddmap valCounts;
+	for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
+		valCounts[pData->getValue(itemIt->key, attrId, TRAIN)] += itemIt->coef;
 	
 	double nodeV = getNodeV();
 	double entropy = 0;
-	fipairv& sorted = (*pSorted)[attrNo];
-	double curcount = 0;
-	double curVal = QNAN;
-	for(int sortedNo = 0; sortedNo < sorted.size(); sortedNo++)
-	{
-		double value = sorted[sortedNo].first;
-		if(sortedNo == 0)
-			curVal = value;
-		if(sortedNo && (value != curVal))
-		{
-			entropy -= curcount / nodeV * log(curcount / nodeV) / log(2);
-			curVal = value;
-			curcount = 0;
-		}
-		curcount += (*pItemSet)[sorted[sortedNo].second].coef;			
-	}
-	entropy -= curcount / nodeV * log(curcount / nodeV) / log(2);
+
+	for(ddmap::iterator vcIt = valCounts.begin(); vcIt != valCounts.end(); vcIt++)
+		entropy -= vcIt->second / nodeV * log(vcIt->second / nodeV) / log(2.0);
+
+	return entropy;
 } 
 	
 //This node becomes a leaf
