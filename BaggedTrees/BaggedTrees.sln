@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bt_train", "..\win\bt_train\bt_train.vcxproj", "{5146957E-98AD-46DB-AA17-EFD5F21A963A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bt_predict", "..\win\bt_predict\bt_predict.vcxproj", "{2FB0A616-9772-42F9-8356-242C04DB2464}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gbt_train", "gbt_train\gbt_train.vcxproj", "{FE499920-6971-44E2-AE19-319A26021134}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5146957E-98AD-46DB-AA17-EFD5F21A963A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5146957E-98AD-46DB-AA17-EFD5F21A963A}.Debug|Win32.Build.0 = Debug|Win32
+		{5146957E-98AD-46DB-AA17-EFD5F21A963A}.Release|Win32.ActiveCfg = Release|Win32
+		{5146957E-98AD-46DB-AA17-EFD5F21A963A}.Release|Win32.Build.0 = Release|Win32
+		{2FB0A616-9772-42F9-8356-242C04DB2464}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2FB0A616-9772-42F9-8356-242C04DB2464}.Debug|Win32.Build.0 = Debug|Win32
+		{2FB0A616-9772-42F9-8356-242C04DB2464}.Release|Win32.ActiveCfg = Release|Win32
+		{2FB0A616-9772-42F9-8356-242C04DB2464}.Release|Win32.Build.0 = Release|Win32
+		{FE499920-6971-44E2-AE19-319A26021134}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FE499920-6971-44E2-AE19-319A26021134}.Debug|Win32.Build.0 = Debug|Win32
+		{FE499920-6971-44E2-AE19-319A26021134}.Release|Win32.ActiveCfg = Release|Win32
+		{FE499920-6971-44E2-AE19-319A26021134}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
