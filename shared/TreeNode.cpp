@@ -348,16 +348,25 @@ double CTreeNode::getNodeV()
 double CTreeNode::getEntropy(int attrId)
 {//get entropy of this feature in this node
 	
-	ddmap valCounts;
-	for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
-		valCounts[pData->getValue(itemIt->key, attrId, TRAIN)] += itemIt->coef;
+	//aggregate soft counts for each value of attrId feature in the node's portion of the training data
+	ddmap valCounts; //maps values to counts
+	double mvCount = 0; //a separate counter for missing values, as map does not take QNAN correctly
+	for (ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
+	{
+		double value = pData->getValue(itemIt->key, attrId, TRAIN);
+		if (wxisNaN(value))
+			mvCount += itemIt->coef;
+		else
+			valCounts[value] += itemIt->coef;
+	}
 	
+	//calculate entropy
 	double nodeV = getNodeV();
 	double entropy = 0;
-
 	for(ddmap::iterator vcIt = valCounts.begin(); vcIt != valCounts.end(); vcIt++)
 		entropy -= vcIt->second / nodeV * log(vcIt->second / nodeV) / log(2.0);
-
+	if (mvCount > 0)
+		entropy -= mvCount / nodeV * log(mvCount / nodeV) / log(2.0);
 	return entropy;
 } 
 	
