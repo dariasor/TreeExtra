@@ -175,7 +175,7 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 // Returns true if succeeds, false if this node becomes a leaf
 // input: alpha - min possible ratio of internal node train subset volume to the whole train set size, 
 //		when surpassed,	the node becomes a leaf
-bool CTreeNode::split(double alpha)
+bool CTreeNode::split(double alpha, double* pEntropy)
 {	
 //1. check basic leaf conditions
 	double nodeV, nodeSum, realNodeV;
@@ -198,6 +198,9 @@ bool CTreeNode::split(double alpha)
 	}
 
 	//at this point the best splitting is found and set
+//2a. If requested, return entropy of the winning feature
+	if(pEntropy != NULL)
+		*pEntropy = getEntropy(splitting.divAttr);
 
 //3. Generate two child nodes
 	
@@ -342,6 +345,31 @@ double CTreeNode::getNodeV()
 		return pItemSet->size();
 }
 
+double CTreeNode::getEntropy(int attrId)
+{//get entropy of this feature in this node
+	
+	//aggregate soft counts for each value of attrId feature in the node's portion of the training data
+	ddmap valCounts; //maps values to counts
+	double mvCount = 0; //a separate counter for missing values, as map does not take QNAN correctly
+	for (ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
+	{
+		double value = pData->getValue(itemIt->key, attrId, TRAIN);
+		if (wxisNaN(value))
+			mvCount += itemIt->coef;
+		else
+			valCounts[value] += itemIt->coef;
+	}
+	
+	//calculate entropy
+	double nodeV = getNodeV();
+	double entropy = 0;
+	for(ddmap::iterator vcIt = valCounts.begin(); vcIt != valCounts.end(); vcIt++)
+		entropy -= vcIt->second / nodeV * log(vcIt->second / nodeV) / log(2.0);
+	if (mvCount > 0)
+		entropy -= mvCount / nodeV * log(mvCount / nodeV) / log(2.0);
+	return entropy;
+} 
+	
 //This node becomes a leaf
 //Cleans out node contents that are not used anymore and saves prediction of the node
 void CTreeNode::makeLeaf(double nodeMean)

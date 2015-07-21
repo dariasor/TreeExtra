@@ -37,6 +37,9 @@ public:
 	double getThresh() {return splitting.border;}
 	double getResp() {return (*pItemSet)[0].response;} //should be applied to leaves only
 	double getNodeV();
+	
+	double getEntropy(int attrNo); //get entropy of this feature in this node
+	
 	//initializes fresh root
 	void setRoot();
 
@@ -53,7 +56,7 @@ public:
 	void traverse(int itemNo, double coef, double& ltCoef, double& rtCoef, DATA_SET dset);
 
 	//splits the node; grows two offsprings 
-	bool split(double alpha);
+	bool split(double alpha, double* pEntropy = NULL);
 
 	//saves the node into a binary file
 	void save(fstream& fsave);
@@ -83,7 +86,6 @@ private:
 
 	//evaluates boolean split when missing values present in the data
 	double evalBoolMV(SplitInfo& canSplit, double nodeV, double nodeSum, double missV, double missSum);
-
 
 public:
 	CTreeNode*	left;		//pointer to the left child
