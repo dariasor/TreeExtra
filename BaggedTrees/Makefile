@@ -19,11 +19,11 @@ clean:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
 bt_predict: bt_predict.o $(OBJS)
-	g++ -O3 -o bt_predict bt_predict.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/bt_predict bt_predict.o $(OBJS) $(LIBS)
 
 bt_train: bt_train.o $(OBJS)
-	g++ -O3 -o bt_train bt_train.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/bt_train bt_train.o $(OBJS) $(LIBS)
 
 gbt_train: gbt_train.o $(OBJS)
-	g++ -O3 -o gbt_train gbt_train.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/gbt_train gbt_train.o $(OBJS) $(LIBS)
 
