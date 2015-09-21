@@ -16,8 +16,8 @@
 //Downloads the data (train, validation, test sets) into memory following specifications 
 //in the attr file.
 //filenames may be empty strings, if correspondent data is not provided
-INDdata::INDdata(const char* trainFName, const char* validFName, const char* testFName,  
-				 const char* attrFName)											
+INDdata::INDdata(const char* trainFName, const char* validFName, const char* testFName,
+	const char* attrFName, bool doOut)
 {
 	LogStream clog;
 
@@ -130,7 +130,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		int caseNo;
 		for(caseNo = 0; fin.gcount(); caseNo++)
 		{//read one line of data file, save class value in targets, attribute values in data
-			if((caseNo + 1)% 100000 == 0)
+			if(doOut && ((caseNo + 1)% 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines..." << endl;
 			
 			try {
@@ -196,7 +196,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		int caseNo;
 		for(caseNo=0; fvalid.gcount(); caseNo++)
 		{//read one line of data file, save response value in validtar, attributes values in valid
-			if((caseNo + 1) % 100000 == 0)
+			if (doOut && ((caseNo + 1) % 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines..." << endl;
 			
 			try {
@@ -238,7 +238,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		int caseNo;
 		for(caseNo=0; ftest.gcount(); caseNo++)
 		{//read one line of data file, save response value in testtar, attributes in test
-			if((caseNo + 1) % 100000 == 0)
+			if (doOut && ((caseNo + 1) % 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines...\n";
 
 			try {

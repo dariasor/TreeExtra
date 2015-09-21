@@ -10,7 +10,7 @@ class INDdata
 public:
 	//loads data into memory
 	INDdata(const char* trainFName, const char* valFName, const char* testFName, 
-			const char* attrFName);
+			const char* attrFName, bool doOut = true);
 	
 //private members get functions  
 	int getAttrN(){return attrN;}	
