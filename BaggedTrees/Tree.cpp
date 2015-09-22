@@ -8,6 +8,7 @@
 #include <math.h>
 #include <stack>
 #include <fstream>
+#include <algorithm>
 
 INDdata* CTree::pData;
 #ifndef _WIN32
@@ -47,7 +48,10 @@ public:
 			*pJD->pToDoN += 1;
 
 			if(pAttrCounts)
+			{
+				entropy = max(entropy, 1.0);
 				(*pAttrCounts)[curNH.first->getDivAttr()].second += nodeV / entropy;
+			}
 		}
 		else
 			*pJD->pToDoN -= 1;
@@ -99,8 +103,11 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 	
 		if(notLeaf)
 		{//process child nodes of this node
-			if(doFS)
+			if (doFS)
+			{
+				entropy = max(entropy, 1.0);
 				attrCounts[curNH.first->getDivAttr()].second += nodeV / entropy;
+			}
 			nodes.push(nodeip(curNH.first->left, curNH.second + 1));
 			nodes.push(nodeip(curNH.first->right, curNH.second + 1));
 		}
