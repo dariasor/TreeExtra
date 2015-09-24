@@ -102,8 +102,11 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			string attrName = attrStr.substr(0, nameLen);
 			attrName = trimSpace(attrName);
 			int neverAttrId = getAttrId(attrName);
-			if(neverAttrId == -1)
+			if (neverAttrId == -1)
+			{
+				cerr << attrName << endl;
 				throw ATTR_NEVER_ERR;
+			}
 			ignoreAttrs.insert(neverAttrId);
 		}
 		getLineExt(fattr, buf);

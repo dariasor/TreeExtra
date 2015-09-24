@@ -16,14 +16,6 @@
 	//[-q _#quantile_values_]
 int main(int argc, char* argv[])
 {
-  int aa = 1, bb = 0;
-  bool ff = (aa > 0) && bb;
-  bool xx = aa > 0 && bb;
-  bool tt = aa > (0 && bb);
-
-  cout << ff << '\t' << xx << '\t' << tt << endl;
-
-
 	try{
 	//0. Set log file
 	LogStream clog;
