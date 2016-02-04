@@ -104,7 +104,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			int neverAttrId = getAttrId(attrName);
 			if (neverAttrId == -1)
 			{
-				cerr << attrName << endl;
+				cerr << '\n' << attrName << '\n';
 				throw ATTR_NEVER_ERR;
 			}
 			ignoreAttrs.insert(neverAttrId);
