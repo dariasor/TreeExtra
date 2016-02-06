@@ -11,6 +11,7 @@
 #include "LogStream.h"
 #include "ErrLogStream.h"
 #include "bt_definitions.h"
+#include "bt_functions.h"
 
 #ifndef _WIN32
 #include "thread_pool.h"
@@ -38,6 +39,9 @@ int main(int argc, char* argv[])
 #endif
 
 	TrainInfo ti; //model training parameters
+	int topAttrN = 0;  //how many top attributes to output and keep in the cut data 
+						//(0 = do not do feature selection)
+						//(-1 = output all available features)
 
 	//parse and save input parameters
 	//indicators of presence of required flags in the input
@@ -72,6 +76,8 @@ int main(int argc, char* argv[])
 			treeN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-i"))
 			ti.seed = atoiExt(argv[argNo + 1]);
+		else if(!args[argNo].compare("-k"))
+			topAttrN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-sh"))
 			shrinkage = atofExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-sub"))
@@ -125,6 +131,20 @@ int main(int argc, char* argv[])
 #endif
 
 //------------------
+	int attrN = data.getAttrN();
+	if(topAttrN == -1)
+		topAttrN = attrN;
+	idpairv attrCounts;	//counts of attribute importance
+	bool doFS = (topAttrN != 0);	//whether feature selection is requested
+	if(doFS)
+	{//initialize attrCounts
+		attrCounts.resize(attrN);
+		for(int attrNo = 0; attrNo < attrN; attrNo++)
+		{
+			attrCounts[attrNo].first = attrNo;	//number of attribute	
+			attrCounts[attrNo].second = 0;		//counts
+		}
+	}
 
 	fstream frmscurve("boosting_rms.txt", ios_base::out); //bagging curve (rms)
 	frmscurve.close();
@@ -161,7 +181,7 @@ int main(int argc, char* argv[])
 		tree.setRoot();
 		tree.resetRoot(trainPreds);
 		idpairv stub;
-		tree.grow(false, stub);
+		tree.grow(doFS, attrCounts);
 
 		//update predictions
 		for(int itemNo = 0; itemNo < trainN; itemNo++)
@@ -185,9 +205,40 @@ int main(int argc, char* argv[])
 			cout << "\titeration " << treeNo + 1 << " out of " << treeN << endl;
 	}
 
+	//output feature selection results
+	if(doFS)
+	{
+		sort(attrCounts.begin(), attrCounts.end(), idGreater);
+		if(topAttrN > attrN)
+			topAttrN = attrN;
+
+		fstream ffeatures("feature_scores.txt", ios_base::out);
+		ffeatures << "Top " << topAttrN << " features\n";
+		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
+			ffeatures << data.getAttrName(attrCounts[attrNo].first) << "\t"
+			<< attrCounts[attrNo].second / ti.bagN / trainN << "\n";
+		ffeatures << "\n\nColumn numbers (beginning with 1)\n";
+		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
+			ffeatures << data.getColNo(attrCounts[attrNo].first) + 1 << " ";
+		ffeatures << "\nLabel column number: " << data.getTarColNo() + 1;
+		ffeatures.close();
+
+		//output new attribute file
+		for(int attrNo = topAttrN; attrNo < attrN; attrNo++)
+			data.ignoreAttr(attrCounts[attrNo].first);
+		data.outAttr(ti.attrFName);
+	}
+
+	//output predictions
+	fstream fpreds;
+	fpreds.open("preds.txt", ios_base::out);
+	for(int itemNo = 0; itemNo < validN; itemNo++)
+		fpreds << validPreds[itemNo] << endl;
+	fpreds.close();
+
 //------------------
 
-		}catch(TE_ERROR err){
+	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);
 		return 1;
 	}catch(BT_ERROR err){

@@ -529,7 +529,7 @@ string INDdata::getAttrName(int attrId)
 //returns std of response values
 double INDdata::getTarStD(DATA_SET ds)
 {
-	doublev* ptargets;
+	doublev* ptargets = NULL;
 	if(ds == TRAIN)
 		ptargets = &trainTar;	
 	if(ds == TEST)
