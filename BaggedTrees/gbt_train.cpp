@@ -172,6 +172,9 @@ int main(int argc, char* argv[])
 	
 	for(int treeNo = 0; treeNo < treeN; treeNo++)
 	{
+		if(treeNo % 10 == 0)
+			cout << "\titeration " << treeNo + 1 << " out of " << treeN << endl;
+
 		if(subsample == -1)
 			data.newBag();
 		else
@@ -201,8 +204,6 @@ int main(int argc, char* argv[])
 			froccurve.close();
 		}
 
-		if(treeNo % 100 == 0)
-			cout << "\titeration " << treeNo + 1 << " out of " << treeN << endl;
 	}
 
 	//output feature selection results

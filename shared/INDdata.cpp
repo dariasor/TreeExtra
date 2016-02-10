@@ -364,7 +364,7 @@ void INDdata::newSample(int sampleN)
 		double randCoef = rand_coef();
 		int nextItem = (int) ((trainN - 1 - i) * randCoef);
 		bootstrap[i] = inxv[nextItem];
-		inxv.erase(inxv.begin() + nextItem);
+		inxv[nextItem] = inxv[trainN - 1 - i];
 	}
 
 	//create versions of data sorted by values of attributes
