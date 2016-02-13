@@ -103,11 +103,9 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			attrName = trimSpace(attrName);
 			int neverAttrId = getAttrId(attrName);
 			if (neverAttrId == -1)
-			{
-				cerr << '\n' << attrName << '\n';
-				throw ATTR_NEVER_ERR;
-			}
-			ignoreAttrs.insert(neverAttrId);
+				cerr << "\nWARNING: trying to exclude \"" << attrName << "\" - this is not a valid feature\n\n";
+			else
+				ignoreAttrs.insert(neverAttrId);
 		}
 		getLineExt(fattr, buf);
 	}

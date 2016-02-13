@@ -241,9 +241,6 @@ void te_errMsg(TE_ERROR err)
 		case ATTR_ID_ERR:
 			errlog << "Error: model and data do not match.\n";
 			break;
-		case ATTR_NEVER_ERR:
-			errlog << "Error: the contexts part of the attribute file has wrong syntax (a misspelled attribute name?)\n";
-			break;
 		case ROC_ERR:
 			errlog << "Error: can't calculate ROC with response values out of [0,1] range.\n";
 			break;
