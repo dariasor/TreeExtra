@@ -277,6 +277,9 @@ void te_errMsg(TE_ERROR err)
 		case TRAIN_EMPTY_ERR:
 			errlog << "Error: train set is empty.\n";
 			break;
+		case VALID_EMPTY_ERR:
+			errlog << "Error: validation set is empty.\n";
+			break;
 		case ATTR_NAME_DEF_ERR:
 			errlog << "Error: attribute names can not include any of \\/*?\":|<> symbols.\n";
 			break;
