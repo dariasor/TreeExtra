@@ -103,7 +103,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			attrName = trimSpace(attrName);
 			int neverAttrId = getAttrId(attrName);
 			if (neverAttrId == -1)
-				cerr << "\nWARNING: trying to exclude \"" << attrName << "\" - this is not a valid feature\n\n";
+				clog << "\nWARNING: trying to exclude \"" << attrName << "\" - this is not a valid feature\n\n";
 			else
 				ignoreAttrs.insert(neverAttrId);
 		}
@@ -218,6 +218,8 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			getLineExt(fvalid, buf);
 		}
 		validN = caseNo;
+		if(validN == 0)
+			throw VALID_EMPTY_ERR;
 		double validStD = getTarStD(VALID);
 		clog << validN << " points in the validation set, std. dev. of " << tarName << " values = " 
 			<< validStD << "\n\n"; 
