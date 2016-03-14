@@ -1,7 +1,7 @@
 This BSD license refers to the whole TreeExtra package including standalone code for ag_predict_stream with the 
 exception of the ThreadPool library, which is covered by LGPLv2.1 license.
 
-Copyright (c) 2008-2015, Daria Sorokina, 
+Copyright (c) 2008-2016, Daria Sorokina, 
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
