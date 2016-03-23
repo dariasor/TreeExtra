@@ -18,7 +18,7 @@ clean:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
 vis_iplot: vis_iplot.o $(OBJS)
-	g++ -O3 -o vis_iplot vis_iplot.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/vis_iplot vis_iplot.o $(OBJS) $(LIBS)
 
 vis_effect: vis_effect.o $(OBJS)
-	g++ -O3 -o vis_effect vis_effect.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/vis_effect vis_effect.o $(OBJS) $(LIBS)
