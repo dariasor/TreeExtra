@@ -20,37 +20,37 @@ clean:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
 ag_predict: ag_predict.o $(OBJS)
-	g++ -O3 -o ag_predict ag_predict.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_predict ag_predict.o $(OBJS) $(LIBS)
 
 ag_train: ag_train.o $(OBJS)
-	g++ -O3 -o ag_train ag_train.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_train ag_train.o $(OBJS) $(LIBS)
 
 ag_save: ag_save.o $(OBJS)
-	g++ -O3 -o ag_save ag_save.o $(OBJS) $(LIBS)	
+	g++ -O3 -o ../Bin/ag_save ag_save.o $(OBJS) $(LIBS)	
 
 ag_addbag: ag_addbag.o $(OBJS)
-	g++ -O3 -o ag_addbag ag_addbag.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_addbag ag_addbag.o $(OBJS) $(LIBS)
 
 ag_expand: ag_expand.o $(OBJS)
-	g++ -O3 -o ag_expand ag_expand.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_expand ag_expand.o $(OBJS) $(LIBS)
 
 ag_merge: ag_merge.o $(OBJS)
-	g++ -O3 -o ag_merge ag_merge.o $(OBJS)  $(LIBS)
+	g++ -O3 -o ../Bin/ag_merge ag_merge.o $(OBJS)  $(LIBS)
 
 ag_fs: ag_fs.o $(OBJS)
-	g++ -O3 -o ag_fs ag_fs.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_fs ag_fs.o $(OBJS) $(LIBS)
 
 ag_interactions: ag_interactions.o $(OBJS)	
-	g++ -O3 -o ag_interactions ag_interactions.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_interactions ag_interactions.o $(OBJS) $(LIBS)
 
 ag_nway: ag_nway.o $(OBJS)
-	g++ -O3 -o ag_nway ag_nway.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_nway ag_nway.o $(OBJS) $(LIBS)
 
 ag_mergepreds: ag_mergepreds.o $(OBJS)
-	g++ -O3 -o ag_mergepreds ag_mergepreds.o $(OBJS) $(LIBS)
+	g++ -O3 -o ../Bin/ag_mergepreds ag_mergepreds.o $(OBJS) $(LIBS)
 
 ag_savemerge: ag_savemerge.o $(OBJS)
-	g++ -O3 -o ag_savemerge ag_savemerge.o $(OBJS)	$(LIBS)
+	g++ -O3 -o ../Bin/ag_savemerge ag_savemerge.o $(OBJS)	$(LIBS)
 
 
 

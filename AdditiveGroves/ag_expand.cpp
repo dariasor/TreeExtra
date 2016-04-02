@@ -14,6 +14,7 @@
 #endif
 
 #include <errno.h>
+#include <algorithm>
 
 //ag_expand [-a _alpha_value_] [-n _N_value_] [-b _bagging_iterations_] [-i _init_random_] [-e on/off]
 
