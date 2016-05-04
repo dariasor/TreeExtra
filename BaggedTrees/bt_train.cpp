@@ -41,6 +41,7 @@ int main(int argc, char* argv[])
 
 	TrainInfo ti; //model training parameters
 	string modelFName = "model.bin";	//name of the output file for the model
+	string predFName = "preds.txt";		//name of the output file for predictions
 	int topAttrN = 0;  //how many top attributes to output and keep in the cut data 
 							//(0 = do not do feature selection)
 							//(-1 = output all available features)
@@ -83,6 +84,8 @@ int main(int argc, char* argv[])
 			if(modelFName.empty())
 				throw EMPTY_MODEL_NAME_ERR;
 		}
+		else if(!args[argNo].compare("-o"))
+			predFName = args[argNo + 1];
 		else if(!args[argNo].compare("-l"))
 		{
 			if(!args[argNo + 1].compare("log"))
@@ -198,6 +201,7 @@ int main(int argc, char* argv[])
 	}
 
 	//make bags, build trees, collect predictions
+	doublev predictions(validN);
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
 	{
 		if(doOut)
@@ -210,7 +214,6 @@ int main(int argc, char* argv[])
 		tree.save(modelFName.c_str());
 
 		//generate predictions for validation set
-		doublev predictions(validN);
 		for(int itemNo = 0; itemNo < validN; itemNo++)
 		{
 			predsumsV[itemNo] += tree.predict(itemNo, VALID);
@@ -239,12 +242,18 @@ int main(int argc, char* argv[])
 	
 //4. Output
 		
-	//output results and recommendations
+	//output results 
 	if(ti.rms)
 		clog << "RMSE on validation set = " << rmsV[ti.bagN - 1] << "\n";
 	else
 		clog << "ROC on validation set = " << rocV[ti.bagN - 1] << "\n";
 
+	//output predictions into the output file
+	fstream fpreds;
+	fpreds.open(predFName.c_str(), ios_base::out);
+	for(int itemNo = 0; itemNo < validN; itemNo++)
+		fpreds << predictions[itemNo] << endl;
+	fpreds.close();
 
 	//analyze whether more bagging should be recommended based on the curve in the best point
 	if(moreBag(rmsV))
