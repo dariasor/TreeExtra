@@ -127,13 +127,13 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		 
 		hasMV = false;
 		getLineExt(fin, buf);
-		floatv item;	//single data point
 		int caseNo;
 		for(caseNo = 0; fin.gcount(); caseNo++)
 		{//read one line of data file, save class value in targets, attribute values in data
 			if(doOut && ((caseNo + 1)% 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines..." << endl;
 			
+			floatv item;	//single data point
 			try {
 				readData(buf, fin.gcount(), item, colN);
 			} catch (TE_ERROR err) {
@@ -193,13 +193,13 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			throw OPEN_VALID_ERR;
 
 		getLineExt(fvalid, buf);
-		floatv item;	//single data point
 		int caseNo;
 		for(caseNo=0; fvalid.gcount(); caseNo++)
 		{//read one line of data file, save response value in validtar, attributes values in valid
 			if (doOut && ((caseNo + 1) % 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines..." << endl;
 			
+			floatv item;	//single data point
 			try {
 				readData(buf, fvalid.gcount(), item, colN);
 			} catch (TE_ERROR err) {
@@ -237,13 +237,13 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			throw OPEN_TEST_ERR;
 
 		getLineExt(ftest, buf);
-		floatv item;	//single data point
 		int caseNo;
 		for(caseNo=0; ftest.gcount(); caseNo++)
 		{//read one line of data file, save response value in testtar, attributes in test
 			if (doOut && ((caseNo + 1) % 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines...\n";
 
+			floatv item;	//single data point
 			try {
 				readData(buf, ftest.gcount(), item, colN);
 			} catch (TE_ERROR err) {
@@ -285,7 +285,7 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 		if(buf[chNo] != ' ')
 			line.push_back(buf[chNo]);
 
-	retv.resize(retvlen);
+	retv.resize(retvlen, 0);
 	stringstream itemstr(line.c_str());
 	string singleItem;
 	for(int attrId = 0; attrId < retvlen; attrId++)
