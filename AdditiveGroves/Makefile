@@ -9,7 +9,10 @@ PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_addbag.o ag_expand.o ag_merge.o a
 LIBS = -lpthread
 
 
-all: $(PGMS)
+all: directories $(PGMS)
+
+directories:
+	mkdir -p ../Bin
 
 clean:
 	rm $(OBJS)
