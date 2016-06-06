@@ -7,7 +7,10 @@ PGMS = vis_iplot vis_effect
 PGMOBJS = vis_iplot.o vis_effect.o
 LIBS = -lpthread
 
-all: $(PGMS)
+all: directories $(PGMS)
+
+directories:
+	mkdir -p ../Bin
 
 clean:
 	rm $(OBJS)

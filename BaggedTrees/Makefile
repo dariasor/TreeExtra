@@ -6,9 +6,10 @@ PGMS = bt_predict bt_train gbt_train
 PGMOBJS = bt_predict.o bt_train.o gbt_train.o
 LIBS = -lpthread
 
+all: directories $(PGMS)
 
-
-all: $(PGMS)
+directories:
+	mkdir -p ../Bin
 
 clean:
 	rm $(OBJS)
