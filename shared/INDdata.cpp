@@ -691,7 +691,7 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 	while(!setQN)
 	{
 		double firstQuant = attrVals[ (valsN - 1) / (quantN + 1) ];
-		double lastQuant = attrVals[ (valsN - 1) * quantN / (quantN + 1) ];
+		double lastQuant = attrVals[ (valsN - 1) * ((double)quantN / (quantN + 1)) ];
 		if(!equalsNaN(firstQuant, lastQuant) || singleVal)
 			setQN = true;
 		else
@@ -705,7 +705,7 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 	//split values on quantN + 1 equal parts and take out quantN quantile points (ignoring the end points)
 	doublev quantVals(quantN); 	//quantile values - values from attrVals on equal distances 
 	for(int quantNo = 0; quantNo < quantN; quantNo++)
-		quantVals[quantNo] = attrVals[ (valsN - 1) * (quantNo + 1) / (quantN + 1) ];
+		quantVals[quantNo] = attrVals[ (valsN - 1) * ((double)(quantNo + 1) / (quantN + 1)) ];
 
 	//extract unique values and there counts
 	valCounts.push_back(dipair(quantVals[0], 1));
