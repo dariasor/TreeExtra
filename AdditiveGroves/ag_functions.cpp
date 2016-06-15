@@ -338,7 +338,7 @@ int tigVal(int tigNNo)
 }
 
 //Rounds tigN down to the closest appropriate value
-double adjustTiGN(int tigN)
+int adjustTiGN(int tigN)
 {
 	int tigNN = getTiGNN(tigN);
 	return tigVal(tigNN - 1);

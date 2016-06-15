@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 		saveAlpha = newAlpha;	
 	}
 	//adjust saveTiGN, if needed
-	double newTiGN = adjustTiGN(saveTiGN);
+	int newTiGN = adjustTiGN(saveTiGN);
 	if(saveTiGN != newTiGN)
 	{
 		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";

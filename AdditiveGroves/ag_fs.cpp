@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
 	doublev validTar;
 	int validN = data.getTargets(validTar, VALID);
-	int trainV = data.getTrainV();
+	double trainV = data.getTrainV();
 
 	//adjust minAlpha, if needed
 	double newAlpha = adjustAlpha(ti.minAlpha, trainV);
@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
 		ti.minAlpha = newAlpha;	
 	}
 	//adjust maxTiGN, if needed
-	double newTiGN = adjustTiGN(ti.maxTiGN);
+	int newTiGN = adjustTiGN(ti.maxTiGN);
 	if(ti.maxTiGN != newTiGN)
 	{
 		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";

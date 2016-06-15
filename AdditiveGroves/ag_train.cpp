@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 		ti.minAlpha = newAlpha;	
 	}
 	//adjust maxTiGN, if needed
-	double newTiGN = adjustTiGN(ti.maxTiGN);
+	int newTiGN = adjustTiGN(ti.maxTiGN);
 	if(ti.maxTiGN != newTiGN)
 	{
 		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";

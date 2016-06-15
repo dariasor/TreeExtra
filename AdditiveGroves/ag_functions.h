@@ -34,7 +34,7 @@ double alphaVal(int alphaNo);
 int tigVal(int tigNNo);
 
 //rounds tigN down to the closest appropriate value
-double adjustTiGN(int tigN);
+int adjustTiGN(int tigN);
 
 //converts min alpha value into the number of alpha values
 int getAlphaN(double minAlphaVal, double trainV);
