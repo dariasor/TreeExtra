@@ -22,7 +22,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	LogStream clog;
 
 	//read attr file, collect info about boolean attributes and attrN
-	clog << "Reading attribute file: \"" << attrFName << "\"\n";
+	clog << "Reading the attribute file: \"" << attrFName << "\"\n";
 	fstream fattr;
 	fattr.open(attrFName, ios_base::in);
 	if(!fattr) 
@@ -119,7 +119,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	//Read data
 	if(string(trainFName).compare("") != 0)
 	{//Read train set
-		clog << "Reading train set: \"" << trainFName << "\"\n";
+		clog << "Reading the train set: \"" << trainFName << "\"\n";
 		fstream fin;
 		fin.open(trainFName, ios_base::in);
 		if(fin.fail()) 
@@ -186,7 +186,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 
 	if(string(validFName).compare("") != 0)
 	{//Read validation set
-		clog << "Reading validation set: \"" << validFName << "\"\n";
+		clog << "Reading the validation set: \"" << validFName << "\"\n";
 		fstream fvalid;
 		fvalid.open(validFName, ios_base::in); 
 		if(fvalid.fail())
@@ -230,7 +230,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 
 	if(string(testFName).compare("") != 0)
 	{//Read test set
-		clog << "Reading test set: \"" << testFName << "\"\n";
+		clog << "Reading the test set: \"" << testFName << "\"\n";
 		fstream ftest;
 		ftest.open(testFName, ios_base::in); 
 		if(ftest.fail()) 

@@ -35,6 +35,9 @@ std::streamsize getLineExt(fstream& fin, char* buf);
 //outputs error messages for shared TreeExtra errors
 void te_errMsg(TE_ERROR err);
 
+//Expands error messages for std::exception 
+void exception_errMsg(string& errstr);
+
 //calculates probabilistic roc - response can be any probability between 0 and 1
 //when response values are 0/1, behaves like a standard roc
 double roc(doublev& preds, doublev& tars);

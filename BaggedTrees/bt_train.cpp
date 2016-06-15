@@ -313,7 +313,7 @@ int main(int argc, char* argv[])
 				errlog << "Error: alpha value is out of [0;1] range.\n";
 				break;
 			case WIN_ERR:
-				errlog << "Input error: TreeExtra currently does not support multithreading for Windows.\n"; 
+				errlog << "Input error: TreeExtra does not support multithreading for Windows.\n"; 
 				break;
 			default:
 				throw err;
@@ -322,6 +322,7 @@ int main(int argc, char* argv[])
 	}catch(exception &e){
 		ErrLogStream errlog;
 		string errstr(e.what());
+		exception_errMsg(errstr);
 		errlog << "Error: " << errstr << "\n";
 		return 1;
 	}catch(...){

@@ -344,6 +344,7 @@ int main(int argc, char* argv[])
 	}catch(exception &e){
 		ErrLogStream errlog;
 		string errstr(e.what());
+		exception_errMsg(errstr);
 		errlog << "Error: " << errstr << "\n";
 		return 1;
 	}catch(...){

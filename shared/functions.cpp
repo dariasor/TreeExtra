@@ -297,6 +297,14 @@ void te_errMsg(TE_ERROR err)
 	}
 }
 
+//Expands error messages for std::exception 
+void exception_errMsg(string& errstr)
+{
+	if(errstr.compare("St9bad_alloc") == 0)
+		errstr += ". Out of memory.";
+}
+
+
 // this code for ROC is taken (and adjusted a bit) from PERF software:
 		//R. Caruana, The PERF Performance Evaluation Code,
 		// http://www.cs.cornell.edu/~caruana/perf
