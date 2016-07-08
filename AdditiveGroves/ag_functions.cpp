@@ -122,7 +122,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 			
 			//output a single grid point with coordinates
 			double& curPerf = surfaceV[tigNNo][alphaNo][ti.bagN - 1];
-			fsurface << alpha << " \t" << tigN << " \t" << curPerf << endl;
+			fsurface << alpha << " \t" << tigN << " \t" << curPerf << "\t" << !moreBag(rmsV[tigNNo][alphaNo]) << endl;
 
 			//check for the best result inside the active output area
 			if((tigNNo >= startTiGNNo) && (alphaNo >= startAlphaNo))
@@ -144,14 +144,25 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 	
 	fsurface << "\n\n";
 
-	//output the same number in the form of matrix
+	//output the same number (performance) in the form of matrix
 	for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
 	{
 		for(int tigNNo = 0; tigNNo < tigNN; tigNNo++)
 			fsurface << surfaceV[tigNNo][alphaNo][ti.bagN - 1] << " \t";
 		fsurface << endl;
 	}
+
+	fsurface << "\n\n";
+
+	//output the convergence flags in the form of matrix
+	for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
+	{
+		for(int tigNNo = 0; tigNNo < tigNN; tigNNo++)
+			fsurface << !moreBag(rmsV[tigNNo][alphaNo]) << " \t";
+		fsurface << endl;
+	}
 	fsurface.close();
+
 
 	fstream fdirStat;	
 	fdirStat.open("./AGTemp/dirstat.txt", ios_base::out);
