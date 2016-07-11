@@ -157,7 +157,7 @@ string alphaToStr(double alpha)
 //the answer is No if 
 //	relative improvement over last 20 iterations is < 1/500 
 //	and 
-//	bagging has converged: relative difference between max and min over last 20 iterations is < 1/100
+//	bagging has converged: relative difference between max and min over last 20 iterations is < 1/200
 bool moreBag(doublev bagPerf)
 {
 	int bagN = (int)bagPerf.size();
@@ -190,7 +190,7 @@ bool moreBag(doublev bagPerf)
 		relImprove = QNAN;
 	
 	//check stopping criterion
-	if((wxisNaN(relMaxMin) || (relMaxMin > 100)) && (wxisNaN(relImprove) || (relImprove > 500)))
+	if((wxisNaN(relMaxMin) || (relMaxMin > 500)) && (wxisNaN(relImprove) || (relImprove > 1000)))
 		return false;
 	return true;
 }
