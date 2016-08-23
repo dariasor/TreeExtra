@@ -155,9 +155,9 @@ string alphaToStr(double alpha)
 //if more bagging will benefit the performance
 //
 //the answer is No if 
-//	relative improvement over last 20 iterations is < 1/500 
+//	relative improvement over last 20 iterations is < 1/1000 
 //	and 
-//	bagging has converged: relative difference between max and min over last 20 iterations is < 1/200
+//	bagging has converged: relative difference between max and min over last 20 iterations is < 1/500
 bool moreBag(doublev bagPerf)
 {
 	int bagN = (int)bagPerf.size();
@@ -224,6 +224,8 @@ void te_errMsg(TE_ERROR err)
 		case OPEN_TEST_ERR:
 			errlog << "Error: failed to open test set file.\n";
 			break;
+		case OPEN_OUT_ERR:
+			errlog << "Error: failed to create an output file.\n";
 		case MULT_CLASS_ERR:
 			errlog << "Error: multiple attributes marked as class (response) attributes.\n";
 			break;

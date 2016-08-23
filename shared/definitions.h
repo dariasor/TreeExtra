@@ -84,7 +84,8 @@ enum TE_ERROR
 	NOM_ACTIVE_ERR = 23,
 	ATTR_DATA_MISMATCH_G_ERR = 24,
 	NUMERIC_ARG_ERR = 25,
-	ROC_FLAT_ERR = 26
+	ROC_FLAT_ERR = 26,
+	OPEN_OUT_ERR = 27
 };
 
 //this enum has to be in the general definition file, because it is a part of a model file, and all model 

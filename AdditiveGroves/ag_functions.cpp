@@ -672,6 +672,8 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 		if((outFName.size() == 0) || (iNo > 0))
 			outFName = attrName1 + "." + attrName2 + ".iplot.txt";
 		fstream fiplot(outFName.c_str(), ios_base::out);
+		if(!fiplot)
+			throw OPEN_OUT_ERR;
 
 
 	//4.1 Output joint effect
@@ -699,127 +701,6 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 	
 	//4.2 Estimate and output density
 
-//early version of this ignored the missing values, looked at actual quantile borders and ignored edge values. The code is saved just in case, 
-// but it is replaced by a simpler version: borders are averages between quantile centers, edges are counted
-/*
-		doublev attrVals1, attrVals2; //all values of given attributes in the train set; sorted, w duplicates
-		data.getValues(interactions[iNo].first, attrVals1); 
-		data.getValues(interactions[iNo].second, attrVals2); 
-		int valsN1 = (int)attrVals1.size();
-		int valsN2 = (int)attrVals2.size();
-
-		//s(mall) quantile values - values from attrVals on equal distances for quantiles of twice smaller size
-		int squantN1 = quantNs1[iNo] * 2 + 1;
-		int squantN2 = quantNs2[iNo] * 2 + 1;
-		doublev sqVals1(squantN1, QNAN), sqVals2(squantN2, QNAN); 
-		for(int squantNo = 0; squantNo < squantN1; squantNo++)
-			sqVals1[squantNo] = attrVals1[ (valsN1 - 1) * (squantNo + 1) / (squantN1 + 1) ];
-		for(int squantNo = 0; squantNo < squantN2; squantNo++)
-			sqVals2[squantNo] = attrVals2[ (valsN2 - 1) * (squantNo + 1) / (squantN2 + 1) ];
-
-		//borders and centers of density blocks
-		doublevv triples1, triples2;
-		int triN1 = 0;
-		int triN2 = 0;
-		for(int quantNo = 0; quantNo < quantNs1[iNo]; quantNo++)
-		{
-			if((quantNo == 0) || (triples1[triN1 - 1][1] != sqVals1[quantNo * 2 + 1]))
-			{
-				doublev triplet(3, QNAN);
-				triplet[0] = sqVals1[quantNo * 2];
-				triplet[1] = sqVals1[quantNo * 2 + 1];
-				triplet[2] = sqVals1[quantNo * 2 + 2];
-				triples1.push_back(triplet);
-				triN1++;
-			}
-			else
-				triples1[triN1 - 1][2] = sqVals1[quantNo * 2 + 2];
-		}
-		for(int quantNo = 0; quantNo < quantNs2[iNo]; quantNo++)
-		{
-			if((quantNo == 0) || (triples2[triN2 - 1][1] != sqVals2[quantNo * 2 + 1]))
-			{
-				doublev triplet(3, QNAN);
-				triplet[0] = sqVals2[quantNo * 2];
-				triplet[1] = sqVals2[quantNo * 2 + 1];
-				triplet[2] = sqVals2[quantNo * 2 + 2];
-				triples2.push_back(triplet);
-				triN2++;
-			}
-			else
-				triples2[triN2 - 1][2] = sqVals2[quantNo * 2 + 2];
-		}
-
-		//set flags showing whether border values belong to the block
-		bbpairv borders1(triN1, bbpair(true, false)), borders2(triN2, bbpair(true, false));
-		borders1[triN1 - 1].second = true;
-		borders2[triN2 - 1].second = true;
-		for(int triNo1 = 0; triNo1 < triN1 - 1; triNo1++)
-			if(triples1[triNo1][1] == triples1[triNo1][2])
-			{
-				borders1[triNo1].second = true;
-				borders1[triNo1 + 1].first = false;
-			}
-		for(int triNo2 = 0; triNo2 < triN2 - 1; triNo2++)
-			if(triples2[triNo2][1] == triples2[triNo2][2])
-			{
-				borders2[triNo2].second = true;
-				borders2[triNo2 + 1].first = false;
-			}
-
-		
-		//get counts for cells bound by quantile borders
-		ddpairv attrVals12;
-		data.getValues(interactions[iNo].first, interactions[iNo].second, attrVals12);
-
-		doublevv counts(triN1, doublev(triN2, 0));
-		int itemN = (int)attrVals12.size();
-		for(int itemNo = 0; itemNo < itemN; itemNo++)
-		{
-			double& value1 = attrVals12[itemNo].first;
-			double& value2 = attrVals12[itemNo].second;
-			if((value1 < triples1[0][0]) || (value2 < triples2[0][0]) 
-				|| (value1 > triples1[triN1 - 1][2]) || (value2 > triples2[triN2 - 1][2]))
-				continue;//first and last half-quantiles should be ignored
-
-			int blockNo1, blockNo2;
-			for(blockNo1 = 0; blockNo1 < triN1; blockNo1++)
-				if(((value1 > triples1[blockNo1][0]) || borders1[blockNo1].first && (value1 == triples1[blockNo1][0])) 
-					&& ((value1 < triples1[blockNo1][2]) || borders1[blockNo1].second && (value1 == triples1[blockNo1][2]))) 
-					break;
-			for(blockNo2 = 0; blockNo2 < triN2; blockNo2++)
-				if(((value2 > triples2[blockNo2][0]) || borders2[blockNo2].first && (value2 == triples2[blockNo2][0])) 
-					&& ((value2 < triples2[blockNo2][2]) || borders2[blockNo2].second && (value2 == triples2[blockNo2][2])))
-					break;
-
-			counts[blockNo1][blockNo2]++;
-		}
-		for(int blockNo1 = 0; blockNo1 < triN1; blockNo1++)
-			for(int blockNo2 = 0; blockNo2 < triN2; blockNo2++)
-				counts[blockNo1][blockNo2] /= itemN;
-
-		//output
-		string denFName = insertSuffix(outFName, "dens");
-		fstream fdens(denFName.c_str(), ios_base::out);
-		fdens << "Density table: proportion of data around each quantile point " 
-			<< "(some data on edges is ignored)\nrows: \t" << attrName1 << "\ncolumns: \t" << attrName2 
-			<< "\nFirst row/column - quantile borders. Ignore zero in upper left corner.\n\n";
-		
-
-		//x border values
-		fdens << "0";
-		for(int blockNo2 = 0; blockNo2 < triN2; blockNo2++)
-			fdens << "\t" << triples2[blockNo2][0];
-		fdens << "\t" << triples2[triN2 - 1][2];
-		
-		for(int blockNo1 = 0; blockNo1 < triN1; blockNo1++)
-		{//y border value followed by counts values
-			fdens << endl << triples1[blockNo1][0];
-			for(int blockNo2 = 0; blockNo2 < triN2; blockNo2++)
-				fdens << "\t" << counts[blockNo1][blockNo2];
-		}
-		fdens << endl << triples1[triN1 - 1][2] << endl;
-*/
 		//get counts for cells bound by quantile borders
 		ddpairv attrVals12;
 		data.getValues(interactions[iNo].first, interactions[iNo].second, attrVals12);
