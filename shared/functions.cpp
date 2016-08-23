@@ -226,6 +226,7 @@ void te_errMsg(TE_ERROR err)
 			break;
 		case OPEN_OUT_ERR:
 			errlog << "Error: failed to create an output file.\n";
+			break;
 		case MULT_CLASS_ERR:
 			errlog << "Error: multiple attributes marked as class (response) attributes.\n";
 			break;

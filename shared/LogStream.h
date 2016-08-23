@@ -28,6 +28,8 @@ LogStream& operator << (LogStream& logcout, T data)
 
 	fstream fout;
 	fout.open("log.txt", ios_base::out | ios_base::app);
+	if(!fout)
+		cout << "WARNING: failed to open log file log.txt\n";
 	fout << data;
 	fout.close();
 	return logcout;
