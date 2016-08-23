@@ -21,6 +21,7 @@ int main(int argc, char* argv[])
 	try{
 	//0. Set log file
 	LogStream clog;
+	clog.init(true);
 	clog << "\n-----\nvis_iplot ";
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
