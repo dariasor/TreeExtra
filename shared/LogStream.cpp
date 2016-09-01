@@ -15,7 +15,7 @@ void LogStream::init(bool doOut_in)
 	fstream fout; 
 	fout.open("log.txt", ios_base::out);
 	if(!fout)
-		cout << "WARNING: failed to open log file log.txt\n";
+		cout << "\nWARNING: failed to open log file log.txt\n";
 	fout.close(); 
 }
 
