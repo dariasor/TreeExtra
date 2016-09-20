@@ -115,7 +115,8 @@ int main(int argc, char* argv[])
 	while(fmodel.peek() != char_traits<char>::eof())
 	{//load next Grove in the ensemble 
 		ti.bagN++;
-		cout << "Iteration " << ti.bagN << endl;
+		if(doOut)
+			cout << "Iteration " << ti.bagN << endl;
 		CTree tree;
 		tree.load(fmodel);
 
