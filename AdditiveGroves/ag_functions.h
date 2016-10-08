@@ -25,7 +25,7 @@ fstream& operator >> (fstream& fbin, doublevvv& trivec);
 
 //generates output files for train and expand commands
 void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV, doublevvv& predsumsV, 
-			  double trainV, doublevv& dirStat, int startAlphaNo = 0, int startTiGNNo = 0);
+			  double trainV, doublevv& dirStat, double validStD = -1.0, int startAlphaNo = 0, int startTiGNNo = 0);
 
 //converts the number of a valid alpha value into the actual value
 double alphaVal(int alphaNo);
@@ -61,4 +61,7 @@ void outEffects(INDdata& data, intv attrIds, int quantN, string modelFName, stri
 void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, string modelFName, 
 			   string outFName="", string fixedFName="" 
 			   /*last two parameters are valid only for a list consisting of a single interaction*/);
+
+//calculate the best place on the performance grid for the interaction detection
+double bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo);
 

@@ -14,7 +14,7 @@
 
 //generates all output for train, expand and merge commands except for saving the models themselves
 void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV, doublevvv& predsumsV, 
-			  double trainV, doublevv& dirStat, int startAlphaNo, int startTiGNNo)
+				double trainV, doublevv& dirStat, double validStD, int startAlphaNo, int startTiGNNo)
 {
 //Generate temp files that can be used by other commands later. (in addition to saved groves)
 
@@ -244,7 +244,20 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 	else
 		clog << "\nYou can save the best model for the further use. \n" 
 			<< "Suggested action: ag_save -a " << bestAlpha << " -n " << bestTiGN << "\n";
+	
+	if(ti.rms)
+	{
+		if(bestPerf > validStD)
+			clog << "\nWarning: the best performance is worse than baseline. The model is not able to detect any signal in this data." << "\n";
+	}
+	else
+	{
+		if(bestPerf < 0.5)
+			clog << "\nWarning: the best performance is worse than baseline. The model is not able to detect any signal in this data." << "\n";
+	}
+
 	clog << "\n";
+
 }
 
 //saves a vector into a binary file

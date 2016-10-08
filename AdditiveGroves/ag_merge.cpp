@@ -317,9 +317,12 @@ int main(int argc, char* argv[])
 	ti.bagN = allBagN;
 	ti.seed = lastSeed;
 	if(ti.rms)
-		trainOut(ti, dir, rmsV, rmsV, predsumsV, trainV, dirStat, startAlphaNo, startTiGNNo);
+	{
+		double validStD = data.getTarStD(VALID);
+		trainOut(ti, dir, rmsV, rmsV, predsumsV, trainV, dirStat, validStD, startAlphaNo, startTiGNNo);
+	}
 	else
-		trainOut(ti, dir, rmsV, rocV, predsumsV, trainV, dirStat, startAlphaNo, startTiGNNo);
+		trainOut(ti, dir, rmsV, rocV, predsumsV, trainV, dirStat, -1.0, startAlphaNo, startTiGNNo);
 
 	}catch(TE_ERROR err){
 		ErrLogStream errlog;

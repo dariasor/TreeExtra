@@ -316,7 +316,10 @@ int main(int argc, char* argv[])
 
 //4. Output
 	if(ti.rms)
-		trainOut(ti, dir, rmsV, rmsV, predsumsV, trainV, dirStat);
+	{
+		double validStD = data.getTarStD(VALID);
+		trainOut(ti, dir, rmsV, rmsV, predsumsV, trainV, dirStat, validStD);
+	}
 	else
 		trainOut(ti, dir, rmsV, rocV, predsumsV, trainV, dirStat);
 

@@ -48,6 +48,10 @@ public:
 	//returns counts and quantile values
 	int getQuantiles(int attrId, int& quantN, dipairv& valCounts);
 
+	//returns std of response
+	double getTarStD(DATA_SET ds);
+
+
 //"question" functions
 
 	//checks if attribute is boolean
@@ -91,9 +95,6 @@ private:
 
 	//create versions of bootstrap data sorted by active continuous attributes 
 	void sortItems(); 
-
-	//returns mean and std of response
-	double getTarStD(DATA_SET ds);
 
 
 
