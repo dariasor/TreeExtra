@@ -144,6 +144,18 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 	
 	fsurface << "\n\n";
 
+	//for layered, save the bestX numbers into realBestX numbers, and recalculate bestX numbers for interaction detection
+
+	double realBestAlpha = bestAlpha;
+	int realBestTiGN = bestTiGN;
+	if(ti.mode == LAYERED)
+	{
+		bestForID(surfaceV, ti.rms, bestTiGNNo, bestAlphaNo);
+		bestAlpha = (bestAlphaNo < alphaN - 1) ? alphaVal(bestAlphaNo) : ti.minAlpha;
+		bestTiGN = tigVal(bestTiGNNo);
+		bestPerf = surfaceV[bestTiGNNo][bestAlphaNo][ti.bagN - 1];
+	}
+
 	//output the same number (performance) in the form of matrix
 	for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
 	{
@@ -217,11 +229,15 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 	//if the best possible performance is not achieved,
 	//and the best value is on the border, or bagging has not yet converged, recommend expanding
 	if( (ti.rms && (bestPerf != 0) || !ti.rms && (bestPerf != 1)) &&
-		(((bestAlpha == ti.minAlpha) && (ti.minAlpha != 0)) || (bestTiGN == ti.maxTiGN) || recBagging))
+		(	((bestAlpha == ti.minAlpha) && (bestAlpha == realBestAlpha) && (ti.minAlpha != 0)) || 
+			(bestTiGN == ti.maxTiGN) && (bestTiGN == realBestTiGN) || 
+			recBagging ||
+			(ti.mode == LAYERED) && (ti.maxTiGN < 6)
+		))
 	{
 		clog << "\nRecommendation: relaxing model parameters might produce a better model.\n"
 			<< "Suggested action: ag_expand";
-		if((bestAlpha == ti.minAlpha) && (ti.minAlpha != 0))
+		if((bestAlpha == ti.minAlpha) && (bestAlpha == realBestAlpha) && (ti.minAlpha != 0))
 		{
 			double recAlpha = ti.minAlpha * 0.1;
 			//make sure that you don't recommend alpha that is too small for this data set
@@ -229,7 +245,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 				recAlpha = 0;
 			clog << " -a " << recAlpha;
 		}
-		if(bestTiGN == ti.maxTiGN)
+		if((bestTiGN == ti.maxTiGN) && (bestTiGN == realBestTiGN) || (ti.mode == LAYERED) && (ti.maxTiGN < 6))
 		{
 			int recTiGN = tigVal(getTiGNN(ti.maxTiGN) + 1);
 			clog << " -n " << recTiGN;
@@ -752,4 +768,83 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 		}
 		fdens.close();
 	}
+}
+
+//calculate the best place on the performance grid for the interaction detection
+void bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo)
+{
+	//surfaceV[tigNNo][alphaNo][bagNo]
+	int tigNN = (int)surfaceV.size();
+	int alphaN = (int)surfaceV[0].size();
+	int bagNo = (int)surfaceV[0][0].size() - 1;
+
+	//fit matrix: true corresponds to underfitting area, false to overfitting
+	boolv stub(alphaN, false);
+	boolvv fit(tigNN, stub);
+	boolvv fit_temp(tigNN, stub);
+
+	//check horizontal direction
+	for(int tigNNo = 0; tigNNo < tigNN; tigNNo++)
+	{
+		fit[tigNNo][0] = true;
+		for(int alphaNo = 1; alphaNo < alphaN; alphaNo++)
+			if((surfaceV[tigNNo][alphaNo][bagNo] < surfaceV[tigNNo][alphaNo - 1][bagNo]) && rms ||
+				(surfaceV[tigNNo][alphaNo][bagNo] > surfaceV[tigNNo][alphaNo - 1][bagNo]) && !rms)
+				fit[tigNNo][alphaNo] = true;
+			else
+				break;
+	}
+
+	//check vertical direction
+	for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
+	{
+		fit_temp[0][alphaNo] = true;
+		for(int tigNNo = 1; tigNNo < tigNN; tigNNo++)
+		
+		if((surfaceV[tigNNo][alphaNo][bagNo] < surfaceV[tigNNo - 1][alphaNo][bagNo]) && rms ||
+			(surfaceV[tigNNo][alphaNo][bagNo] > surfaceV[tigNNo - 1][alphaNo][bagNo]) && !rms)
+			fit_temp[tigNNo][alphaNo] = true;
+		else
+			break;
+	}
+
+	//merge them (&&)
+	for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
+		for(int tigNNo = 0; tigNNo < tigNN; tigNNo++)
+			fit[tigNNo][alphaNo] = fit[tigNNo][alphaNo] && fit_temp[tigNNo][alphaNo];
+
+	//find best n for interaction detection
+	bestTiGNNo = -1;
+	if(tigNN < 6)
+		bestTiGNNo = tigNN - 1;
+	else if(!fit[5][0])
+		bestTiGNNo = 4;
+	else
+	{	//find n giving the best performance in the top part of the grid in the underfitting area
+		double bestPerf = surfaceV[4][0][bagNo];
+		int realBestNo = 4;
+		for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
+			for(int tigNNo = 4; tigNNo < tigNN; tigNNo++)
+				if(fit[tigNNo][alphaNo] && ((surfaceV[tigNNo][alphaNo][bagNo] < bestPerf) && rms || (surfaceV[tigNNo][alphaNo][bagNo] > bestPerf) && !rms))
+				{
+					bestPerf = surfaceV[tigNNo][alphaNo][bagNo];
+					realBestNo = tigNNo;
+				}
+		
+		if(realBestNo == 4)
+			bestTiGNNo = 5;
+		else
+			bestTiGNNo = realBestNo;
+	}
+
+	//find best alpha for interaction detection
+	bestAlphaNo = 0;
+	for(int alphaNo = 1; alphaNo < alphaN; alphaNo++)
+	if(!fit[bestTiGNNo][alphaNo])
+	{
+		bestAlphaNo = alphaNo - 1;
+		break;
+	}
+	if(fit[bestTiGNNo][alphaN - 1])
+		bestAlphaNo = alphaN - 1;
 }

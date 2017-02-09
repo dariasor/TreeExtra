@@ -63,5 +63,5 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 			   /*last two parameters are valid only for a list consisting of a single interaction*/);
 
 //calculate the best place on the performance grid for the interaction detection
-double bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo);
+void bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo);
 

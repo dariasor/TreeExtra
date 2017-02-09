@@ -31,6 +31,7 @@ typedef vector<float> floatv;
 typedef vector<floatv> floatvv;
 typedef vector<string> stringv;
 typedef vector<bool> boolv;
+typedef vector<boolv> boolvv;
 
 typedef pair<double, int> dipair;
 typedef pair<float, int> fipair;
