@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bt_train", "..\win\bt_train
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bt_predict", "..\win\bt_predict\bt_predict.vcxproj", "{2FB0A616-9772-42F9-8356-242C04DB2464}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gbt_train", "..\win\gbt_train\gbt_train.vcxproj", "{00D8D791-4CD2-424C-B92C-65BCF0167D0A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -23,10 +21,6 @@ Global
 		{2FB0A616-9772-42F9-8356-242C04DB2464}.Debug|Win32.Build.0 = Debug|Win32
 		{2FB0A616-9772-42F9-8356-242C04DB2464}.Release|Win32.ActiveCfg = Release|Win32
 		{2FB0A616-9772-42F9-8356-242C04DB2464}.Release|Win32.Build.0 = Release|Win32
-		{00D8D791-4CD2-424C-B92C-65BCF0167D0A}.Debug|Win32.ActiveCfg = Debug|Win32
-		{00D8D791-4CD2-424C-B92C-65BCF0167D0A}.Debug|Win32.Build.0 = Debug|Win32
-		{00D8D791-4CD2-424C-B92C-65BCF0167D0A}.Release|Win32.ActiveCfg = Release|Win32
-		{00D8D791-4CD2-424C-B92C-65BCF0167D0A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
