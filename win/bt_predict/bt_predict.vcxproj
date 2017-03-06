@@ -54,6 +54,9 @@
     <ClCompile>
       <AdditionalIncludeDirectories>../../shared;../../BaggedTrees;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\BaggedTrees\bt_functions.cpp" />

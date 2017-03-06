@@ -14,8 +14,8 @@
 
 
 
-//ag_iplot -v _validation_set_ -r _attr_file_ -f1 _feature1_ -f2 _feature2_ [-q1 _#quantile_values1_] 
-//[-q2 _#quantile_values2_] [-m _model_file_name_] [-o _output_file_name_] [-x _fixed_values_file_]
+//vis_iplot -v _validation_set_ -r _attr_file_ -f1 _feature1_ -f2 _feature2_ [-q1 _#quantile_values1_] 
+//[-q2 _#quantile_values2_] [-m _model_file_name_] [-o _output_file_name_] [-x _fixed_values_file_] | -version
 int main(int argc, char* argv[])
 {	 
 	try{
@@ -25,6 +25,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 
 	//1. Set default values of parameters
 	string modelFName = "model.bin";	//name of the input file for the model
@@ -124,7 +130,7 @@ int main(int argc, char* argv[])
 			case INPUT_ERR:
 				errlog << "Usage: -v _validation_set_ -r _attr_file_ -f1 _feature1_ -f2 _feature2_ "
 					<< "[-q1 _#quantile_values1_] [-q2 _#quantile_values2_] [-m _model_file_name_] "
-					<< "[-o _output_file_name_] [-x _fixed_values_file_]\n";
+					<< "[-o _output_file_name_] [-x _fixed_values_file_] | -version\n";
 				break;
 			default:
 				throw err;

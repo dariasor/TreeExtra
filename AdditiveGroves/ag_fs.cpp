@@ -3,7 +3,7 @@
 //(c) Daria Sorokina
 
 //ag_fs -t _train_set_ -v _validation_set_ -r _attr_file_ -a _alpha_value_ -n _N_value_ 
-//		-b _bagging_iterations_ [-c rms|roc] [-i seed] [-m _model_file_name_] 
+//		-b _bagging_iterations_ [-c rms|roc] [-i seed] [-m _model_file_name_]  | -version
 
 #include "ag_definitions.h"
 #include "functions.h"
@@ -26,6 +26,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 
 //1. Analyze input parameters
 	//convert input parameters to string from char*
@@ -263,7 +269,7 @@ int main(int argc, char* argv[])
 			case INPUT_ERR:
 				errlog << "Usage: ag_fs -t _train_set_ -v _validation_set_ -r _attr_file_ "
 					<< "-a _alpha_value_ -n _N_value_ -b _bagging_iterations_ " 
-					<< "[-i _init_random_] [-c rms|roc] [-m _model_file_name_] \n";
+					<< "[-i _init_random_] [-c rms|roc] [-m _model_file_name_] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Input error: alpha value is out of [0;1] range.\n";

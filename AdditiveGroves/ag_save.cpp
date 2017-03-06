@@ -11,7 +11,7 @@
 
 #include <errno.h>
 
-//ag_save [-m _model_file_name_] [-a _alpha_value] [-n _N_value_] [-b _bagging_iterations_]
+//ag_save [-m _model_file_name_] [-a _alpha_value] [-n _N_value_] [-b _bagging_iterations_] | -version
 int main(int argc, char* argv[])
 {	 
 	try{
@@ -21,6 +21,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 	
 	//1. Read values of parameters from files
 	string modelFName = "model.bin";	//name of the output file for the model
@@ -198,7 +204,7 @@ int main(int argc, char* argv[])
 		{
 			case INPUT_ERR:
 				errlog << "Usage: ag_save [-m _output_file_name_] [-a _alpha_value_] [-n _N_value_] " 
-					<< "[-b _bagging_iterations_]\n";
+					<< "[-b _bagging_iterations_] | -version\n";
 				break;
 			case TEMP_ERR:
 				errlog << "Error: temporary files from previous runs of train/expand "

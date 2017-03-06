@@ -1,4 +1,4 @@
-% (C) Alexander Sorokin, Daria Sorokina, 2009
+% (C) Alexander Sorokin, Daria Sorokina
 % License: New BSD.
 
 folder='./';
@@ -16,9 +16,9 @@ for iF=1:numel(files)
     f=fopen(fullfile(folder, fn), 'r');
     s=fgets(f);
     s=fgets(f);
-    var1 = s(8:end);
+    var1 = strtrim(s(8:end));
     s=fgets(f);
-    var2 = s(11:end);
+    var2 = strtrim(s(11:end));
     fclose(f);
     [data]=dlmread(fullfile(folder, fn),'\t',5,0);
 
@@ -27,7 +27,10 @@ for iF=1:numel(files)
     yvalues = data(3:end, 2);
     ycounts = data(3:end, 1);
     values = data(3:end, 3:end);
-
+    if xcounts(1) == 0
+        error(['Incorrect data for quantile counts. If your data comes from LRTree, you should be using plot_interactions_lrtree script instead'])
+        continue
+    end
     [density]=dlmread(fullfile(folder, fn2),'\t',4,0);
     
     make_interaction_plot(xvalues, xcounts, yvalues, ycounts, values, density, var2, fn);

@@ -15,7 +15,7 @@
 
 #include <errno.h>
 
-//ag_addbag [-m _model_file_name_] [-b _bagging_iterations_] [-i _init_random_]
+//ag_addbag [-m _model_file_name_] [-b _bagging_iterations_] [-i _init_random_] | -version
 int main(int argc, char* argv[])
 {	 
 	try{
@@ -26,6 +26,11 @@ int main(int argc, char* argv[])
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
 
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 //1a. Set select parameters from AGTemp/params.txt
 
 	TrainInfo ti;		//current and previous sets of input parameters
@@ -364,7 +369,7 @@ int main(int argc, char* argv[])
 				break;
 			case INPUT_ERR:
 				errlog << "Usage: ag_addbag [-m _model_file_name_] [-b _bagging_iterations_] "
-					<< "[-i _init_random_]\n";
+					<< "[-i _init_random_] | -version\n";
 				break;
 			case BAGN_ERR:
 				errlog << "Input error: the number of bagging iterations is less than "

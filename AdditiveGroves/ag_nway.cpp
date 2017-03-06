@@ -4,7 +4,7 @@
 
 //ag_nway -t _train_set_ -v _validation_set_ -r _attr_file_ -a _alpha_value_ -n _N_value_ 
 //		-b _bagging_iterations_ -ave _mean_performance_ -std _std_of_performance_ -w _interaction_file_
-//		[-c rms|roc] [-i _seed_] [-m _model_file_name_] 
+//		[-c rms|roc] [-i _seed_] [-m _model_file_name_]  | -version
 
 #include "ag_definitions.h"
 #include "functions.h"
@@ -27,6 +27,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 
 //1. Analyze input parameters
 	//convert input parameters to string from char*
@@ -232,7 +238,7 @@ int main(int argc, char* argv[])
 				errlog << "Usage: ag_nway -t _train_set_ -v _validation_set_ -r _attr_file_ "
 					<< "-a _alpha_value_ -n _N_value_ -b _bagging_iterations_ -ave _mean_performance_ "
 					<< "-std _std_of_performance_ -w _interaction_file_ [-i _init_random_] [-c rms|roc] "
-					<< "[-m _model_file_name_] \n";
+					<< "[-m _model_file_name_] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Input error: alpha value is out of [0;1] range.\n";

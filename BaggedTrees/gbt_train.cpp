@@ -3,7 +3,7 @@
 
 //gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_ 
 //[-a _alpha_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]
-// [-sh _shrinkage_ ] [-sub _subsampling_]
+// [-sh _shrinkage_ ] [-sub _subsampling_] | -version
 
 #include "Tree.h"
 #include "functions.h"
@@ -23,6 +23,18 @@
 int main(int argc, char* argv[])
 {	
 	try{
+//0. -version mode	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		LogStream clog;
+		clog << "\n-----\nbt_train ";
+		for(int argNo = 1; argNo < argc; argNo++)
+			clog << argv[argNo] << " ";
+		clog << "\n\n";
+
+		clog << "TreeExtra version " << VERSION << "\n";
+			return 0;
+	}
 
 //1. Analyze input parameters
 	//convert input parameters to string from char*
@@ -249,7 +261,7 @@ int main(int argc, char* argv[])
 			case INPUT_ERR:
 				errlog << "Usage: gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_" 
 					<< "[-a _alpha_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]"
-					<< " [-sh _shrinkage_ ] [-sub _subsampling_]\n";
+					<< " [-sh _shrinkage_ ] [-sub _subsampling_] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Error: alpha value is out of [0;1] range.\n";

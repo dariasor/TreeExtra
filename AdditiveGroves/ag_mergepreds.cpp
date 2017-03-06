@@ -20,7 +20,7 @@
 #include <sys/stat.h>   
 
 //ag_mergepreds [-n _start_N_value_] [-a _start_alpha_value_] -d _directory1_ _directory2_ [_directory3_] 
-//[_directory4_] ...
+//[_directory4_] ... | -version
 int main(int argc, char* argv[])
 {	
 	try{
@@ -31,6 +31,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 
 //1. Set input parameters from command line 
 
@@ -329,7 +335,7 @@ int main(int argc, char* argv[])
 				break;
 			case INPUT_ERR:
 				errlog << "Usage: ag_mergelight [-n _start_N_value_] [-a _start_alpha_value_] "
-					<< "-d _directory1_ _directory2_ [_directory3_] [_directory4_] ...\n";
+					<< "-d _directory1_ _directory2_ [_directory3_] [_directory4_] ... | -version\n";
 				break;
 			case DIR_ERR:
 				errlog << "Error: one of input directories does not exist.\n";

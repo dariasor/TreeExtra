@@ -16,7 +16,7 @@
 #include <errno.h>
 #include <algorithm>
 
-//ag_expand [-a _alpha_value_] [-n _N_value_] [-b _bagging_iterations_] [-i _init_random_] [-e on/off]
+//ag_expand [-a _alpha_value_] [-n _N_value_] [-b _bagging_iterations_] [-i _init_random_] [-e on/off] | -version
 
 int main(int argc, char* argv[])
 {	
@@ -27,6 +27,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 
 //1. Set parameters from AGTemp/params.txt
 
@@ -454,7 +460,7 @@ int main(int argc, char* argv[])
 				break;
 			case INPUT_ERR:
 				errlog << "Usage: ag_expand [-a _alpha_value_] [-n _N_value_] [-b _bagging_iterations_]"
-					<< " [-i _init_random_]\n";
+					<< " [-i _init_random_] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Input error: alpha value is out of [0; previous value] range.\n";

@@ -1,4 +1,4 @@
-% (C) Alexander Sorokin, Daria Sorokina 2009
+% (C) Alexander Sorokin, Daria Sorokina
 % License: New BSD.
 
 function make_interaction_plot(xvalues, xcounts, yvalues, ycounts, values, density, xlabelstr, plot_title)

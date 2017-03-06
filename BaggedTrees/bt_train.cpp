@@ -4,7 +4,7 @@
 
 //bt_train -t _train_set_ -v _validation_set_ -r _attr_file_ 
 //[-a _alpha_value_] [-b _bagging_iterations_] [-i _init_random_] [-m_model_file_name_]
-//[-k _attributes_to_leave_] [-l log|nolog] [-c rms|roc]
+//[-k _attributes_to_leave_] [-l log|nolog] [-c rms|roc] | -version
 
 #include "Tree.h"
 #include "bt_functions.h"
@@ -24,6 +24,18 @@
 int main(int argc, char* argv[])
 {	
 	try{
+//0. -version mode	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		LogStream clog;
+		clog << "\n-----\nbt_train ";
+		for(int argNo = 1; argNo < argc; argNo++)
+			clog << argv[argNo] << " ";
+		clog << "\n\n";
+
+		clog << "TreeExtra version " << VERSION << "\n";
+			return 0;
+	}
 
 //1. Analyze input parameters
 	//convert input parameters to string from char*
@@ -307,7 +319,7 @@ int main(int argc, char* argv[])
 				errlog << "Usage: bt_train -t _train_set_ -v _validation_set_ -r _attr_file_ "
 					<< "[-a _alpha_value_] [-b _bagging_iterations_] [-i _init_random_] " 
 					<< "[-m _model_file_name_] [-k _attributes_to_leave_] [-c rms|roc] "
-					<< "[-l log|nolog]\n";
+					<< "[-l log|nolog] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Error: alpha value is out of [0;1] range.\n";

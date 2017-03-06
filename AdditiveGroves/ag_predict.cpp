@@ -11,7 +11,7 @@
 
 #include <errno.h>
 
-//ag_predict -p _test_set_ -r _attr_file_ [-m _model_file_name_] [-o _output_file_name_] [-c rms|roc]
+//ag_predict -p _test_set_ -r _attr_file_ [-m _model_file_name_] [-o _output_file_name_] [-c rms|roc] | -version
 int main(int argc, char* argv[])
 {	 
 	try{
@@ -21,6 +21,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 
 	//1. Set default values of parameters
 	string modelFName = "model.bin";	//name of the input file for the model
@@ -150,7 +156,7 @@ int main(int argc, char* argv[])
 		{
 			case INPUT_ERR:
 				errlog << "Usage: ag_predict -p _test_set_ -r _attr_file_name_ "
-					<< "[-m _model_file_name_] [-o _output_file_name_] [-c rms|roc]\n";
+					<< "[-m _model_file_name_] [-o _output_file_name_] [-c rms|roc] | -version\n";
 				break;
 			default:
 				throw err;

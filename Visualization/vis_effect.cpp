@@ -13,7 +13,7 @@
 #include <errno.h>
 
 //vis_effect -v _validation_set_ -r _attr_file_ -f _feature_ [-m _model_file_name_] [-o _output_file_name_] 
-	//[-q _#quantile_values_]
+	//[-q _#quantile_values_] | -version
 int main(int argc, char* argv[])
 {
 	try{
@@ -23,6 +23,12 @@ int main(int argc, char* argv[])
 	for(int argNo = 1; argNo < argc; argNo++)
 		clog << argv[argNo] << " ";
 	clog << "\n\n";
+	
+	if((argc > 1) && !string(argv[1]).compare("-version"))
+	{
+		clog << "TreeExtra version " << VERSION << "\n";
+		return 0;
+	}
 
 	//1. Set default values of parameters
 	string modelFName = "model.bin";	//name of the input file for the model
@@ -103,7 +109,7 @@ int main(int argc, char* argv[])
 		{
 			case INPUT_ERR:
 				errlog << "Usage: -v _validation_set_ -r _attr_file_ -f _feature_ [-m _model_file_name_] "
-					<< "[-o _output_file_name_] [-q _#quantile_values_]\n";
+					<< "[-o _output_file_name_] [-q _#quantile_values_] | -version\n";
 				break;
 			case ATTR_NAME_ERR:
 				errlog << "Error: attribute name misspelled or the attribute is not active.\n";

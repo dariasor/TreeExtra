@@ -99,6 +99,7 @@ enum AG_TRAIN_MODE
 };
 
 
+#define VERSION "2.5.1" //release version
 #define LINE_LEN 20000	//maximum length of line in the input file
 #define QNAN flim::quiet_NaN()
 
