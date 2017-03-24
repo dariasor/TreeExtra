@@ -295,7 +295,12 @@ void te_errMsg(TE_ERROR err)
 		case ROC_FLAT_ERR:
 			errlog << "Error: cannot calculate ROC - all labels have the same value.\n";
 			break;
-		default:
+		case MV_CLASS_TRAIN_ERR:
+			errlog << "Error: missing values in the train set class(response) column.\n";
+			break;
+		case MV_CLASS_VALID_ERR:
+			errlog << "Error: missing values in the validation set class(response) column.\n";
+			break;		default:
 			throw err;
 	}
 }

@@ -141,7 +141,10 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				throw err;
 			}
 			
+			if(wxisNaN(item[tarColNo]))
+				throw MV_CLASS_TRAIN_ERR;
 			trainTar.push_back(item[tarColNo]);
+			
 			if(weightColNo != -1)
 				trainW.push_back(item[weightColNo]);
 			item.erase(item.begin() + max(tarColNo, weightColNo));
@@ -206,8 +209,10 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				cerr << "\nLine " << caseNo + 1 << "\n";
 				throw err;
 			}
-
+			if(wxisNaN(item[tarColNo]))
+				throw MV_CLASS_VALID_ERR;
 			validTar.push_back(item[tarColNo]);
+			
 			if(weightColNo != -1)
 				validW.push_back(item[weightColNo]);
 			item.erase(item.begin() + max(tarColNo, weightColNo));
