@@ -103,6 +103,7 @@ private:
 	int colN;			//number of columns in the data file
 	intset boolAttrs;	//boolean attributes
 	intset nomAttrs;	//nominal attributes
+	boolv rawNom;		//boolean vector with the original number of columns, marks columns with nominal attributes
 	intset ignoreAttrs; //attributes that should be ignored
 	stringv attrNames;	//names of attributes
 	int tarColNo;		//response column number

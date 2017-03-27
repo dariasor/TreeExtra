@@ -88,7 +88,8 @@ enum TE_ERROR
 	ROC_FLAT_ERR = 26,
 	OPEN_OUT_ERR = 27,
 	MV_CLASS_TRAIN_ERR = 28,
-	MV_CLASS_VALID_ERR = 29
+	MV_CLASS_VALID_ERR = 29,
+	NON_NUMERIC_VALUE_ERR = 30
 };
 
 //this enum has to be in the general definition file, because it is a part of a model file, and all model 

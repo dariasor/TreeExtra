@@ -78,12 +78,17 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		string::size_type endType = attrStr.find(".");
 		string typeStr = attrStr.substr(nameLen + 1, endType - nameLen - 1);
 		typeStr = trimSpace(typeStr);
-		if(typeStr.compare("0,1") == 0)
-			boolAttrs.insert(attrId);
-		else if(typeStr.compare("nom") == 0)
+		if(typeStr.compare("nom") == 0)
+		{
 			nomAttrs.insert(attrId);
-		else if(attrStr.find("cont") == string::npos) 
-			throw ATTR_TYPE_ERR;
+			rawNom.push_back(true);
+		} else {
+			rawNom.push_back(false);
+			if(typeStr.compare("0,1") == 0)
+				boolAttrs.insert(attrId);
+			else if(attrStr.find("cont") == string::npos) 
+				throw ATTR_TYPE_ERR;
+		}
 
 		getLineExt(fattr, buf);
 	}
@@ -293,7 +298,7 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 	retv.resize(retvlen, 0);
 	stringstream itemstr(line.c_str());
 	string singleItem;
-	for(int attrId = 0; attrId < retvlen; attrId++)
+	for(int attrNo = 0; attrNo < retvlen; attrNo++)
 	{
 		itemstr >> singleItem;
 		if(itemstr.fail())
@@ -302,11 +307,13 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 		if(singleItem.compare("?"))
 		{//should be a number, convert it
 			stringstream sistr(singleItem);
-			sistr >> retv[attrId];
+			sistr >> retv[attrNo];
+			if(sistr.fail() && !rawNom[attrNo])
+				throw NON_NUMERIC_VALUE_ERR;
 		}
 		else //missing value
 		{
-			retv[attrId] = QNAN;
+			retv[attrNo] = QNAN;
 			hasMV = true;
 		}
 	}

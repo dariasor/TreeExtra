@@ -300,7 +300,10 @@ void te_errMsg(TE_ERROR err)
 			break;
 		case MV_CLASS_VALID_ERR:
 			errlog << "Error: missing values in the validation set class(response) column.\n";
-			break;		default:
+			break;		
+		case NON_NUMERIC_VALUE_ERR:
+			errlog << "Error: non-numeric value in the data.\n";
+		default:
 			throw err;
 	}
 }
