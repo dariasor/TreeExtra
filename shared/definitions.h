@@ -11,6 +11,7 @@
 #include <map>
 #include <limits>
 #include <stack>
+#include <math.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -108,7 +109,7 @@ enum AG_TRAIN_MODE
 
 #if defined(__VISUALC__)
     #define wxisNaN(n) _isnan(n)
-#elseif defined(__GNUC__)
+#elif defined(__GNUC__)
     #define wxisNaN(n) isnan(n)
 #else
     #define wxisNaN(n) ((n) != (n))

@@ -337,13 +337,19 @@ int main(int argc, char* argv[])
 						fstream*& pftemp = ftemps[tigNNo + prevAlphaN - 1 - alphaNo];
 						if(bagNo == 0)
 							pftemp = new fstream(tempFName.c_str(), ios_base::binary | ios_base::in);
-						if(pftemp->fail())
-							throw TEMP_ERR;		
-						
-						CGrove oldGrove(alpha, tigN);
-						oldGrove.load(*pftemp);
 
-						oldGrove.batchPredict(sinpreds[tigNNo], jointpreds[tigNNo]);
+                        // sometime when you train ag model with following parameters:
+                        //     > ./ag_train -a 0.01 -t data.train -v data.valid -r data.attr
+                        // program will suggest:
+                        //     > ./ag_train -a 0 -n 10 -b 100
+                        // In this case, AGTemp/ag.a.0.0.n.*.tmp may not created, so 
+                        // we should create this tmp file in current iteration
+						if(!pftemp->fail()) {
+                            CGrove oldGrove(alpha, tigN);
+                            oldGrove.load(*pftemp);
+
+                            oldGrove.batchPredict(sinpreds[tigNNo], jointpreds[tigNNo]);
+                        }
 
 						if(bagNo == prev.bagN - 1)
 						{

@@ -105,7 +105,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 	fstream fsurface;	//output text file with performance matrix
 	fsurface.open("performance.txt", ios_base::out); 
 
-	double bestPerf;					//best performance on validation set
+	double bestPerf = QNAN;				//best performance on validation set
 	int bestTiGNNo, bestAlphaNo;		//ids of parameters that produce best performance
 	int bestTiGN; double bestAlpha;		//parameters that produce best performance
 	//output performance matrix, find best performance and corresponding parameter values
@@ -125,20 +125,26 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 			fsurface << alpha << " \t" << tigN << " \t" << curPerf << "\t" << !moreBag(rmsV[tigNNo][alphaNo]) << endl;
 
 			//check for the best result inside the active output area
-			if((ti.mode != LAYERED) && (tigNNo >= startTiGNNo) && (alphaNo >= startAlphaNo))
-				if((tigNNo == startTiGNNo) && (alphaNo == startAlphaNo) || 
-					ti.rms && (curPerf < bestPerf) ||
-					!ti.rms && (curPerf > bestPerf) ||
-					((curPerf == bestPerf) && //if the result is the same, choose the less complex model
-						(pow((double)2, alphaNo) * tigN < pow((double)2, bestAlphaNo) * bestTiGN))
-					)	
-				{
-					bestTiGNNo = tigNNo;
+            if ((ti.mode != LAYERED) && (tigNNo >= startTiGNNo) &&
+                (alphaNo >= startAlphaNo)) {
+                bool is_first_round = (tigNNo == startTiGNNo) &&
+                                      (alphaNo == startAlphaNo) &&
+                                      wxisNaN(bestPerf);
+                bool is_rms_update = ti.rms && (curPerf < bestPerf);
+                bool is_roc_update = (!ti.rms) && (curPerf > bestPerf);
+                bool is_same_perf = (curPerf == bestPerf) &&
+                                    ((pow(2.0, alphaNo) * tigN) < 
+                                     (pow(2.0, bestAlphaNo) * bestTiGN));
+                
+                if (is_first_round || is_rms_update ||
+                    is_roc_update || is_same_perf) {
+                    bestTiGNNo = tigNNo;
 					bestTiGN = tigN;
 					bestAlphaNo = alphaNo;
 					bestAlpha = alpha;
 					bestPerf = curPerf;
-				}
+                }
+            }
 		}		
 	}
 	
