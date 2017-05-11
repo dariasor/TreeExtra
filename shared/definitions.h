@@ -14,6 +14,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <float.h>
 
 using namespace std;
 
@@ -106,10 +107,6 @@ enum AG_TRAIN_MODE
 #define LINE_LEN 20000	//maximum length of line in the input file
 #define QNAN flim::quiet_NaN()
 
-#if defined(__VISUALC__)
-    #define wxisNaN(n) _isnan(n)
-#elseif defined(__GNUC__)
-    #define wxisNaN(n) isnan(n)
-#else
-    #define wxisNaN(n) ((n) != (n))
+#if defined(_MSC_VER) && (_MSC_VER <= 1600)
+    #define isnan(a) _isnan(a)	//for old versions of Visual Studio that did not have isnan
 #endif

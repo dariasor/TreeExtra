@@ -3,6 +3,7 @@
 // (c) Daria Sorokina
 
 #include "SplitInfo.h"
+#include "math.h"
 
 //default constructor
 SplitInfo::SplitInfo():divAttr(-1)
@@ -25,12 +26,12 @@ SplitInfo::SplitInfo(int attr, double point, double miss):
 double SplitInfo::leftCoef(double value)
 {
 	//left coefficient for missing values is defined by missingL 
-	if(wxisNaN(value))
+	if(isnan(value))
 		return missingL;
 
 	//absence of border value indicates special split - non-missing vs missing. 
 	//Missing values are treated in the previous if, so this can only be a non-missing value that should go left
-	if(wxisNaN(border))	
+	if(isnan(border))	
 		return 1;
 	
 	//the rest is standard crisp split

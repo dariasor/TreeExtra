@@ -146,7 +146,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				throw err;
 			}
 			
-			if(wxisNaN(item[tarColNo]))
+			if(isnan(item[tarColNo]))
 				throw MV_CLASS_TRAIN_ERR;
 			trainTar.push_back(item[tarColNo]);
 			
@@ -157,7 +157,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				item.erase(item.begin() + min(tarColNo, weightColNo));
 
 			for(intset::iterator boolIt = boolAttrs.begin(); boolIt != boolAttrs.end(); boolIt++)
-				if((item[*boolIt] != 0) && (item[*boolIt] != 1) && !wxisNaN(item[*boolIt]))
+				if((item[*boolIt] != 0) && (item[*boolIt] != 1) && !isnan(item[*boolIt]))
 					throw ATTR_NOT_BOOL_ERR;
 			train.push_back(item);
 			getLineExt(fin, buf);
@@ -214,7 +214,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				cerr << "\nLine " << caseNo + 1 << "\n";
 				throw err;
 			}
-			if(wxisNaN(item[tarColNo]))
+			if(isnan(item[tarColNo]))
 				throw MV_CLASS_VALID_ERR;
 			validTar.push_back(item[tarColNo]);
 			
@@ -411,7 +411,7 @@ void INDdata::sortItems()
 			for(int itemNo = 0; itemNo < sampleN; itemNo++)
 			{
 				float value = train[bootstrap[itemNo]][attrs[attrNo]];
-				if(!wxisNaN(value))
+				if(!isnan(value))
 					sortedItems[attrNo].push_back(fipair(value, itemNo));
 			}
 			sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
@@ -527,7 +527,7 @@ double INDdata::getValue(int itemNo, int attrId, DATA_SET dset)
 bool INDdata::hasTrueTest()
 {
 	for(int itemNo = 0; itemNo < testN; itemNo++)
-		if(wxisNaN(testTar[itemNo]))
+		if(isnan(testTar[itemNo]))
 			return false;
 	return true;
 }

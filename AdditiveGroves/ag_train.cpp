@@ -170,7 +170,7 @@ int main(int argc, char* argv[])
 	if(ti.minAlpha != newAlpha)
 	{
 		if(newAlpha == 0)
-		  clog << "Warning: due to small train set size (" << trainV << ") value of alpha was changed to 0"; 
+		  clog << "Warning: due to the small train set size (" << trainV << ") the value of alpha was changed to 0"; 
 		else 
 			clog << "Warning: alpha value was rounded to the closest valid value - " << newAlpha;
 		clog << ".\n\n";

@@ -354,7 +354,7 @@ double CTreeNode::getEntropy(int attrId)
 	for (ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
 	{
 		double value = pData->getValue(itemIt->key, attrId, TRAIN);
-		if (wxisNaN(value))
+		if (isnan(value))
 			mvCount += itemIt->coef;
 		else
 			valCounts[value] += itemIt->coef;
@@ -412,14 +412,14 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 			//there is exactly one split for a boolean attribute, evaluate it
 			SplitInfo boolSplit(attr, 0.5);
 			double eval = evalBool(boolSplit, nodeV, nodeSum);
-			if(wxisNaN(eval))
+			if(isnan(eval))
 			{//boolean attribute is not valid anymore, remove it
 				pAttrs->erase(pAttrs->begin() + attrNo);	
 				pSorted->erase(pSorted->begin() + attrNo);
 			}
 			else 
 			{//save if this is one of the best splits
-				if(wxisNaN(bestEval) || (eval < bestEval))
+				if(isnan(bestEval) || (eval < bestEval))
 				{
 					bestEval = eval;
 					bestSplits.clear();
@@ -483,7 +483,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 
 				//if there are different responses in previous and current block 
 					//build and evaluate the split between them
-				if(!wxisNaN(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
+				if(!isnan(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
 				{
 					newSplits = true;
 					//calculate the "short mse" of the new split - parts of sum of se that are different for different splits
@@ -505,7 +505,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 					double eval = sqErr1 + sqErr2;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
-					if(wxisNaN(bestEval) || (eval < bestEval))
+					if(isnan(bestEval) || (eval < bestEval))
 					{
 						bestEval = eval;
 						bestSplits.clear();
@@ -520,7 +520,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 					//"restart" prev parameters with this block
 					prevTraV = curTraV;
 					prevTraSum = curTraSum;
-				}//end if(!wxisNaN(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
+				}//end if(!isnan(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
 				else
 				{//block was not used, increas "prev" parameters
 					prevTraV += curTraV;
@@ -546,7 +546,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 
 
 	//choose a random split from those with best mse
-	if(!wxisNaN(bestEval))
+	if(!isnan(bestEval))
 	{
 		int bestSplitN = (int)bestSplits.size();
 		int randSplit = rand() % bestSplitN;
@@ -559,7 +559,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 				//it is an empty vector (the attribute is boolean), but we still need to remove it
 		}
 	}
-	return wxisNaN(bestEval);
+	return isnan(bestEval);
 }
 
 //Chooses the best split when missing values are present. Same algorithm as in setSplit with the following additions:
@@ -586,7 +586,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 		double missSum = 0; //sum of responses of mv cases (multiplied by sq coefs)
 		double missV = 0; //volume of mv in the node (sum of sq coefs)
 		for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
-			if(wxisNaN(pData->getValue(itemIt->key, attr, TRAIN)))
+			if(isnan(pData->getValue(itemIt->key, attr, TRAIN)))
 			{
 				double coef_sq = itemIt->coef * itemIt->coef;
 				missSum += coef_sq * itemIt->response;
@@ -606,7 +606,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 			double eval = sqErr1 + sqErr2;
 			
 			//if it is the best (one of the best) so far, keep it
-			if(wxisNaN(bestEval) || (eval < bestEval))
+			if(isnan(bestEval) || (eval < bestEval))
 			{
 				bestEval = eval;
 				bestSplits.clear();
@@ -623,10 +623,10 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 			//there is only one non-special split for a boolean attribute, evaluate it
 			SplitInfo boolSplit(attr, 0.5);
 			double eval = evalBoolMV(boolSplit, nodeV, nodeSum, missV, missSum);
-			if(!wxisNaN(eval))
+			if(!isnan(eval))
 			{//save if this is one of the best splits
 				newSplits = true;
-				if(wxisNaN(bestEval) || (eval < bestEval))
+				if(isnan(bestEval) || (eval < bestEval))
 				{
 					bestEval = eval;
 					bestSplits.clear();
@@ -686,7 +686,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 
 				//if there are different responses in previous and current block 
 					//build and evaluate the split between them
-				if(!wxisNaN(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
+				if(!isnan(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
 				{
 					newSplits = true;
 					//calculate the "short mse" of the new split - parts of sum of se that are different for different splits
@@ -711,7 +711,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 					double eval = sqErr1 + sqErr2 + missSqErr;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
-					if(wxisNaN(bestEval) || (eval < bestEval))
+					if(isnan(bestEval) || (eval < bestEval))
 					{
 						bestEval = eval;
 						bestSplits.clear();
@@ -726,7 +726,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 					//"restart" prev parameters with this block
 					prevTraV = curTraV;
 					prevTraSum = curTraSum;
-				}//end if(!wxisNaN(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
+				}//end if(!isnan(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
 				else
 				{//block was not used, increas "prev" parameters
 					prevTraV += curTraV;
@@ -752,13 +752,13 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 	}//end for(int attrNo = 0; attrNo < (int)pAttrs->size();)
 
 //choose a random split from those with best mse
-	if(!wxisNaN(bestEval))
+	if(!isnan(bestEval))
 	{
 		int bestSplitN = (int)bestSplits.size();
 		int randSplit = rand() % bestSplitN;
 		splitting = bestSplits[randSplit];
 	}
-	return wxisNaN(bestEval);
+	return isnan(bestEval);
 }
 
 //Calculates short sum of squared errors of the boolean split for the data without missing values. 
@@ -818,7 +818,7 @@ double CTreeNode::evalBoolMV(SplitInfo& canSplit, double nodeV, double nodeSum, 
 		double value = pData->getValue(itemIt->key, canSplit.divAttr, TRAIN);
 		double coef_sq = itemIt->coef * itemIt->coef;
 		double& resp = itemIt->response;
-		if(!wxisNaN(value) && (value == 0))	//not missing, left
+		if(!isnan(value) && (value == 0))	//not missing, left
 		{
 			volume1 += coef_sq;
 			sum1 += resp * coef_sq;

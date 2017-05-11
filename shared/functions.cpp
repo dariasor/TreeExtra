@@ -190,7 +190,7 @@ bool moreBag(doublev bagPerf)
 		relImprove = QNAN;
 	
 	//check stopping criterion
-	if((wxisNaN(relMaxMin) || (relMaxMin > 500)) && (wxisNaN(relImprove) || (relImprove > 1000)))
+	if((isnan(relMaxMin) || (relMaxMin > 500)) && (isnan(relImprove) || (relImprove > 1000)))
 		return false;
 	return true;
 }
@@ -303,6 +303,7 @@ void te_errMsg(TE_ERROR err)
 			break;		
 		case NON_NUMERIC_VALUE_ERR:
 			errlog << "Error: non-numeric value in the data.\n";
+			break;
 		default:
 			throw err;
 	}
@@ -461,7 +462,7 @@ double rand_coef()
 //less function with NaN greater than numbers
 bool lessNaN(double i, double j) 
 { 
-	if(wxisNaN(j) && !wxisNaN(i))
+	if(isnan(j) && !isnan(i))
 		return true;
 	else
 		return (i<j); 
@@ -470,7 +471,7 @@ bool lessNaN(double i, double j)
 //equals function taking into account NaN
 bool equalsNaN(double i, double j)
 {
-	return (i == j) || wxisNaN(i) && wxisNaN(j);
+	return (i == j) || isnan(i) && isnan(j);
 }
 
 //less function with NaN greater than numbers for pairs
@@ -486,7 +487,7 @@ bool lessNaNP(ddpair p1, ddpair p2)
 //converts double to string, NaN to question mark
 string ftoaExt(double d)
 {
-	if(wxisNaN(d))
+	if(isnan(d))
 		return "?";
 
 	stringstream s;
