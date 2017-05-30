@@ -71,3 +71,12 @@ bool equalsNaN(double i, double j);
 
 //converts double to string, NaN to question mark
 string ftoaExt(double d);
+
+//equals function for doubles, takes round-off errors into account
+bool eqDouble(double i, double j);
+
+//equals or less function for doubles, takes round-off errors into account
+bool leDouble(double i, double j);
+
+//less function for doubles, takes round-off errors into account
+bool ltDouble(double i, double j);

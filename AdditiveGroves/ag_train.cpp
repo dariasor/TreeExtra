@@ -167,7 +167,7 @@ int main(int argc, char* argv[])
 
 	//adjust minAlpha, if needed
 	double newAlpha = adjustAlpha(ti.minAlpha, trainV);
-	if(ti.minAlpha != newAlpha)
+	if(!eqDouble(ti.minAlpha, newAlpha))
 	{
 		if(newAlpha == 0)
 		  clog << "Warning: due to the small train set size (" << trainV << ") the value of alpha was changed to 0"; 

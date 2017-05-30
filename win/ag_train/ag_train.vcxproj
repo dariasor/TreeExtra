@@ -76,6 +76,7 @@
     <ClInclude Include="..\..\shared\ErrLogStream.h" />
     <ClInclude Include="..\..\shared\functions.h" />
     <ClInclude Include="..\..\AdditiveGroves\Grove.h" />
+    <ClInclude Include="..\..\shared\gtest-internal.h" />
     <ClInclude Include="..\..\shared\INDdata.h" />
     <ClInclude Include="..\..\shared\ItemInfo.h" />
     <ClInclude Include="..\..\shared\LogStream.h" />

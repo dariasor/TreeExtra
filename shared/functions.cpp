@@ -5,6 +5,7 @@
 #include "functions.h"
 #include "definitions.h"
 #include "ErrLogStream.h"
+#include "gtest-internal.h"
 
 #include <fstream>
 #include <sstream>
@@ -85,15 +86,15 @@ int sDigit(double number)
 double adjustAlpha(double alpha, double trainV)
 {
 	//A leaf cannot contain less than 1 point, alpha too small is indistinguishable from zero
-	if(alpha <= 1.0 / trainV)
+	if(leDouble(alpha, 1.0 / trainV))
 		return 0;
 
 	//Check if the original alpha is good. This part does not seem to be necessary, but 
 	//otherwise annoying round-off errors happen and mess up the further comparisons
 	double copyAlpha = alpha;
-	while(copyAlpha < 1)
+	while(ltDouble(copyAlpha, 1.0))
 		copyAlpha *= 10;
-	if((copyAlpha == 1) || (copyAlpha == 2) || (copyAlpha == 5))
+	if(eqDouble(copyAlpha, 1.0) || eqDouble(copyAlpha, 2.0) || eqDouble(copyAlpha, 5.0))
 		return alpha;
 
 	// Round alpha up to one of valid values of the form 0.0...0n, where n = 1, 2 or 5.
@@ -493,4 +494,23 @@ string ftoaExt(double d)
 	stringstream s;
 	s << d;
 	return s.str();
+}
+
+//equals function for doubles, takes round-off errors into account
+bool eqDouble(double i, double j)
+{
+	const FloatingPoint<double> lhs(i), rhs(j);
+	return lhs.AlmostEquals(rhs);
+}
+
+//equals or less function for doubles, takes round-off errors into account
+bool leDouble(double i, double j)
+{
+	return (i < j) || eqDouble(i,j);
+}
+
+//less function for doubles, takes round-off errors into account
+bool ltDouble(double i, double j)
+{
+	return (i < j) && !eqDouble(i,j);
 }

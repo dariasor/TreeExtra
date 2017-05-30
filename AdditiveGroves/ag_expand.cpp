@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
 		clog << "slow mode\n\n";
 	else //if(ti.mode == LAYERED)
 		clog << "layered mode\n\n";
-	cout << "Model already trained:\n\tAlpha = " << prev.minAlpha << "\n\tN = " << prev.maxTiGN 
+	clog << "Model already trained:\n\tAlpha = " << prev.minAlpha << "\n\tN = " << prev.maxTiGN 
 		<< "\n\t" << prev.bagN << " bagging iterations\n"; 
 	if(ti.rms)
 		clog << "Previous model's RMSE on validation set = " << prevBest << "\n\n";

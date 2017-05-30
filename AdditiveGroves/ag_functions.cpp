@@ -335,10 +335,7 @@ fstream& operator >> (fstream& fbin, doublevvv& trivec)
 int getAlphaN(double minAlpha, double trainV)
 {
 	int alphaN; 
-	for(alphaN = 0; 
-		(minAlpha < alphaVal(alphaN) - 0.000000000000001) && //to adjust for rounding errors
-			(1 / trainV < alphaVal(alphaN) - 0.000000000000001); 
-		alphaN++)
+	for(alphaN = 0; ltDouble(minAlpha, alphaVal(alphaN)) && ltDouble(1.0 / trainV, alphaVal(alphaN)); alphaN++)
 		;
 	alphaN++;
 
