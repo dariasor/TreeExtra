@@ -20,6 +20,9 @@ intv::iterator erasev(intv* pVec, int item, int& no);
 //returns a place of the first significant digit after zero
 int sDigit(double number);
 
+//rounds a positive integer to the order of two important digits
+int roundInt(int number);
+
 //rounds up alpha to the closest appropriate value
 double adjustAlpha(double alpha, double trainV);
 

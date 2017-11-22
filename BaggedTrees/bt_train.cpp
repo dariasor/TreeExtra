@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <errno.h>
+#include <cmath>
 
 int main(int argc, char* argv[])
 {	
@@ -270,7 +271,7 @@ int main(int argc, char* argv[])
 	//analyze whether more bagging should be recommended based on the curve in the best point
 	if(moreBag(rmsV))
 	{
-		int recBagN = ti.bagN + 100;
+		int recBagN = roundInt(round(ti.bagN * 1.5));
 		clog << "\nRecommendation: a greater number of bagging iterations might produce a better model.\n"
 			<< "Suggested action: bt_train -b " << recBagN << "\n";
 	}

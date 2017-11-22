@@ -82,6 +82,22 @@ int sDigit(double number)
 
 	return ret;
 }
+
+//rounds a positive integer to the order of two important digits
+int roundInt(int number)
+{
+	if(number > 100)
+	{
+		int upper = 1;
+		while(number > upper)
+			upper *= 10;
+
+		upper /= 100;
+		return (int)round((double)number / upper) * upper;
+	}
+	return number;
+}
+
 //Rounds alpha to the closest appropriate value
 double adjustAlpha(double alpha, double trainV)
 {
