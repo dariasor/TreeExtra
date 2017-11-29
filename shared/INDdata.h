@@ -101,10 +101,12 @@ private:
 private:
 	int attrN;			//number of attributes
 	int colN;			//number of columns in the data file
+	intv aIdToColNo;	//attribute ids to column numbers
 	intset boolAttrs;	//boolean attributes
 	intset nomAttrs;	//nominal attributes
-	boolv rawNom;		//boolean vector with the original number of columns, marks columns with nominal attributes
+	//boolv rawNom;		//boolean vector with the original number of columns, marks columns with nominal attributes
 	intset ignoreAttrs; //attributes that should be ignored
+	boolv rawIgnore;		//boolean vector with the original number of columns, marks columns with the attributes that should not be used
 	stringv attrNames;	//names of attributes
 	int tarColNo;		//response column number
 	int weightColNo;	//weights column number

@@ -73,6 +73,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		if(attrName.find_first_of("\\/*?\"<>|:") != string::npos)
 			throw ATTR_NAME_DEF_ERR;
 		attrNames.push_back(trimSpace(attrName));
+		aIdToColNo.push_back(colNo);
 
 		//parse attr type
 		string::size_type endType = attrStr.find(".");
@@ -81,9 +82,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		if(typeStr.compare("nom") == 0)
 		{
 			nomAttrs.insert(attrId);
-			rawNom.push_back(true);
 		} else {
-			rawNom.push_back(false);
 			if(typeStr.compare("0,1") == 0)
 				boolAttrs.insert(attrId);
 			else if(attrStr.find("cont") == string::npos) 
@@ -120,6 +119,11 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	clog << attrN << " attributes\n" << activeAttrN << " active attributes\n\n";
 	if(!isSubset(nomAttrs, ignoreAttrs))
 		throw NOM_ACTIVE_ERR;
+
+	//fill rawIgnore
+	rawIgnore.resize(colN, false);
+	for(intset::iterator aIt = ignoreAttrs.begin(); aIt != ignoreAttrs.end(); aIt++)
+		rawIgnore[aIdToColNo[*aIt]] = true;
 
 	//Read data
 	if(string(trainFName).compare("") != 0)
@@ -298,7 +302,7 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 	retv.resize(retvlen, 0);
 	stringstream itemstr(line.c_str());
 	string singleItem;
-	for(int attrNo = 0; attrNo < retvlen; attrNo++)
+	for(int colNo = 0; colNo < retvlen; colNo++)
 	{
 		itemstr >> singleItem;
 		if(itemstr.fail())
@@ -307,13 +311,16 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 		if(singleItem.compare("?"))
 		{//should be a number, convert it
 			stringstream sistr(singleItem);
-			sistr >> retv[attrNo];
-			if(sistr.fail() && !rawNom[attrNo])
+			sistr >> retv[colNo];
+			if(sistr.fail() && !rawIgnore[colNo])
+			{
+				cerr << "\nColumn " << colNo + 1;
 				throw NON_NUMERIC_VALUE_ERR;
+			}
 		}
 		else //missing value
 		{
-			retv[attrNo] = QNAN;
+			retv[colNo] = QNAN;
 			hasMV = true;
 		}
 	}

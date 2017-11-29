@@ -319,7 +319,7 @@ void te_errMsg(TE_ERROR err)
 			errlog << "Error: missing values in the validation set class(response) column.\n";
 			break;		
 		case NON_NUMERIC_VALUE_ERR:
-			errlog << "Error: non-numeric value in the data.\n";
+			errlog << "Error: non-numeric value for an active attribute in the data.\n";
 			break;
 		default:
 			throw err;
