@@ -19,11 +19,17 @@ clean:
 .cpp.o:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
+bt_predict.o: $(OBJS)
+
 bt_predict: bt_predict.o $(OBJS)
 	g++ -O3 -o ../Bin/bt_predict bt_predict.o $(OBJS) $(LIBS)
 
+bt_train.o: $(OBJS)
+
 bt_train: bt_train.o $(OBJS)
 	g++ -O3 -o ../Bin/bt_train bt_train.o $(OBJS) $(LIBS)
+
+gbt_train.o: $(OBJS)
 
 gbt_train: gbt_train.o $(OBJS)
 	g++ -O3 -o ../Bin/gbt_train gbt_train.o $(OBJS) $(LIBS)

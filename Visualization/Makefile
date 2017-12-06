@@ -13,12 +13,16 @@ directories:
 	mkdir -p ../Bin
 
 clean:
-	rm $(OBJS)
-	rm $(PGMOBJS)
-	rm $(PGMS)
+	rm -f $(OBJS)
+	rm -f $(PGMOBJS)
+	rm -f $(PGMS)
 
 .cpp.o:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
+
+vis_iplot.o: $(OBJS)
+
+vis_effect.o: $(OBJS)
 
 vis_iplot: vis_iplot.o $(OBJS)
 	g++ -O3 -o ../Bin/vis_iplot vis_iplot.o $(OBJS) $(LIBS)
