@@ -12,7 +12,7 @@
 
 #include <errno.h>
 
-//vis_effect -v _validation_set_ -r _attr_file_ -f _feature_ [-m _model_file_name_] [-o _output_file_name_] 
+//vis_effect -v _validation_set_ -r _attr_file_ -f _feature_ [-m _model_file_name_] [-o _output_suffix_] 
 	//[-q _#quantile_values_] | -version
 int main(int argc, char* argv[])
 {
@@ -32,7 +32,7 @@ int main(int argc, char* argv[])
 
 	//1. Set default values of parameters
 	string modelFName = "model.bin";	//name of the input file for the model
-	string outFName;					//name of the output file for predictions
+	string suffix;					//suffix of the output file
 	int quantN = 10;					//number of quantile point values to plot
 
 	TrainInfo ti;
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
 		if(!args[argNo].compare("-m"))
 			modelFName = args[argNo + 1];
 		else if(!args[argNo].compare("-o"))
-			outFName = args[argNo + 1];
+			suffix = args[argNo + 1];
 		else if(!args[argNo].compare("-v"))
 		{
 			ti.validFName = args[argNo + 1];
@@ -94,10 +94,12 @@ int main(int argc, char* argv[])
 		throw ATTR_NAME_ERR;
 
 //3. Calculate and output data for feature effect plot
-	outEffects(data, intv(1,attrId), quantN, modelFName, outFName);		
-
-	if(outFName.size() == 0)
-		outFName = attrName + ".effect.txt";
+	outEffects(data, intv(1,attrId), quantN, modelFName, suffix);		
+	
+	string in_suffix;
+	if(suffix.size())
+		in_suffix = "." + suffix;
+	string outFName = attrName + in_suffix + ".effect.txt";
 	clog << "Partial dependence function values are saved into file " << outFName << ".\n";
 
 	}catch(TE_ERROR err){

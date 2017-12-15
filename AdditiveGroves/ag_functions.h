@@ -55,11 +55,11 @@ double meanLG(INDdata& db, TrainInfo ti, int repeatN, double& resStd, string mod
 void rerase(intv& vec, intv::reverse_iterator& iter);
 
 //calculate and output effect of an attribute in a model
-void outEffects(INDdata& data, intv attrIds, int quantN, string modelFName, string outFName);
+void outEffects(INDdata& data, intv attrIds, int quantN, string modelFName, string suffix = "");
 
 //calculate and output joint effects for pairs of attributes in a model
 void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, string modelFName, 
-			   string outFName="", string fixedFName="" 
+			   string suffix="", string fixedFName="" 
 			   /*last two parameters are valid only for a list consisting of a single interaction*/);
 
 //calculate the best place on the performance grid for the interaction detection

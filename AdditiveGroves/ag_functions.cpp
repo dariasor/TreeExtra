@@ -516,7 +516,7 @@ void rerase(intv& vec, intv::reverse_iterator& reverse)
 }
 
 //calculate and output separate effects of several attributes in a model
-void outEffects(INDdata& data, intv attrIds, int quantN, string modelFName, string outFName /*valid only for 1 attribute*/)
+void outEffects(INDdata& data, intv attrIds, int quantN, string modelFName, string suffix)
 {
 	int outAttrN = (int)attrIds.size();
 	intv quantNs(outAttrN, quantN);
@@ -581,8 +581,11 @@ void outEffects(INDdata& data, intv attrIds, int quantN, string modelFName, stri
 	//4. Output
 	for(int attrNo = 0; attrNo < outAttrN; attrNo++)
 	{
-		if((outFName.size() == 0) || (attrNo > 0))
-			outFName = data.getAttrName(attrIds[attrNo]) + ".effect.txt";
+		string in_suffix;
+		if(suffix.size())
+			in_suffix = "." + suffix;
+		string outFName = data.getAttrName(attrIds[attrNo]) + in_suffix + ".effect.txt";
+		
 		fstream fpdf(outFName.c_str(), ios_base::out);
 		fpdf << "counts\t" << data.getAttrName(attrIds[attrNo]) << "_values\taverage_effect_values" << "\n\n";
 
@@ -596,7 +599,7 @@ void outEffects(INDdata& data, intv attrIds, int quantN, string modelFName, stri
 //calculate and output joint effects for pairs of attributes in a model
 //the procedure is done for several effects jointly to save on model reading time
 void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, string modelFName, 
-			   string outFName, string fixedFName 
+			   string suffix, string fixedFName 
 			   /*last two parameters are valid only for a list consisting of a single interaction*/)
 {
 	int iN = (int)interactions.size();
@@ -693,8 +696,12 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 		string attrName1 = data.getAttrName(interactions[iNo].first);
 		string attrName2 = data.getAttrName(interactions[iNo].second);
 
-		if((outFName.size() == 0) || (iNo > 0))
-			outFName = attrName1 + "." + attrName2 + ".iplot.txt";
+		string in_suffix;
+		if(suffix.size())
+			in_suffix = "." + suffix;
+		string outFName = attrName1 + "." + attrName2 + in_suffix + ".iplot.txt";
+
+			
 		fstream fiplot(outFName.c_str(), ios_base::out);
 		if(!fiplot)
 			throw OPEN_OUT_ERR;
@@ -848,7 +855,18 @@ bool bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo)
 		if(bTiGNNoAll < 4)
 			bestTiGNNo = bTiGNNo6p;
 		else if(bTiGNNoAll == 4)
-			bestTiGNNo = bTiGNNo8p;
+		{
+			double imp = 0; //improvement ratio
+			if(rms)
+				imp = (bPerf8p - bPerf6p)/bPerf8p;
+			else
+				imp = (bPerf6p - bPerf8p)/(1-bPerf8p);
+
+			if(imp < 0.007)
+				bestTiGNNo = bTiGNNo8p;
+			else
+				bestTiGNNo = bTiGNNo6p;
+		}
 		else
 			bestTiGNNo = bTiGNNoAll;
 	}

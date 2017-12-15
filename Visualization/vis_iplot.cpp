@@ -15,7 +15,7 @@
 
 
 //vis_iplot -v _validation_set_ -r _attr_file_ -f1 _feature1_ -f2 _feature2_ [-q1 _#quantile_values1_] 
-//[-q2 _#quantile_values2_] [-m _model_file_name_] [-o _output_file_name_] [-x _fixed_values_file_] | -version
+//[-q2 _#quantile_values2_] [-m _model_file_name_] [-o _output_file_suffix_] [-x _fixed_values_file_] | -version
 int main(int argc, char* argv[])
 {	 
 	try{
@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
 	//1. Set default values of parameters
 	string modelFName = "model.bin";	//name of the input file for the model
-	string outFName;					//name of the output file for predictions
+	string suffix;					//suffix for the output files
 	string fixedFName;				//name of the input file for fixed attributes and their values
 	int quantN1 = 10;	//number of quantile point values to plot for feature 1
 	int quantN2 = 10;	//number of quantile point values to plot for feature 2
@@ -63,7 +63,7 @@ int main(int argc, char* argv[])
 		if(!args[argNo].compare("-m"))
 			modelFName = args[argNo + 1];
 		else if(!args[argNo].compare("-o"))
-			outFName = args[argNo + 1];
+			suffix = args[argNo + 1];
 		else if(!args[argNo].compare("-x"))
 			fixedFName = args[argNo + 1];
 		else if(!args[argNo].compare("-v"))
@@ -110,11 +110,13 @@ int main(int argc, char* argv[])
 		throw ATTR_NAME_ERR;
 
 	outIPlots(data, iipairv(1, iipair(attrId1, attrId2)), quantN1, quantN2, modelFName, 
-			  outFName, fixedFName);
+			  suffix, fixedFName);
 
-	if(outFName.size() == 0)
-		outFName = attrName1 + "." + attrName2 + ".iplot.txt";
-	
+	string in_suffix;
+	if(suffix.size())
+		in_suffix = "." + suffix;
+	string outFName = attrName1 + "." + attrName2 + in_suffix + ".iplot.txt";
+
 	string denFName = insertSuffix(outFName, "dens");
 
 	clog << "Joint effect values are saved into file " << outFName << ".\n";
@@ -130,7 +132,7 @@ int main(int argc, char* argv[])
 			case INPUT_ERR:
 				errlog << "Usage: -v _validation_set_ -r _attr_file_ -f1 _feature1_ -f2 _feature2_ "
 					<< "[-q1 _#quantile_values1_] [-q2 _#quantile_values2_] [-m _model_file_name_] "
-					<< "[-o _output_file_name_] [-x _fixed_values_file_] | -version\n";
+					<< "[-o _output_file_suffix_] [-x _fixed_values_file_] | -version\n";
 				break;
 			default:
 				throw err;

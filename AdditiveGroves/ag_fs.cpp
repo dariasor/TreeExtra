@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 	data.outAttr(ti.attrFName);
 
 	//output separate effects of all important attributes
-	outEffects(data, attrs, 10, modelFName, "");
+	outEffects(data, attrs, 10, modelFName);
 
 	//output mean and std
 	fstream fdistr("distribution.txt", ios_base::out);
