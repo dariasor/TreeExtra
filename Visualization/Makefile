@@ -20,6 +20,8 @@ clean:
 .cpp.o:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
+$(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
+
 vis_iplot.o: $(OBJS)
 
 vis_effect.o: $(OBJS)

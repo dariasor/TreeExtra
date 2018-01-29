@@ -22,6 +22,8 @@ clean:
 .cpp.o:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
+$(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
+
 ag_predict.o: $(OBJS)
 
 ag_predict: ag_predict.o $(OBJS)
