@@ -145,24 +145,31 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			floatv item;	//single data point
 			try {
 				readData(buf, fin.gcount(), item, colN);
-			} catch (TE_ERROR err) {
+			
+				if(isnan(item[tarColNo]))
+					throw MV_CLASS_TRAIN_ERR;
+				trainTar.push_back(item[tarColNo]);
+			
+				if(weightColNo != -1)
+					trainW.push_back(item[weightColNo]);
+				item.erase(item.begin() + max(tarColNo, weightColNo));
+				if(weightColNo != -1)
+					item.erase(item.begin() + min(tarColNo, weightColNo));
+
+				for (intset::iterator boolIt = boolAttrs.begin(); boolIt != boolAttrs.end(); boolIt++)
+				{
+					int attrId = *boolIt;
+					if ((item[attrId] != 0) && (item[attrId] != 1) && !isnan(item[attrId]))
+					{
+						cerr << "\nAttribute " << getAttrName(attrId);
+						throw ATTR_NOT_BOOL_ERR;
+					}
+				}
+			}
+			catch (TE_ERROR err) {
 				cerr << "\nLine " << caseNo + 1 << "\n";
 				throw err;
 			}
-			
-			if(isnan(item[tarColNo]))
-				throw MV_CLASS_TRAIN_ERR;
-			trainTar.push_back(item[tarColNo]);
-			
-			if(weightColNo != -1)
-				trainW.push_back(item[weightColNo]);
-			item.erase(item.begin() + max(tarColNo, weightColNo));
-			if(weightColNo != -1)
-				item.erase(item.begin() + min(tarColNo, weightColNo));
-
-			for(intset::iterator boolIt = boolAttrs.begin(); boolIt != boolAttrs.end(); boolIt++)
-				if((item[*boolIt] != 0) && (item[*boolIt] != 1) && !isnan(item[*boolIt]))
-					throw ATTR_NOT_BOOL_ERR;
 			train.push_back(item);
 			getLineExt(fin, buf);
 		}

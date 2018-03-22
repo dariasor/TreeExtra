@@ -289,7 +289,7 @@ void te_errMsg(TE_ERROR err)
 			errlog << "Error: wrong attribute type. Type can be continuous (\"cont\"), nominal (\"nom\") or boolean (\"0,1\").\n";
 			break;
 		case ATTR_NOT_BOOL_ERR:
-			errlog << "Error: boolean attribute has value(s) different from \"0\" or \"1\".\n";
+			errlog << "Error: boolean attribute's value is different from \"0\" or \"1\".\n";
 			break;
 		case TREE_WRITE_ERR:
 			errlog << "Error: could not write the model to the file. Disk space problems?\n";
