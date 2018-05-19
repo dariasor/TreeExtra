@@ -250,7 +250,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 		}
 		if(recBagging)
 		{
-			int recBagN = roundInt(round(ti.bagN * 1.5));
+			int recBagN = roundInt((int)round(ti.bagN * 1.5));
 			clog << " -b " << recBagN;
 		}
 		clog << "\n";

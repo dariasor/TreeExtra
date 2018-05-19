@@ -530,3 +530,9 @@ bool ltDouble(double i, double j)
 {
 	return (i < j) && !eqDouble(i,j);
 }
+
+//greater function comparing by the second item
+bool gtSecond(idpair p1, idpair p2)
+{
+	return p1.second > p2.second;
+}

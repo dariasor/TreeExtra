@@ -20,7 +20,7 @@
 using namespace std;
 
 typedef set<int> intset;
-typedef map<int, double> ifmap;
+typedef map<int, double> idmap;
 typedef map<double, double> ddmap;
 
 typedef vector<int> intv;

@@ -11,7 +11,9 @@
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
+
 #include <errno.h>
+#include <algorithm>
 
 #ifndef _WIN32
 #include "thread_pool.h"
@@ -173,7 +175,7 @@ int main(int argc, char* argv[])
 //3. main part - feature selection
 	intv attrs; //numbers of current active attributes
 	data.getActiveAttrs(attrs);
-	ifmap importance; // importance values (rmse after removal) of all active attributes
+	idmap importance; // importance values (rmse after removal) of all active attributes
 	double mean = -1;
 	double std = -1;
 
@@ -241,11 +243,22 @@ int main(int argc, char* argv[])
 		}// end while(attrRIt != attrs.rend())
 	}// end while(removedAny)
 
-	//output attributes and their partial dependence functions (effect plots)
+	//output attributes
 	clog << "\nResulting set of attributes:\n";
+	idpairv selected;
 	for(intv::iterator attrIt = attrs.begin(); attrIt != attrs.end(); attrIt++)
+	{
 		clog << data.getAttrName(*attrIt) << '\n';
+		selected.push_back(idpair(*attrIt, importance[*attrIt]));
+	}
 	clog << '\n';
+
+	sort(selected.begin(), selected.end(), gtSecond);
+	fstream fcore("core_features.txt", ios_base::out);
+	for(int aNo = 0; aNo < selected.size(); aNo++)
+		fcore << data.getAttrName(selected[aNo].first) << '\t' << selected[aNo].second << '\n';
+	fcore.close();
+	
 
 	//output new attribute file
 	data.outAttr(ti.attrFName);

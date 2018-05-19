@@ -83,3 +83,6 @@ bool leDouble(double i, double j);
 
 //less function for doubles, takes round-off errors into account
 bool ltDouble(double i, double j);
+
+//greater function comparing by the second item
+bool gtSecond(idpair p1, idpair p2);

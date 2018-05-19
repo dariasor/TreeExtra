@@ -48,12 +48,16 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>../../AdditiveGroves;../../shared;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\AdditiveGroves\ag_fs.cpp" />
@@ -71,6 +75,7 @@
     <ClInclude Include="..\..\shared\definitions.h" />
     <ClInclude Include="..\..\shared\ErrLogStream.h" />
     <ClInclude Include="..\..\AdditiveGroves\Grove.h" />
+    <ClInclude Include="..\..\shared\functions.h" />
     <ClInclude Include="..\..\shared\INDdata.h" />
     <ClInclude Include="..\..\shared\ItemInfo.h" />
     <ClInclude Include="..\..\shared\LogStream.h" />
