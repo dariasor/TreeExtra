@@ -1,26 +1,47 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2024
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vis_effect", "..\win\vis_effect\vis_effect.vcxproj", "{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vis_iplot", "..\win\vis_iplot\vis_iplot.vcxproj", "{F2EF2C55-F16C-4D7E-A9FB-16599193F316}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vis_correlations", "..\win\vis_correlations\vis_correlations.vcxproj", "{C0F27E3C-2533-456D-897D-DDDE9A68A679}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
 		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Debug|Win32.ActiveCfg = Debug|Win32
 		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Debug|Win32.Build.0 = Debug|Win32
+		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Debug|x64.ActiveCfg = Debug|Win32
 		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Release|Win32.ActiveCfg = Release|Win32
 		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Release|Win32.Build.0 = Release|Win32
+		{FAC1BA2B-DE36-47BD-9CBB-EDB34962D8BA}.Release|x64.ActiveCfg = Release|Win32
 		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Debug|Win32.ActiveCfg = Debug|Win32
 		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Debug|Win32.Build.0 = Debug|Win32
+		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Debug|x64.ActiveCfg = Debug|Win32
 		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Release|Win32.ActiveCfg = Release|Win32
 		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Release|Win32.Build.0 = Release|Win32
+		{F2EF2C55-F16C-4D7E-A9FB-16599193F316}.Release|x64.ActiveCfg = Release|Win32
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Debug|Win32.ActiveCfg = Debug|Win32
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Debug|Win32.Build.0 = Debug|Win32
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Debug|x64.ActiveCfg = Debug|x64
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Debug|x64.Build.0 = Debug|x64
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Release|Win32.ActiveCfg = Release|Win32
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Release|Win32.Build.0 = Release|Win32
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Release|x64.ActiveCfg = Release|x64
+		{C0F27E3C-2533-456D-897D-DDDE9A68A679}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {57E8CE6C-81C8-452F-9851-A6E798854C9A}
 	EndGlobalSection
 EndGlobal

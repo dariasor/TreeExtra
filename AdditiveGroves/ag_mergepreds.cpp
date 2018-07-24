@@ -25,16 +25,16 @@ int main(int argc, char* argv[])
 {	
 	try{
 //0. Set log file
-	LogStream clog;
+	LogStream telog;
 	LogStream::init(true);
-	clog << "\n-----\nag_mergepreds ";
+	telog << "\n-----\nag_mergepreds ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 
@@ -170,14 +170,14 @@ int main(int argc, char* argv[])
 
 		if(fparam.fail())
 		{
-			clog << fparamPathName << '\n';
+			telog << fparamPathName << '\n';
 			throw TEMP_ERR;
 		}
 		fparam.close();
 
 		if((ti.minAlpha != extraTI.minAlpha) || (ti.maxTiGN != extraTI.maxTiGN))
 		{
-		    clog << fparamPathName << '\n';
+		    telog << fparamPathName << '\n';
 			throw MERGE_MISMATCH_ERR;
 		}
 		if(extraTI.seed == ti.seed)
@@ -204,14 +204,14 @@ int main(int argc, char* argv[])
 	doublev validTar;
 	int validN = data.getTargets(validTar, VALID);
 
-	clog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
+	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
 		<< allBagN << " bagging iterations\n";
 	if(ti.mode == FAST)
-		clog << "fast mode\n\n";
+		telog << "fast mode\n\n";
 	else if(ti.mode == SLOW)
-		clog << "slow mode\n\n";
+		telog << "slow mode\n\n";
 	else //if(ti.mode == LAYERED)
-		clog << "layered mode\n\n";
+		telog << "layered mode\n\n";
 
 	//5. Initialize some internal process variables
 
@@ -263,7 +263,7 @@ int main(int argc, char* argv[])
 				fstream finpreds((inPredsFName).c_str(), ios_base::in);
 				if(finpreds.fail())
 				{
-				    clog << inPredsFName << '\n';
+				    telog << inPredsFName << '\n';
 					throw TEMP_ERR;
 				}
 				//generate predictions and performance for validation set
@@ -305,7 +305,7 @@ int main(int argc, char* argv[])
 		trainOut(ti, dir, rmsV, rocV, predsumsV, trainV, dirStat, -1.0, startAlphaNo, startTiGNNo);
 
 	if(folderN != allBagN)
-		clog << "Warning: bagging curve and -b recommendations could not be calculated correctly "
+		telog << "Warning: bagging curve and -b recommendations could not be calculated correctly "
 			<< "in this mode. Each visible bagging step corresponds to several real steps.\n";
 
 	}catch(TE_ERROR err){

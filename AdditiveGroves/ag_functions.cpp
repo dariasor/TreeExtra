@@ -20,7 +20,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 
 	int alphaN = getAlphaN(ti.minAlpha, trainV); //number of different alpha values
 	int tigNN = getTiGNN(ti.maxTiGN);	//number of different tigN values
-	LogStream clog;
+	LogStream telog;
 	
 	//params file is a text file
 	fstream fparam;	
@@ -218,11 +218,11 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 	recBagging |= moreBag(rmsV[min(bestTiGNNo + 1, tigNN - 1)][min(bestAlphaNo + 1, alphaN - 1)]);
 		
 	//output results and recommendations
-	clog << "Best model:\n\tAlpha = " << bestAlpha << "\n\tN = " << bestTiGN;
+	telog << "Best model:\n\tAlpha = " << bestAlpha << "\n\tN = " << bestTiGN;
 	if(ti.rms)
-		clog << "\nRMSE on validation set = " << bestPerf << "\n";
+		telog << "\nRMSE on validation set = " << bestPerf << "\n";
 	else
-		clog << "\nROC on validation set = " << bestPerf << "\n";
+		telog << "\nROC on validation set = " << bestPerf << "\n";
 
 	//if the best possible performance is not achieved,
 	//and the best value is on the border, or bagging has not yet converged, recommend expanding
@@ -233,7 +233,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 			(ti.mode == LAYERED) && (ti.maxTiGN < 6)
 		))
 	{
-		clog << "\nRecommendation: relaxing model parameters might produce a better model.\n"
+		telog << "\nRecommendation: relaxing model parameters might produce a better model.\n"
 			<< "Suggested action: ag_expand";
 		if((bestAlpha == ti.minAlpha) && fit && (ti.minAlpha != 0))
 		{
@@ -241,36 +241,36 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 			//make sure that you don't recommend alpha that is too small for this data set
 			if(1.0/trainV >= recAlpha)
 				recAlpha = 0;
-			clog << " -a " << recAlpha;
+			telog << " -a " << recAlpha;
 		}
 		if((bestTiGN == ti.maxTiGN) && fit || (ti.mode == LAYERED) && (ti.maxTiGN < 6))
 		{
 			int recTiGN = tigVal(getTiGNN(ti.maxTiGN) + 1);
-			clog << " -n " << recTiGN;
+			telog << " -n " << recTiGN;
 		}
 		if(recBagging)
 		{
 			int recBagN = roundInt((int)round(ti.bagN * 1.5));
-			clog << " -b " << recBagN;
+			telog << " -b " << recBagN;
 		}
-		clog << "\n";
+		telog << "\n";
 	}
 	else
-		clog << "\nYou can save the best model for the further use. \n" 
+		telog << "\nYou can save the best model for the further use. \n" 
 			<< "Suggested action: ag_save -a " << bestAlpha << " -n " << bestTiGN << "\n";
 	
 	if(ti.rms)
 	{
 		if(bestPerf > validStD)
-			clog << "\nWarning: the best performance is worse than baseline. The model is not able to detect any signal in this data." << "\n";
+			telog << "\nWarning: the best performance is worse than baseline. The model is not able to detect any signal in this data." << "\n";
 	}
 	else
 	{
 		if(bestPerf < 0.5)
-			clog << "\nWarning: the best performance is worse than baseline. The model is not able to detect any signal in this data." << "\n";
+			telog << "\nWarning: the best performance is worse than baseline. The model is not able to detect any signal in this data." << "\n";
 	}
 
-	clog << "\n";
+	telog << "\n";
 
 }
 

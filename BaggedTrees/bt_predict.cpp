@@ -20,13 +20,13 @@ int main(int argc, char* argv[])
 //0. -version mode	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		LogStream clog;
-		clog << "\n-----\nbt_predict ";
+		LogStream telog;
+		telog << "\n-----\nbt_predict ";
 		for(int argNo = 1; argNo < argc; argNo++)
-			clog << argv[argNo] << " ";
-		clog << "\n\n";
+			telog << argv[argNo] << " ";
+		telog << "\n\n";
 
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 			return 0;
 	}
 
@@ -92,12 +92,12 @@ int main(int argc, char* argv[])
 		throw INPUT_ERR;
 
 //1a. Set log file
-	LogStream clog;
+	LogStream telog;
 	LogStream::doOut = doOut;
-	clog << "\n-----\nbt_predict ";
+	telog << "\n-----\nbt_predict ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 
 //2. Load data
 	INDdata data(ti.trainFName.c_str(), ti.validFName.c_str(), ti.testFName.c_str(), 
@@ -154,12 +154,12 @@ int main(int argc, char* argv[])
 		if(ti.rms)
 		{
 			performance = rmse(preds, testTar);
-			clog << "RMSE: " << performance << "\n";
+			telog << "RMSE: " << performance << "\n";
 		}
 		else
 		{
 			performance = roc(preds, testTar);
-			clog << "ROC: " << performance << "\n";
+			telog << "ROC: " << performance << "\n";
 		}
 		if(!doOut)
 			cout << performance << endl;

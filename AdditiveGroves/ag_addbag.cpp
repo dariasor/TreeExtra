@@ -20,15 +20,15 @@ int main(int argc, char* argv[])
 {	 
 	try{
 //0. Set log file
-	LogStream clog;
-	clog << "\n-----\nag_addbag ";
+	LogStream telog;
+	telog << "\n-----\nag_addbag ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 //1a. Set select parameters from AGTemp/params.txt
@@ -181,18 +181,18 @@ int main(int argc, char* argv[])
 	if(!ti.rms)
 		rocV.resize(ti.bagN, 0);
 
-	clog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n";
+	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n";
 	if(ti.mode == FAST)
-		clog << "fast mode\n\n";
+		telog << "fast mode\n\n";
 	else if(ti.mode == SLOW)
-		clog << "slow mode\n\n";
+		telog << "slow mode\n\n";
 	else //if(ti.mode == LAYERED)
-		clog << "layered mode\n\n";
-	clog << "Previous model:\n\t" << prevBagN << " bagging iterations\n";
+		telog << "layered mode\n\n";
+	telog << "Previous model:\n\t" << prevBagN << " bagging iterations\n";
 	if(ti.rms)
-		clog << "\tRMSE on validation set = " << rmsV[prevBagN - 1] << "\n\n";
+		telog << "\tRMSE on validation set = " << rmsV[prevBagN - 1] << "\n\n";
 	else
-		clog << "\tROC on validation set = " << rocV[prevBagN - 1] << "\n\n";
+		telog << "\tROC on validation set = " << rocV[prevBagN - 1] << "\n\n";
 
 	//4. Train new models
 	double trainV = data.getTrainV();
@@ -325,11 +325,11 @@ int main(int argc, char* argv[])
 	}//end for(int bagNo = prevBagN; bagNo < ti.bagN; bagNo++)
 
 	//5. Output
-	clog << "New model:\n\t" << ti.bagN << " bagging iterations\n";
+	telog << "New model:\n\t" << ti.bagN << " bagging iterations\n";
 	if(ti.rms)
-		clog << "\tRMSE on validation set = " << rmsV[ti.bagN - 1] << "\n\n";
+		telog << "\tRMSE on validation set = " << rmsV[ti.bagN - 1] << "\n\n";
 	else
-		clog << "\tROC on validation set = " << rocV[ti.bagN - 1] << "\n\n";
+		telog << "\tROC on validation set = " << rocV[ti.bagN - 1] << "\n\n";
 
 	//output rms bagging curve in the best (alpha, TiGN) point
 	fstream frmscurve;	//output text file 
@@ -352,7 +352,7 @@ int main(int argc, char* argv[])
 	if(moreBag(rmsV))
 	{
 		int recBagN = ti.bagN + 40;
-		clog << "\nRecommendation: further bagging might produce a better model.\n"
+		telog << "\nRecommendation: further bagging might produce a better model.\n"
 			<< "Suggested action: addbag -b " << (int)(ti.bagN + 40) << " -m " << modelFName << "\n";
 	}
 

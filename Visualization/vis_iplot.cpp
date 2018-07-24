@@ -7,7 +7,7 @@
 #include "LogStream.h"
 #include "ErrLogStream.h"
 #include "functions.h"
-#include "ag_definitions.h"
+#include "vis_definitions.h"
 #include "ag_functions.h"
 
 #include <errno.h>
@@ -20,15 +20,15 @@ int main(int argc, char* argv[])
 {	 
 	try{
 	//0. Set log file
-	LogStream clog;
-	clog << "\n-----\nvis_iplot ";
+	LogStream telog;
+	telog << "\n-----\nvis_iplot ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 
@@ -119,13 +119,13 @@ int main(int argc, char* argv[])
 
 	string denFName = insertSuffix(outFName, "dens");
 
-	clog << "Joint effect values are saved into file " << outFName << ".\n";
-	clog << "Density table is saved into file " << denFName << ".\n";
+	telog << "Joint effect values are saved into file " << outFName << ".\n";
+	telog << "Density table is saved into file " << denFName << ".\n";
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);
 		return 1;
-	}catch(AG_ERROR err){
+	}catch(VIS_ERROR err){
 		ErrLogStream errlog;
 		switch(err) 
 		{

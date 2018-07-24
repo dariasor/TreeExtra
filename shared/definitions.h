@@ -41,6 +41,8 @@ typedef pair<int, double> idpair;
 typedef pair<double, double> ddpair;
 typedef pair<int, int> iipair;
 typedef pair<bool, bool> bbpair;
+typedef pair<string, string> sspair;
+typedef pair<sspair, double> ssdtriple;
 
 typedef vector<iipair> iipairv;
 typedef vector<dipair> dipairv;
@@ -50,6 +52,7 @@ typedef vector<ddpair> ddpairv;
 typedef vector<dipairv> dipairvv;
 typedef vector<fipairv> fipairvv;
 typedef vector<bbpair> bbpairv; 
+typedef vector<ssdtriple> ssdtriplev;
 
 typedef numeric_limits<float> flim;
 
@@ -91,7 +94,8 @@ enum TE_ERROR
 	OPEN_OUT_ERR = 27,
 	MV_CLASS_TRAIN_ERR = 28,
 	MV_CLASS_VALID_ERR = 29,
-	NON_NUMERIC_VALUE_ERR = 30
+	NON_NUMERIC_VALUE_ERR = 30,
+	CORR_MV_ERR = 31
 };
 
 //this enum has to be in the general definition file, because it is a part of a model file, and all model 
@@ -104,7 +108,7 @@ enum AG_TRAIN_MODE
 };
 
 
-#define VERSION "2.5.5" //release version
+#define VERSION "2.5.6" //release version
 #define LINE_LEN 20000	//maximum length of line in the input file
 #define QNAN flim::quiet_NaN()
 

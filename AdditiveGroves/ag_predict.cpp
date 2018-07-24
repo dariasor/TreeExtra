@@ -16,15 +16,15 @@ int main(int argc, char* argv[])
 {	 
 	try{
 	//0. Set log file
-	LogStream clog;
-	clog << "\n-----\nag_predict ";
+	LogStream telog;
+	telog << "\n-----\nag_predict ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 
@@ -138,12 +138,12 @@ int main(int argc, char* argv[])
 		if(ti.rms)
 		{
 			performance = rmse(preds, testTar);
-			clog << "\nRMSE: " << performance << "\n";
+			telog << "\nRMSE: " << performance << "\n";
 		}
 		else
 		{
 			performance = roc(preds, testTar);
-			clog << "\nROC: " << performance << "\n";
+			telog << "\nROC: " << performance << "\n";
 		}
 	}
 	

@@ -9,7 +9,7 @@
 
 #include <fstream>
 #include <sstream>
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 //Deletes spaces from the beginning and from the end of the string
@@ -321,6 +321,9 @@ void te_errMsg(TE_ERROR err)
 		case NON_NUMERIC_VALUE_ERR:
 			errlog << "Error: non-numeric value for an active attribute in the data.\n";
 			break;
+		case CORR_MV_ERR:
+			errlog << "Error: the data has missing values and cannot be used for correlation analysis.\n";
+			break;
 		default:
 			throw err;
 	}
@@ -423,6 +426,18 @@ string insertSuffix(string fileName, string suffix)
 		newFName = fileName.substr(0, lastDot) + "." + suffix + fileName.substr(lastDot);
 
 	return newFName;
+}
+
+//returns the part of the string (usually a file name) before the last dot
+//if there are no dots, returns the original string
+string beforeLastDot(string fileName)
+{
+	string prefix;
+	string::size_type lastDot = fileName.rfind('.');
+	if(lastDot == string::npos)
+		return fileName;
+	else
+		return fileName.substr(0, lastDot);
 }
 
 //checks if the first set is a subset of the second set
@@ -535,4 +550,16 @@ bool ltDouble(double i, double j)
 bool gtSecond(idpair p1, idpair p2)
 {
 	return p1.second > p2.second;
+}
+
+//less function comparing by the second item
+bool ltSecond(fipair p1, fipair p2)
+{
+	return p1.second < p2.second;
+}
+
+//greater function comparing by the absolute value of the third item
+bool gtAbsThird(ssdtriple t1, ssdtriple t2)
+{
+	return abs(t1.second) > abs(t2.second);
 }

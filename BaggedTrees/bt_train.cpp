@@ -28,13 +28,13 @@ int main(int argc, char* argv[])
 //0. -version mode	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		LogStream clog;
-		clog << "\n-----\nbt_train ";
+		LogStream telog;
+		telog << "\n-----\nbt_train ";
 		for(int argNo = 1; argNo < argc; argNo++)
-			clog << argv[argNo] << " ";
-		clog << "\n\n";
+			telog << argv[argNo] << " ";
+		telog << "\n\n";
 
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 			return 0;
 	}
 
@@ -55,7 +55,7 @@ int main(int argc, char* argv[])
 	TrainInfo ti; //model training parameters
 	string modelFName = "model.bin";	//name of the output file for the model
 	string predFName = "preds.txt";		//name of the output file for predictions
-	int topAttrN = 0;  //how many top attributes to output and keep in the cut data 
+	int topAttrN = -1;  //how many top attributes to output and keep in the cut data 
 							//(0 = do not do feature selection)
 							//(-1 = output all available features)
 	bool doOut = true; //whether to output log information to stdout
@@ -134,12 +134,12 @@ int main(int argc, char* argv[])
 		throw ALPHA_ERR;
 	
 //1.a) Set log file
-	LogStream clog;
+	LogStream telog;
 	LogStream::init(doOut);
-	clog << "\n-----\nbt_train ";
+	telog << "\n-----\nbt_train ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 
 //1.b) Initialize random number generator. 
 	srand(ti.seed);
@@ -166,13 +166,13 @@ int main(int argc, char* argv[])
 	if(ti.alpha != newAlpha)
 	{
 		if(newAlpha == 0)
-			clog << "Warning: due to small train set size value of alpha was changed to 0"; 
+			telog << "Warning: due to small train set size value of alpha was changed to 0"; 
 		else 
-			clog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
-		clog << ".\n\n";
+			telog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
+		telog << ".\n\n";
 		ti.alpha = newAlpha;	
 	}
-	clog << "Alpha = " << ti.alpha << "\n" 
+	telog << "Alpha = " << ti.alpha << "\n" 
 		<< ti.bagN << " bagging iterations\n";
 
 	doublev rmsV(ti.bagN, 0); 				//bagging curve of rms values for validation set
@@ -257,9 +257,9 @@ int main(int argc, char* argv[])
 		
 	//output results 
 	if(ti.rms)
-		clog << "RMSE on validation set = " << rmsV[ti.bagN - 1] << "\n";
+		telog << "RMSE on validation set = " << rmsV[ti.bagN - 1] << "\n";
 	else
-		clog << "ROC on validation set = " << rocV[ti.bagN - 1] << "\n";
+		telog << "ROC on validation set = " << rocV[ti.bagN - 1] << "\n";
 
 	//output predictions into the output file
 	fstream fpreds;
@@ -272,12 +272,12 @@ int main(int argc, char* argv[])
 	if(moreBag(rmsV))
 	{
 		int recBagN = roundInt(round(ti.bagN * 1.5));
-		clog << "\nRecommendation: a greater number of bagging iterations might produce a better model.\n"
+		telog << "\nRecommendation: a greater number of bagging iterations might produce a better model.\n"
 			<< "Suggested action: bt_train -b " << recBagN << "\n";
 	}
 	else
-		clog << "\nThe bagging curve shows good convergence. \n"; 
-	clog << "\n";
+		telog << "\nThe bagging curve shows good convergence. \n"; 
+	telog << "\n";
 
 	//standard output in case of turned off log output: final performance on validation set only
 	if(!doOut)
@@ -308,6 +308,11 @@ int main(int argc, char* argv[])
 			data.ignoreAttr(attrCounts[attrNo].first);
 		data.outAttr(ti.attrFName);
 	}
+
+	if(data.getHasActiveMV())
+		telog << "Warning: the data has missing values in active attributes, correlations can not be calculated.\n\n";
+	else
+		data.correlations(ti.trainFName);
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);

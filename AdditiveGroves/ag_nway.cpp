@@ -22,15 +22,15 @@ int main(int argc, char* argv[])
 {	
 	try{
 //0. Set log file
-	LogStream clog;
-	clog << "\n-----\nag_nway ";
+	LogStream telog;
+	telog << "\n-----\nag_nway ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 
@@ -171,20 +171,20 @@ int main(int argc, char* argv[])
 	if(ti.minAlpha != newAlpha)
 	{
 		if(newAlpha == 0)
-			clog << "Warning: due to small train set size value of alpha was changed to 0"; 
+			telog << "Warning: due to small train set size value of alpha was changed to 0"; 
 		else 
-			clog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
-		clog << ".\n\n";
+			telog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
+		telog << ".\n\n";
 		ti.minAlpha = newAlpha;	
 	}
 	//adjust maxTiGN, if needed
 	int newTiGN = adjustTiGN(ti.maxTiGN);
 	if(ti.maxTiGN != newTiGN)
 	{
-		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
+		telog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
 		ti.maxTiGN = newTiGN;	
 	}
-	clog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
+	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
 		<< ti.bagN << " bagging iterations\n";
 
 //2.a) Start thread pool
@@ -212,20 +212,20 @@ int main(int argc, char* argv[])
 	}
 
 	//test interaction
-	clog << "\nRestricting interaction between "; 
+	telog << "\nRestricting interaction between "; 
 	for(int nwayNo = 0; nwayNo < (int)ti.interaction.size() - 1; nwayNo++)
-		clog << data.getAttrName(ti.interaction[nwayNo]) << ", "; 
-	clog << data.getAttrName(ti.interaction[ti.interaction.size() - 1]) << "\n";
+		telog << data.getAttrName(ti.interaction[nwayNo]) << ", "; 
+	telog << data.getAttrName(ti.interaction[ti.interaction.size() - 1]) << "\n";
 		
 	double rPerf = layeredGroves(data, ti, modelFName);
 	double score = (meanPerf - rPerf) / stdPerf;
 	if(ti.rms)
 		score *= -1; 
-	clog << "\tPerformance: " << rPerf << ". " << score << " standard deviations from the mean. ";
+	telog << "\tPerformance: " << rPerf << ". " << score << " standard deviations from the mean. ";
 	if(score > 3)
-		clog << "Interaction is present.\n";
+		telog << "Interaction is present.\n";
 	else
-		clog << "Interaction is absent.\n";
+		telog << "Interaction is absent.\n";
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);

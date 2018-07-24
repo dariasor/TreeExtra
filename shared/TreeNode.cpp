@@ -189,7 +189,7 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 //2. Find the best split
 //evaluate all good splits and choose the one with the best evaluation
-	bool notFound = pData->getHasMV() ? setSplitMV(nodeV, nodeSum) : setSplit(nodeV, nodeSum);	//finds and sets best split
+	bool notFound = pData->useCoef() ? setSplitMV(nodeV, nodeSum) : setSplit(nodeV, nodeSum);	//finds and sets best split
 
 	if(notFound)
 	{//no splittings or they disappeared because of tiny coefficients. This node becomes a leaf
@@ -303,7 +303,7 @@ bool CTreeNode::getStats(double& nodeV, double& nodeSum, double& realNodeV)
 	bool StD0 = true;	//whether all response values are the same (StD == 0)
 
 	//calculate nodeV, nodeSum and realNodeV
-	if(pData->getHasMV())
+	if(pData->useCoef())
 		for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)
 		{// update every sum with the info from this item
 			double& coef = itemIt->coef;
@@ -333,7 +333,7 @@ bool CTreeNode::getStats(double& nodeV, double& nodeSum, double& realNodeV)
 //returns sum of coefficients, old definition of node volume
 double CTreeNode::getNodeV()
 {
-	if(pData->getHasMV())
+	if(pData->useCoef())
 	{
 		double realNodeV = 0;
 		for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)

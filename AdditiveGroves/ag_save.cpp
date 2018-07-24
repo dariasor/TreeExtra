@@ -16,15 +16,15 @@ int main(int argc, char* argv[])
 {	 
 	try{
 	//0. Set log file
-	LogStream clog;
-	clog << "\n-----\nag_save ";
+	LogStream telog;
+	telog << "\n-----\nag_save ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 	
@@ -103,14 +103,14 @@ int main(int argc, char* argv[])
 	double newAlpha = adjustAlpha(saveAlpha, trainV);
 	if(saveAlpha != newAlpha)
 	{
-		clog << "Warning: alpha value was rounded to the closest valid value " << newAlpha << ".\n\n";
+		telog << "Warning: alpha value was rounded to the closest valid value " << newAlpha << ".\n\n";
 		saveAlpha = newAlpha;	
 	}
 	//adjust saveTiGN, if needed
 	int newTiGN = adjustTiGN(saveTiGN);
 	if(saveTiGN != newTiGN)
 	{
-		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
+		telog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
 		saveTiGN = newTiGN;	
 	}
 
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 	int saveTiGNNo = getTiGNN(saveTiGN) - 1;
 	boolv dir; //path on the parameter grid
 
-	clog << "Alpha = " << saveAlpha << "\nN = " << saveTiGN << "\n" 
+	telog << "Alpha = " << saveAlpha << "\nN = " << saveTiGN << "\n" 
 		<< saveBagN << " bagging iterations" << "\n\n";
 
 	//3. Load info about attributes

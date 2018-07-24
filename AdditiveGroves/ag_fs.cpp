@@ -23,15 +23,15 @@ int main(int argc, char* argv[])
 {	
 	try{
 //0. Set log file
-	LogStream clog;
-	clog << "\n-----\nag_fs ";
+	LogStream telog;
+	telog << "\n-----\nag_fs ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 
@@ -150,20 +150,20 @@ int main(int argc, char* argv[])
 	if(ti.minAlpha != newAlpha)
 	{
 		if(newAlpha == 0)
-			clog << "Warning: due to small train set size value of alpha was changed to 0"; 
+			telog << "Warning: due to small train set size value of alpha was changed to 0"; 
 		else 
-			clog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
-		clog << ".\n\n";
+			telog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
+		telog << ".\n\n";
 		ti.minAlpha = newAlpha;	
 	}
 	//adjust maxTiGN, if needed
 	int newTiGN = adjustTiGN(ti.maxTiGN);
 	if(ti.maxTiGN != newTiGN)
 	{
-		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
+		telog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
 		ti.maxTiGN = newTiGN;	
 	}
-	clog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
+	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
 		<< ti.bagN << " bagging iterations\n";
 
 //2.a) Start thread pool
@@ -187,7 +187,7 @@ int main(int argc, char* argv[])
 		int firstNotRemoved = -1; //first attribute after the last that was removed
 
 		mean = meanLG(data, ti, 10, std, modelFName);
-		clog << "\n\nAverage performance: " << mean << ", std: " << std << ", importance threshold: " << std*3 << "\n\n";
+		telog << "\n\nAverage performance: " << mean << ", std: " << std << ", importance threshold: " << std*3 << "\n\n";
 
 		intv::reverse_iterator attrRIt = attrs.rbegin();
 		while(attrRIt != attrs.rend())
@@ -203,17 +203,17 @@ int main(int argc, char* argv[])
 			double testPerf; 
 			if(impValid)
 			{
-				clog << "Reusing results for " << data.getAttrName(*attrRIt) << ":\n";
+				telog << "Reusing results for " << data.getAttrName(*attrRIt) << ":\n";
 				testPerf = importance[*attrRIt];
 			}
 			else
 			{
-				clog << "Testing " << data.getAttrName(*attrRIt) << ":\n"; 
+				telog << "Testing " << data.getAttrName(*attrRIt) << ":\n"; 
 				testPerf = layeredGroves(data, ti, string(""));
 			}
 			if((ti.rms && (testPerf <= mean + std * 3)) || (!ti.rms && (testPerf >= mean - std * 3)))
 			{//remove attribute completely
-				clog << "\tPerformance: " << testPerf << ".\tImportance: " 
+				telog << "\tPerformance: " << testPerf << ".\tImportance: " 
 					<< (ti.rms ? (testPerf - mean) : (mean - testPerf)) << ".\tEliminate.\n",
 
 				rerase(attrs, attrRIt);
@@ -223,12 +223,12 @@ int main(int argc, char* argv[])
 
 				if((ti.rms && (testPerf <= mean - std * 3)) || (!ti.rms && (testPerf >= mean + std * 3)))
 				{//current performance is too good; need to reevaluate mean
-					clog << "Significant improvement of performance; need to reevaluate distribution\n";
+					telog << "Significant improvement of performance; need to reevaluate distribution\n";
 					break;
 				}
 			} else 
 			{//attribute is important, leave it
-				clog << "\tPerformance: " << testPerf << ".\tImportance: " 
+				telog << "\tPerformance: " << testPerf << ".\tImportance: " 
 					<< (ti.rms ? (testPerf - mean) : (mean - testPerf)) << ".\tLeave.\n";
 
 				data.useAttr(*attrRIt);
@@ -244,14 +244,14 @@ int main(int argc, char* argv[])
 	}// end while(removedAny)
 
 	//output attributes
-	clog << "\nResulting set of attributes:\n";
+	telog << "\nResulting set of attributes:\n";
 	idpairv selected;
 	for(intv::iterator attrIt = attrs.begin(); attrIt != attrs.end(); attrIt++)
 	{
-		clog << data.getAttrName(*attrIt) << '\n';
+		telog << data.getAttrName(*attrIt) << '\n';
 		selected.push_back(idpair(*attrIt, importance[*attrIt]));
 	}
-	clog << '\n';
+	telog << '\n';
 
 	sort(selected.begin(), selected.end(), gtSecond);
 	fstream fcore("core_features.txt", ios_base::out);

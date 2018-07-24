@@ -27,16 +27,16 @@ int main(int argc, char* argv[])
 {	
 	try{
 //0. Set log file
-	LogStream clog;
+	LogStream telog;
 	LogStream::init(true);
-	clog << "\n-----\nag_train ";
+	telog << "\n-----\nag_train ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 
@@ -170,27 +170,27 @@ int main(int argc, char* argv[])
 	if(!eqDouble(ti.minAlpha, newAlpha))
 	{
 		if(newAlpha == 0)
-		  clog << "Warning: due to the small train set size (" << trainV << ") the value of alpha was changed to 0"; 
+			telog << "Warning: due to the small train set size (" << trainV << ") the value of alpha was changed to 0"; 
 		else 
-			clog << "Warning: alpha value was rounded to the closest valid value - " << newAlpha;
-		clog << ".\n\n";
+			telog << "Warning: alpha value was rounded to the closest valid value - " << newAlpha;
+		telog << ".\n\n";
 		ti.minAlpha = newAlpha;	
 	}
 	//adjust maxTiGN, if needed
 	int newTiGN = adjustTiGN(ti.maxTiGN);
 	if(ti.maxTiGN != newTiGN)
 	{
-		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
+		telog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
 		ti.maxTiGN = newTiGN;	
 	}
-	clog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
+	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
 		<< ti.bagN << " bagging iterations\n";
 	if(ti.mode == FAST)
-		clog << "fast mode\n\n";
+		telog << "fast mode\n\n";
 	else if(ti.mode == SLOW)
-		clog << "slow mode\n\n";
+		telog << "slow mode\n\n";
 	else //if(ti.mode == LAYERED)
-		clog << "layered mode\n\n";
+		telog << "layered mode\n\n";
 
 	int alphaN = getAlphaN(ti.minAlpha, trainV); //number of different alpha values
 	int tigNN = getTiGNN(ti.maxTiGN); //number of different tigN values

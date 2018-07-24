@@ -19,10 +19,10 @@
 INDdata::INDdata(const char* trainFName, const char* validFName, const char* testFName,
 	const char* attrFName, bool doOut)
 {
-	LogStream clog;
+	LogStream telog;
 
 	//read attr file, collect info about boolean attributes and attrN
-	clog << "Reading the attribute file: \"" << attrFName << "\"\n";
+	telog << "Reading the attribute file: \"" << attrFName << "\"\n";
 	fstream fattr;
 	fattr.open(attrFName, ios_base::in);
 	if(!fattr) 
@@ -107,7 +107,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			attrName = trimSpace(attrName);
 			int neverAttrId = getAttrId(attrName);
 			if (neverAttrId == -1)
-				clog << "\nWARNING: trying to exclude \"" << attrName << "\" - this is not a valid feature\n\n";
+				telog << "\nWARNING: trying to exclude \"" << attrName << "\" - this is not a valid feature\n\n";
 			else
 				ignoreAttrs.insert(neverAttrId);
 		}
@@ -116,7 +116,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	fattr.close();
 	
 	int activeAttrN = attrN - (int)ignoreAttrs.size();
-	clog << attrN << " attributes\n" << activeAttrN << " active attributes\n\n";
+	telog << attrN << " attributes\n" << activeAttrN << " active attributes\n\n";
 	if(!isSubset(nomAttrs, ignoreAttrs))
 		throw NOM_ACTIVE_ERR;
 
@@ -128,13 +128,18 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	//Read data
 	if(string(trainFName).compare("") != 0)
 	{//Read train set
-		clog << "Reading the train set: \"" << trainFName << "\"\n";
+		telog << "Reading the train set: \"" << trainFName << "\"\n";
 		fstream fin;
 		fin.open(trainFName, ios_base::in);
 		if(fin.fail()) 
 			throw OPEN_TRAIN_ERR;
 		 
 		hasMV = false;
+		hasActiveMV = false;
+		intv mvCounts(activeAttrN);
+		intv activeAttrs;
+		getActiveAttrs(activeAttrs);
+
 		getLineExt(fin, buf);
 		int caseNo;
 		for(caseNo = 0; fin.gcount(); caseNo++)
@@ -156,6 +161,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				if(weightColNo != -1)
 					item.erase(item.begin() + min(tarColNo, weightColNo));
 
+				//check if boolean attributes have valid values
 				for (intset::iterator boolIt = boolAttrs.begin(); boolIt != boolAttrs.end(); boolIt++)
 				{
 					int attrId = *boolIt;
@@ -165,6 +171,11 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 						throw ATTR_NOT_BOOL_ERR;
 					}
 				}
+
+				if(hasMV)
+					for(int activeNo = 0; activeNo < activeAttrN; activeNo++)
+						if(isnan(item[activeAttrs[activeNo]]))
+							mvCounts[activeNo]++;
 			}
 			catch (TE_ERROR err) {
 				cerr << "\nLine " << caseNo + 1 << "\n";
@@ -192,9 +203,25 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 
 		}
 		double trainStD = getTarStD(TRAIN);
-		clog << trainN << " points in the train set, std. dev. of " << tarName << " values = " << trainStD 
+		telog << trainN << " points in the train set, std. dev. of " << tarName << " values = " << trainStD 
 			<< "\n\n"; 
 		fin.close();
+
+		//output missing values counts
+		for(int activeNo = 0; activeNo < activeAttrN; activeNo++)
+			if(mvCounts[activeNo] > 0)
+				hasActiveMV = true;
+		if(hasActiveMV)
+		{
+			fstream fmisval;
+			fmisval.open("missing_values.txt", ios_base::out);
+			fmisval << "Attribute\tnumber of missing values in the training data\n";
+			for(int activeNo = 0; activeNo < activeAttrN; activeNo++)
+				if(mvCounts[activeNo] > 0)
+					fmisval << getAttrName(activeAttrs[activeNo]) << "\t" << mvCounts[activeNo] << "\n";
+			fmisval.close();
+			telog << "Warning: active attributes have missing values. More information in missing_values.txt.\n\n";
+		}
 
 		//initialize bootstrap (bag of data)
 		bootstrap.resize(trainN); 
@@ -205,7 +232,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 
 	if(string(validFName).compare("") != 0)
 	{//Read validation set
-		clog << "Reading the validation set: \"" << validFName << "\"\n";
+		telog << "Reading the validation set: \"" << validFName << "\"\n";
 		fstream fvalid;
 		fvalid.open(validFName, ios_base::in); 
 		if(fvalid.fail())
@@ -242,7 +269,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		if(validN == 0)
 			throw VALID_EMPTY_ERR;
 		double validStD = getTarStD(VALID);
-		clog << validN << " points in the validation set, std. dev. of " << tarName << " values = " 
+		telog << validN << " points in the validation set, std. dev. of " << tarName << " values = " 
 			<< validStD << "\n\n"; 
 		fvalid.close();
 	}
@@ -251,7 +278,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 
 	if(string(testFName).compare("") != 0)
 	{//Read test set
-		clog << "Reading the test set: \"" << testFName << "\"\n";
+		telog << "Reading the test set: \"" << testFName << "\"\n";
 		fstream ftest;
 		ftest.open(testFName, ios_base::in); 
 		if(ftest.fail()) 
@@ -284,7 +311,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		}
 		testN = caseNo;
 		double testStD = getTarStD(TEST);
-		clog << testN << " points in the test set, std. dev. of " << tarName << " values = " << testStD 
+		telog << testN << " points in the test set, std. dev. of " << tarName << " values = " << testStD 
 			<< "\n\n";
 		ftest.close();
 	}
@@ -698,7 +725,7 @@ void INDdata::outAttr(string attrFName)
 //returns the length of valCounts as return value
 int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 {
-	LogStream clog;
+	LogStream telog;
 
 	doublev attrVals; //all values of given attribute in the validation set; sorted, w duplicates
 	getValues(attrId, attrVals); 
@@ -706,7 +733,7 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 	bool singleVal = false;
 	if(equalsNaN(attrVals[0], attrVals[valsN - 1]))
 	{
-		clog << "Warning: feature " << attrNames[attrId] << " takes on a single value on the whole validation set\n";
+		telog << "Warning: feature " << attrNames[attrId] << " takes on a single value on the whole validation set\n";
 		singleVal = true;
 	}
 	
@@ -724,7 +751,7 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 			quantN *= 2;
 	}
 	if(oldQuantN != quantN)
-		clog << "Warning: " << oldQuantN << " quantile values was not enough to see the effect of " 
+		telog << "Warning: " << oldQuantN << " quantile values was not enough to see the effect of " 
 			<< attrNames[attrId] << ". The number of quantile values for this feature was changed to " 
 			<< quantN << ".\n\n";
 
@@ -746,4 +773,108 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 			valCounts[uValsN - 1].second++;
 
 	return uValsN;
+}
+
+//calculates and outputs correlation scores between active attributes based on the training set
+void INDdata::correlations(string trainFName)
+{
+	LogStream telog;
+
+	//get a list of defined attributes
+	intv attrs;
+	getActiveAttrs(attrs);
+	size_t activeN = attrs.size();
+
+	size_t itemN = getTrainN();
+
+	//reserve space for sortedItems
+	sortedItems.clear();
+	sortedItems.resize(activeN);
+	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
+		sortedItems[attrNo].reserve(itemN);
+
+	//fill sortedItems 
+	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
+	{
+		for(size_t itemNo = 0; itemNo < itemN; itemNo++)
+		{
+			float value = train[bootstrap[itemNo]][attrs[attrNo]];
+			if(isnan(value))
+				throw CORR_MV_ERR;
+
+			sortedItems[attrNo].push_back(fipair(value, itemNo));
+		}
+		sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
+		
+		//replace actual values with ranks. Ties get average rank.
+		int lastDone = -1;
+		float curVal = sortedItems[attrNo][0].first;
+		for(size_t itemNo = 1; itemNo <= itemN; itemNo++)
+			if((itemNo == itemN) || (sortedItems[attrNo][itemNo].first != curVal))
+			{
+				if(itemNo != itemN)
+					curVal = sortedItems[attrNo][itemNo].first;
+				float rank = (float)((lastDone + itemNo) / 2.0 + 1);
+				for(size_t fillNo = lastDone + 1; fillNo < itemNo; fillNo++)
+					sortedItems[attrNo][fillNo].first = rank;
+				lastDone = itemNo - 1;
+			}
+
+		//re-sort by itemId
+		sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end(), ltSecond);
+	}
+
+	//calculate Spearman's rank correlation values
+	double coef = 6.0 / (itemN * ((double)itemN * itemN - 1.0));
+
+	doublev stub(activeN, 0);
+	doublevv correlations(activeN, stub);
+
+	ssdtriplev corrv;
+	corrv.reserve(activeN * (activeN - 1));
+
+	for(size_t attrNo1 = 0; attrNo1 < activeN; attrNo1++)
+		for(size_t attrNo2 = 0; attrNo2 < activeN; attrNo2++)
+			if(attrNo1 > attrNo2)
+				correlations[attrNo1][attrNo2] = correlations[attrNo2][attrNo1];
+			else if(attrNo1 == attrNo2)
+				correlations[attrNo1][attrNo2] = QNAN;
+			else
+			{
+				double corr = 0;
+				for(size_t itemNo = 0; itemNo < itemN; itemNo++)
+				{
+					double d = sortedItems[attrNo1][itemNo].first - sortedItems[attrNo2][itemNo].first;
+					corr += coef * d * d;
+				}
+				correlations[attrNo1][attrNo2] = 1 - corr;
+				corrv.push_back(ssdtriple(sspair(getAttrName(attrs[attrNo1]), getAttrName(attrs[attrNo2])), 1 - corr));
+			}
+
+	//open output file
+	string outFName = beforeLastDot(trainFName) + ".correlations.txt";
+	fstream fcorr(outFName.c_str(), ios_base::out);
+
+	//output in the sorted list of triples format
+	sort(corrv.begin(), corrv.end(), gtAbsThird);
+	for(size_t pairNo = 0; pairNo < corrv.size(); pairNo++)
+		fcorr << corrv[pairNo].first.first << "\t" << corrv[pairNo].first.second << "\t" << corrv[pairNo].second << endl;
+
+
+	// output in the table format
+	fcorr << "\n" << QNAN;
+	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
+		fcorr << "\t" << getAttrName(attrs[attrNo]);
+	fcorr << endl;
+
+	for(size_t attrNo1 = 0; attrNo1 < activeN; attrNo1++)
+	{
+		fcorr << getAttrName(attrs[attrNo1]); 
+		for(size_t attrNo2 = 0; attrNo2 < activeN; attrNo2++)
+			fcorr << "\t" << correlations[attrNo1][attrNo2];
+		fcorr << endl;
+	}
+	fcorr.close();
+
+	telog << "Correlation scores are saved into the file " << outFName << ".\n";
 }

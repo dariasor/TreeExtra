@@ -22,15 +22,15 @@ int main(int argc, char* argv[])
 {	
 	try{
 //0. Set log file
-	LogStream clog;
-	clog << "\n-----\nag_interactions ";
+	LogStream telog;
+	telog << "\n-----\nag_interactions ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 		return 0;
 	}
 
@@ -170,20 +170,20 @@ int main(int argc, char* argv[])
 	if(ti.minAlpha != newAlpha)
 	{
 		if(newAlpha == 0)
-			clog << "Warning: due to small train set size value of alpha was changed to 0"; 
+			telog << "Warning: due to small train set size value of alpha was changed to 0"; 
 		else 
-			clog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
-		clog << ".\n\n";
+			telog << "Warning: alpha value was rounded to the closest valid value " << newAlpha;
+		telog << ".\n\n";
 		ti.minAlpha = newAlpha;	
 	}
 	//adjust maxTiGN, if needed
 	int newTiGN = adjustTiGN(ti.maxTiGN);
 	if(ti.maxTiGN != newTiGN)
 	{
-		clog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
+		telog << "Warning: N value was rounded to the closest smaller valid value " << newTiGN << ".\n\n";
 		ti.maxTiGN = newTiGN;	
 	}
-	clog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
+	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
 		<< ti.bagN << " bagging iterations\n";
 
 //2.a) Start thread pool
@@ -209,19 +209,19 @@ int main(int argc, char* argv[])
 		for(int attrNo2 = attrNo1 + 1; attrNo2 < attrN; attrNo2++)
 		{
 			ti.interaction[1] = attrs[attrNo2];
-			clog << "\nRestricting interaction between " << data.getAttrName(attrs[attrNo1]) << " and " 
+			telog << "\nRestricting interaction between " << data.getAttrName(attrs[attrNo1]) << " and " 
 				<< data.getAttrName(attrs[attrNo2]) << "\n";
 			double rPerf = layeredGroves(data, ti, string(""));
 			double score = (meanPerf - rPerf) / stdPerf;
 			if(ti.rms)
 				score *= -1; 
-			clog << "\tPerformance: " << rPerf << ". " << score << " standard deviations from the mean. ";
+			telog << "\tPerformance: " << rPerf << ". " << score << " standard deviations from the mean. ";
 			if(score > 7)
-				clog << "Interaction is present.\n";
+				telog << "Interaction is present.\n";
 			else if(score > 3)
-				clog << "Small interaction is present.\n";
+				telog << "Small interaction is present.\n";
 			else
-				clog << "Interaction is absent.\n";
+				telog << "Interaction is absent.\n";
 
 			if(score > 3)
 				iPresent.push_back(iipair(ti.interaction[0], ti.interaction[1]));

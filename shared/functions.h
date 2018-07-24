@@ -48,6 +48,9 @@ double roc(doublev& preds, doublev& tars);
 //inserts suffix into a string (usually file name)
 string insertSuffix(string fileName, string suffix);
 
+//returns the part of the string (usually a file name) before the last dot
+string beforeLastDot(string fileName);
+
 //checks if the first set is a subset of the second set
 bool isSubset(intset& set1, intset& set2);
 
@@ -86,3 +89,9 @@ bool ltDouble(double i, double j);
 
 //greater function comparing by the second item
 bool gtSecond(idpair p1, idpair p2);
+
+//less function comparing by the second item
+bool ltSecond(fipair p1, fipair p2);
+
+//greater function comparing by the absolute value of the third item
+bool gtAbsThird(ssdtriple t1, ssdtriple t2);

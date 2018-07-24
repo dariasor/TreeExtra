@@ -26,13 +26,13 @@ int main(int argc, char* argv[])
 //0. -version mode	
 	if((argc > 1) && !string(argv[1]).compare("-version"))
 	{
-		LogStream clog;
-		clog << "\n-----\nbt_train ";
+		LogStream telog;
+		telog << "\n-----\nbt_train ";
 		for(int argNo = 1; argNo < argc; argNo++)
-			clog << argv[argNo] << " ";
-		clog << "\n\n";
+			telog << argv[argNo] << " ";
+		telog << "\n\n";
 
-		clog << "TreeExtra version " << VERSION << "\n";
+		telog << "TreeExtra version " << VERSION << "\n";
 			return 0;
 	}
 
@@ -120,12 +120,12 @@ int main(int argc, char* argv[])
 		throw ALPHA_ERR;
 
 //1.a) Set log file
-	LogStream clog;
+	LogStream telog;
 	LogStream::init(true);
-	clog << "\n-----\ngbt_train ";
+	telog << "\n-----\ngbt_train ";
 	for(int argNo = 1; argNo < argc; argNo++)
-		clog << argv[argNo] << " ";
-	clog << "\n\n";
+		telog << argv[argNo] << " ";
+	telog << "\n\n";
 
 //1.b) Initialize random number generator. 
 	srand(ti.seed);
