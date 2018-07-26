@@ -852,7 +852,7 @@ void INDdata::correlations(string trainFName)
 			}
 
 	//open output file
-	string outFName = beforeLastDot(trainFName) + ".correlations.txt";
+	string outFName = /*beforeLastDot(trainFName) + "." + */"correlations.txt";
 	fstream fcorr(outFName.c_str(), ios_base::out);
 
 	//output in the sorted list of triples format
