@@ -2,7 +2,7 @@
 //(c) Daria Sorokina
 
 //gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_ 
-//[-a _alpha_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]
+//[-a _alpha_value_] [-mu _mu_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]
 // [-sh _shrinkage_ ] [-sub _subsampling_] | -version
 
 #include "Tree.h"
@@ -84,6 +84,8 @@ int main(int argc, char* argv[])
 		}
 		else if(!args[argNo].compare("-a"))
 			ti.alpha = atofExt(argv[argNo + 1]);
+		else if(!args[argNo].compare("-mu"))
+			ti.mu = atofExt(argv[argNo + 1]); 
 		else if(!args[argNo].compare("-n"))
 			treeN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-i"))
@@ -118,6 +120,8 @@ int main(int argc, char* argv[])
 
 	if((ti.alpha < 0) || (ti.alpha > 1))
 		throw ALPHA_ERR;
+	if(ti.mu < 0)
+		throw MU_ERR;
 
 //1.a) Set log file
 	LogStream telog;
@@ -192,7 +196,7 @@ int main(int argc, char* argv[])
 		else
 			data.newSample(sampleN);
 
-		CTree tree(ti.alpha);
+		CTree tree(ti.alpha,ti.mu);
 		tree.setRoot();
 		tree.resetRoot(trainPreds);
 		idpairv stub;
@@ -260,12 +264,14 @@ int main(int argc, char* argv[])
 		{
 			case INPUT_ERR:
 				errlog << "Usage: gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_" 
-					<< "[-a _alpha_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]"
+					<< "[-a _alpha_value_] [-mu _mu_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]"
 					<< " [-sh _shrinkage_ ] [-sub _subsampling_] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Error: alpha value is out of [0;1] range.\n";
 				break;
+			case MU_ERR:
+				errlog << "Error: mu value should be non-negative.\n";
 			case WIN_ERR:
 				errlog << "Input error: TreeExtra currently does not support multithreading for Windows.\n"; 
 				break;

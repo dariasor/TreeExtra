@@ -11,6 +11,8 @@ public:
 	int seed;			//random number initializer
 	double alpha;		//min proportion of train set in the leaf (controls size of tree)
 	bool rms;			//rms/roc performance metric
+	double mu;          //penalty on new spilt variable for feature selection
+
 
 	//file names
 	string trainFName;	//train set
@@ -18,5 +20,5 @@ public:
 	string testFName;	//test set
 	string attrFName;	//attributes description 	
 
-	TrainInfo(): bagN(60), seed(1), alpha(0), rms(true) {};
+	TrainInfo(): bagN(60), seed(1), alpha(0), rms(true), mu(0) {};
 };
