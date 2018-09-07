@@ -16,10 +16,10 @@
 
 #include "TreeNode.h"
 #include "functions.h"
+#include "TrainInfo.h"
 
 #include <fstream>
 #include <math.h>
-#include <TrainInfo.h>
 
 INDdata* CTreeNode::pData;
 

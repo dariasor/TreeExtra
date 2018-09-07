@@ -21,7 +21,7 @@ public:
 #endif
 
 	//constructor
-	CTree(double alpha = 0,double mu = 0); 
+	CTree(double alpha = 0); 
 
 	//grows a tree, increases attribute counts
 	void grow(bool doFS, idpairv& attrCounts);
