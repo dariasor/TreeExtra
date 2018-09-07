@@ -19,6 +19,7 @@
 
 #include <fstream>
 #include <math.h>
+#include <TrainInfo.h>
 
 INDdata* CTreeNode::pData;
 
@@ -399,19 +400,24 @@ void CTreeNode::makeLeaf(double nodeMean)
 	// nodeV - size (volume) of the training subset
 	// nodeSum - sum of response values in the training subset
 //out: true, if best split found. false, if there were no splits
+
+// naive way to add mu to used attributes
+TrainInfo ti; //model training parameters
+static intv used_features(200); // vector of int initialize to 0 correspond to features, when used set to 1
 bool CTreeNode::setSplit(double nodeV, double nodeSum)
-{
+{	double mu=ti.mu; // penalty parameter
 	double bestEval = QNAN; //current value for the best evaluation
 	SplitInfov bestSplits; // all splits that have best (identical) evaluation
-
+	int idx=0; // the idx of feature that splits
 	for(int attrNo = 0; attrNo < (int)pAttrs->size();)
 	{
 		int attr = (*pAttrs)[attrNo];
+		double pen = (1-used_features[attr])*mu; // penalty for the split feature
 		if(pData->boolAttr(attr))	
 		{//boolean attribute
 			//there is exactly one split for a boolean attribute, evaluate it
 			SplitInfo boolSplit(attr, 0.5);
-			double eval = evalBool(boolSplit, nodeV, nodeSum);
+			double eval = evalBool(boolSplit, nodeV, nodeSum)+pen;
 			if(isnan(eval))
 			{//boolean attribute is not valid anymore, remove it
 				pAttrs->erase(pAttrs->begin() + attrNo);	
@@ -502,7 +508,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 					double sqErr1 =  - 2 * mean1 * sum1 + volume1 * mean1 * mean1;
 					double sqErr2 =  - 2 * mean2 * sum2 + volume2 * mean2 * mean2;
 
-					double eval = sqErr1 + sqErr2;
+					double eval = sqErr1 + sqErr2 + pen;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
 					if(isnan(bestEval) || (eval < bestEval))
@@ -551,7 +557,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 		int bestSplitN = (int)bestSplits.size();
 		int randSplit = rand() % bestSplitN;
 		splitting = bestSplits[randSplit];
-
+		used_features[splitting.divAttr]=1;
 		if(pData->boolAttr(splitting.divAttr))
 		{//one can split only once on boolean attribute, remove it from the set of attributes
 			int attrNo = erasev(pAttrs, splitting.divAttr);

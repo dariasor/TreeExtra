@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
 		else
 			data.newSample(sampleN);
 
-		CTree tree(ti.alpha,ti.mu);
+		CTree tree(ti.alpha);
 		tree.setRoot();
 		tree.resetRoot(trainPreds);
 		idpairv stub;
