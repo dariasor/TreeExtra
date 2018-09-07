@@ -9,7 +9,7 @@ enum BT_ERROR
 {
 	INPUT_ERR = 101, 
 	WIN_ERR = 102,
-	ALPHA_ERR = 103
+	ALPHA_ERR = 103,
 	MU_ERR = 104
 };
 
