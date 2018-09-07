@@ -272,6 +272,7 @@ int main(int argc, char* argv[])
 				break;
 			case MU_ERR:
 				errlog << "Error: mu value should be non-negative.\n";
+				break;
 			case WIN_ERR:
 				errlog << "Input error: TreeExtra currently does not support multithreading for Windows.\n"; 
 				break;
