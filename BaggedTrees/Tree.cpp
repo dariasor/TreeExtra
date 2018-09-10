@@ -38,7 +38,7 @@ public:
 		}
 		double h = curNH.second;
 		double curAlpha = (pJD->H == 0) ? 1 : pow(2, - ( pJD->b +  pJD->H) * h /  pJD->H +  pJD->b);
-		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
+		bool notLeaf = curNH.first->split(curAlpha, pEntropy, mu, attrIds);
 		
 		nodesCond.Lock();
 		if(notLeaf)
@@ -64,7 +64,7 @@ public:
 };
 #endif
 
-CTree::CTree(double alphaIn,double muIn, int* attrIdsIn): alpha(alphaIn),mu(muIn), attrIds(attrIdsIn), root()
+CTree::CTree(double alphaIn,double muIn, int* attrIdsIn): alpha(alphaIn), mu(muIn), attrIds(attrIdsIn), root()
 {
 }
 
