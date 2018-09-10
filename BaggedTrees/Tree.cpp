@@ -64,7 +64,7 @@ public:
 };
 #endif
 
-CTree::CTree(double alphaIn): alpha(alphaIn), root()
+CTree::CTree(double alphaIn,double muIn, int* attrIdsIn): alpha(alphaIn),mu(muIn), attrIds(attrIdsIn), root()
 {
 }
 
@@ -99,7 +99,7 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 		}	
 		double h = curNH.second;
 		double curAlpha = (H == 0) ? 1 : pow(2, - (b + H) * h / H + b);
-		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
+		bool notLeaf = curNH.first->split(curAlpha, pEntropy, mu, attrIds);
 	
 		if(notLeaf)
 		{//process child nodes of this node

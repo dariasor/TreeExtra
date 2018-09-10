@@ -21,7 +21,7 @@ public:
 #endif
 
 	//constructor
-	CTree(double alpha = 0); 
+	CTree(double alpha = 0,double mu = 0,int *attrIds = NULL); 
 
 	//grows a tree, increases attribute counts
 	void grow(bool doFS, idpairv& attrCounts);
@@ -52,6 +52,8 @@ private:
 
 	CTreeNode root;		//root of the tree
 	double alpha;		//training parameter: controls size of the tree
+	double mu;          //training parameter: penalty on new split variable
+	int *attrIds;        //used features
 };
 
 #ifndef _WIN32 

@@ -16,7 +16,6 @@
 
 #include "TreeNode.h"
 #include "functions.h"
-#include "TrainInfo.h"
 
 #include <fstream>
 #include <math.h>
@@ -176,7 +175,7 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 // Returns true if succeeds, false if this node becomes a leaf
 // input: alpha - min possible ratio of internal node train subset volume to the whole train set size, 
 //		when surpassed,	the node becomes a leaf
-bool CTreeNode::split(double alpha, double* pEntropy)
+bool CTreeNode::split(double alpha, double* pEntropy, double mu, int *attrIds)
 {	
 //1. check basic leaf conditions
 	double nodeV, nodeSum, realNodeV;
@@ -190,7 +189,7 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 //2. Find the best split
 //evaluate all good splits and choose the one with the best evaluation
-	bool notFound = pData->useCoef() ? setSplitMV(nodeV, nodeSum) : setSplit(nodeV, nodeSum);	//finds and sets best split
+	bool notFound = pData->useCoef() ? setSplitMV(nodeV, nodeSum) : setSplit(nodeV, nodeSum, mu, attrIds);	//finds and sets best split
 
 	if(notFound)
 	{//no splittings or they disappeared because of tiny coefficients. This node becomes a leaf
@@ -401,23 +400,19 @@ void CTreeNode::makeLeaf(double nodeMean)
 	// nodeSum - sum of response values in the training subset
 //out: true, if best split found. false, if there were no splits
 
-// naive way to add mu to used attributes
-TrainInfo ti; //model training parameters
-static intv used_features(200); // vector of int initialize to 0 correspond to features, when used set to 1
-bool CTreeNode::setSplit(double nodeV, double nodeSum)
-{	double mu=ti.mu; // penalty parameter
+bool CTreeNode::setSplit(double nodeV, double nodeSum, double mu, int *attrIds)
+{
 	double bestEval = QNAN; //current value for the best evaluation
 	SplitInfov bestSplits; // all splits that have best (identical) evaluation
-	int idx=0; // the idx of feature that splits
 	for(int attrNo = 0; attrNo < (int)pAttrs->size();)
 	{
 		int attr = (*pAttrs)[attrNo];
-		double pen = (1-used_features[attr])*mu; // penalty for the split feature
+		double penalty = (1 - attrIds[attr] ) * mu; // penalty to use this variable to split
 		if(pData->boolAttr(attr))	
 		{//boolean attribute
 			//there is exactly one split for a boolean attribute, evaluate it
 			SplitInfo boolSplit(attr, 0.5);
-			double eval = evalBool(boolSplit, nodeV, nodeSum)+pen;
+			double eval = evalBool(boolSplit, nodeV, nodeSum) + penalty;
 			if(isnan(eval))
 			{//boolean attribute is not valid anymore, remove it
 				pAttrs->erase(pAttrs->begin() + attrNo);	
@@ -508,7 +503,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 					double sqErr1 =  - 2 * mean1 * sum1 + volume1 * mean1 * mean1;
 					double sqErr2 =  - 2 * mean2 * sum2 + volume2 * mean2 * mean2;
 
-					double eval = sqErr1 + sqErr2 + pen;
+					double eval = sqErr1 + sqErr2 + penalty;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
 					if(isnan(bestEval) || (eval < bestEval))
@@ -557,13 +552,13 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 		int bestSplitN = (int)bestSplits.size();
 		int randSplit = rand() % bestSplitN;
 		splitting = bestSplits[randSplit];
-		used_features[splitting.divAttr]=1;
 		if(pData->boolAttr(splitting.divAttr))
 		{//one can split only once on boolean attribute, remove it from the set of attributes
 			int attrNo = erasev(pAttrs, splitting.divAttr);
 			pSorted->erase(pSorted->begin() + attrNo);	
 				//it is an empty vector (the attribute is boolean), but we still need to remove it
 		}
+		attrIds[splitting.divAttr] = 1;
 	}
 	return isnan(bestEval);
 }
