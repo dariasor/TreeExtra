@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
 
 //------------------
 	int attrN = data.getAttrN();
-	int attrIds[attrN] {0} // initialize all attrIds 0:notused 1:used
+	int attrIds[attrN] {0}; // initialize all attrIds 0:notused 1:used
 	if(topAttrN == -1)
 		topAttrN = attrN;
 	idpairv attrCounts;	//counts of attribute importance
