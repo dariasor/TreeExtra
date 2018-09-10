@@ -70,6 +70,8 @@ struct JobData
 	TCondition* pNodesCond;
 	int* pToDoN;
 	double alpha;
+	double mu;
+	int *attrIds;
 	idpairv* pAttrCounts;
 	double b;
 	double H;
