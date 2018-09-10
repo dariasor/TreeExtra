@@ -129,7 +129,7 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 			idpairv* pAttrCounts = NULL;
 			if(doFS)
 				pAttrCounts = &attrCounts;
-			JobData* pJD = new JobData(curNH, &nodes, &nodesCond, &toDoN, pAttrCounts, b, H);
+			JobData* pJD = new JobData(curNH, &nodes, &nodesCond, &toDoN, pAttrCounts, b, H, mu, attrIds);
 			pPool->Run(new CNodeSplitJob(), pJD, true);
 		}
 		else

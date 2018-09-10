@@ -61,9 +61,9 @@ private:
 struct JobData
 {	
 	JobData(nodeip in_curNH, nodehstack* in_pNodes, TCondition* in_pNodesCond, int* in_pToDoN, 
-			idpairv* in_pAttrCounts, double in_b, double in_H):
+			idpairv* in_pAttrCounts, double in_b, double in_H, double muIn, int *attrIdsIn):
 	curNH(in_curNH), pNodes(in_pNodes), pNodesCond(in_pNodesCond), pToDoN(in_pToDoN), 
-	pAttrCounts(in_pAttrCounts), b(in_b), H(in_H){}
+	pAttrCounts(in_pAttrCounts), b(in_b), H(in_H), mu(muIn), attrIds(attrIdsIn) {}
 
 	nodeip curNH; 
 	nodehstack* pNodes;
