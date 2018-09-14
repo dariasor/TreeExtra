@@ -254,6 +254,12 @@ int main(int argc, char* argv[])
 	for(int itemNo = 0; itemNo < validN; itemNo++)
 		fpreds << validPreds[itemNo] << endl;
 	fpreds.close();
+	int usedAttrN=0;
+	for(int i=0;i<attrN;i++){
+		usedAttrN+=attrIds[i];
+	}
+	cout<<"number of used features:"<<usedAttrN<<endl;
+	cout<<"number of features:"<<attrN<<endl;
 
 //------------------
 
