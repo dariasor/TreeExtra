@@ -16,7 +16,7 @@ def generate_unused(train,test,response_name):
 				dtype.isalnum()
 				unused.append(name)
 			except:
-				if len(unique)==1 or any([np.isnan(x) for x in unique]):
+				if len(unique)==1:
 					unused.append(name)
 
 	txtfile1="result/preprocess_unused.txt"

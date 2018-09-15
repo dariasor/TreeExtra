@@ -8,9 +8,9 @@
 #################
 # preprocess.py 
 # description: 
-#  prescreening of features: exclude any feature that only has one value or has missing value (for now..)
+#  prescreening of features: exclude any feature that only has one value 
 #  input: $2(train.tsv) $3(test.tsv)  $4(response_name)
-#  output: preprocess_unused.txt trueY.txt
+#  output: preprocess_unused.txt trueY.txt 
 ################# 
 # tsv_to_dta.sh
 # description:
@@ -39,45 +39,49 @@
 #   input: all preds.txt and model informations
 #   output: AUC.txt RMSE.txt
 
-mkdir result
+# get datanames
 
-######## preprocess
-
-#prescreening of features: exclude any feature that only has one value or has missing value (for now..)
-#output result/preprocess_unused.txt and result/trueY.txt
-python preprocess.py "$2" "$3" "$4" 
-
-#converting format
 train_data_name_fullpath_ext=$2
 test_data_name_fullpath_ext=$3
 train_data_name_fullpath="${train_data_name_fullpath_ext%.*}"
 test_data_name_fullpath="${test_data_name_fullpath_ext%.*}"
-bash /home/cuize/Desktop/experiment/ag_scripts-master/General/tsv_to_dta.sh "$train_data_name_fullpath" "$4" result/preprocess_unused.txt 
-bash /home/cuize/Desktop/experiment/ag_scripts-master/General/tsv_to_dta.sh "$test_data_name_fullpath" "$4" result/preprocess_unused.txt
-rm "$test_data_name_fullpath".attr
-mv "$train_data_name_fullpath".dta "$train_data_name_fullpath".attr "$test_data_name_fullpath".dta result/
 train_data_name=$(basename -- "$train_data_name_fullpath")
 test_data_name=$(basename -- "$test_data_name_fullpath")
-#now $train_data_name.dta, $train_data_name.attr and $test_data_name.dta are in result folder
+
+
+mkdir result_"$test_data_name"
+
+######## preprocess
+
+#prescreening of features: exclude any feature that only has one value or has missing value (for now..)
+#output result_"$test_data_name"/preprocess_unused.txt and result_"$test_data_name"/trueY.txt
+python preprocess.py "$2" "$3" "$4" 
+
+#converting format
+bash /home/cuize/Desktop/experiment/ag_scripts-master/General/tsv_to_dta.sh "$train_data_name_fullpath" "$4" result_"$test_data_name"/preprocess_unused.txt 
+bash /home/cuize/Desktop/experiment/ag_scripts-master/General/tsv_to_dta.sh "$test_data_name_fullpath" "$4" result_"$test_data_name"/preprocess_unused.txt
+rm "$test_data_name_fullpath".attr
+mv "$train_data_name_fullpath".dta "$train_data_name_fullpath".attr "$test_data_name_fullpath".dta result_"$test_data_name"/
+#now $train_data_name.dta, $train_data_name.attr and $test_data_name.dta are in result_"$test_data_name" folder
 
 ######### model training and prediction
 
 ####BT model
 # input: traindata testdata attr topk
 # output: preds,model,attr for BTtopk  
-/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name".attr -k $5 -m "BT.bin" -o "BT_preds.txt"
-mv BT.bin result/
-mv BT_preds.txt result/
-mv "$train_data_name".fs.attr result/"$train_data_name"_BTfs.attr
+/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t result_"$test_data_name"/"$train_data_name".dta -v result_"$test_data_name"/"$test_data_name".dta -r result_"$test_data_name"/"$train_data_name".attr -k $5 -m "BT.bin" -o "BT_preds.txt"
+mv BT.bin result_"$test_data_name"/
+mv BT_preds.txt result_"$test_data_name"/
+mv "$train_data_name".fs.attr result_"$test_data_name"/"$train_data_name"_BTfs.attr
 rm bagging_rms.txt  correlations.txt  log.txt feature_scores.txt
 
 ####BTtopk model
 # input: traindata testdata topk_attr
 # output: preds,model,feature_scores
-/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name"_BTfs.attr -k -1 -m BTt"$5".bin -o BTt"$5"_preds.txt
-mv BTt"$5".bin result/
-mv BTt"$5"_preds.txt result/
-mv feature_scores.txt result/feature_scores_BTt"$5".txt
+/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t result_"$test_data_name"/"$train_data_name".dta -v result_"$test_data_name"/"$test_data_name".dta -r result_"$test_data_name"/"$train_data_name"_BTfs.attr -k -1 -m BTt"$5".bin -o BTt"$5"_preds.txt
+mv BTt"$5".bin result_"$test_data_name"/
+mv BTt"$5"_preds.txt result_"$test_data_name"/
+mv feature_scores.txt result_"$test_data_name"/feature_scores_BTt"$5".txt
 rm "$train_data_name"_BTfs.fs.attr bagging_rms.txt  correlations.txt  log.txt
 
 ####GBFS/GBDT(GBFS with mu=0) models
@@ -86,9 +90,9 @@ rm "$train_data_name"_BTfs.fs.attr bagging_rms.txt  correlations.txt  log.txt
 cat "$1"|      #read mus.txt
 while read row
 do
-	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name".attr -mu $row -k $5
-	mv preds.txt result/GBFS_mu"$row"_preds.txt
-	mv "$train_data_name".fs.attr result/"$train_data_name"_GBFS_mu"$row".attr
+	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result_"$test_data_name"/"$train_data_name".dta -v result_"$test_data_name"/"$test_data_name".dta -r result_"$test_data_name"/"$train_data_name".attr -mu $row -k $5
+	mv preds.txt result_"$test_data_name"/GBFS_mu"$row"_preds.txt
+	mv "$train_data_name".fs.attr result_"$test_data_name"/"$train_data_name"_GBFS_mu"$row".attr
 	rm boosting_rms.txt feature_scores.txt log.txt 
 done
 
@@ -98,9 +102,9 @@ done
 cat "$1"|      #read mus.txt
 while read row
 do
-	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name"_GBFS_mu"$row".attr -mu $row -k -1
-	mv preds.txt result/GBFSt"$5"_mu"$row"_preds.txt
-	mv feature_scores.txt result/feature_scores_GBFSt"$5"_mu"$row".txt
+	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result_"$test_data_name"/"$train_data_name".dta -v result_"$test_data_name"/"$test_data_name".dta -r result_"$test_data_name"/"$train_data_name"_GBFS_mu"$row".attr -mu $row -k -1
+	mv preds.txt result_"$test_data_name"/GBFSt"$5"_mu"$row"_preds.txt
+	mv feature_scores.txt result_"$test_data_name"/feature_scores_GBFSt"$5"_mu"$row".txt
 	rm boosting_rms.txt "$train_data_name"_GBFS_mu"$row".fs.attr log.txt 
 done
 
