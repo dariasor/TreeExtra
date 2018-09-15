@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# $1 train
+# $2 validation
+# $3 attribute (part before .attr, the actual attr file should end with ".attr")
+# $4 #bagging iterations
+# $5 rms/roc
+# $6 #features to output
+# $7 alpha value to start with
+# $8 path to the data
+# $9 min alpha
+
+
+if [ $# -ne 9 ]
+then
+    echo "Usage: acurve.script _train_ _validation_ _attribute_(part_before_.attr)_ _#bagging_iterations_ rms|roc _#features_to_output_ _alpha_value_to_start_with_ _data_directory_ _min_alpha_"
+    exit
+fi
+
+
+out="acurve.$4.txt"
+echo -e -n > $out
+
+for b in 30 60 100 150 200 300 500 750 1000
+do
+	bbool=`echo "$4 <= $b" | bc`
+	if [ $bbool -eq 1 ]; then
+		for a in 1 0.5 0.2 0.1 0.05 0.02 0.01 0.005 0.002 0.001 0.0005 0.0002 0.0001 0.00005 0.00002 0.00001 0.000005 0.000002 0.000001 0.0000005 0 
+		do
+			abool1=`echo "$7 >= $a" | bc`
+			abool2=`echo "$9 <= $a" | bc`
+			if [ $abool1 -eq 1 ] && [ $abool2 -eq 1 ]; then
+				echo -e -n "${b}\t${a}\t" >> $out
+				echo -e -n "${b}\t${a}\t" 
+
+				bt_train -t $8/$1 -v $8/$2 -r $8/$3.attr -a $a -k $6 -l nolog -m model.a.$a.b.$b.bin -b $b -c $5 >> temp.txt
+				tail -1 temp.txt >> $out
+				tail -1 temp.txt
+				tail -2 log.txt >> $out
+				tail -2 log.txt
+				mv log.txt log.a.$a.b.$b.txt
+				mv bagging_rms.txt bagging_rms.a.$a.b.$b.txt
+				if [ "$5" == "roc" ]; then
+					mv bagging_roc.txt bagging_roc.a.$a.b.$b.txt
+				fi
+				mv feature_scores.txt feature_scores.a.$a.b.$b.txt
+				if [ "$6" -ne "-1" ]; then
+					mv $3.fs.attr $3.a.$a.b.$b.fs.attr
+				fi
+				mv preds.txt preds.a.$a.b.$b.txt
+			fi
+		done
+	fi
+done 

@@ -1,0 +1,108 @@
+#############################################
+# experiment.sh:
+#  main program for the experiment
+#  input: mus.txt(1) train.tsv(2) test.tsv(3) response_name(4) topk(5) 
+#  output: AUC.txt table etc.
+#############################
+# subprograms include:
+#################
+# preprocess.py 
+# description: 
+#  prescreening of features: exclude any feature that only has one value or has missing value (for now..)
+#  input: $2(train.tsv) $3(test.tsv)  $4(response_name)
+#  output: preprocess_unused.txt trueY.txt
+################# 
+# tsv_to_dta.sh
+# description:
+#  convert data file to required format for TreeExtra pacakge and generate .attr file 
+#  input:  stem(original dataset name without extension,like train in $2(train.tsv)) $4(response_name) 
+#          preprocess_unused.txt 
+#  output: stem.dta stem.attr
+#################
+# bt_train
+# description:
+#   train a BT model based on train.dta train.attr, then rank the features and output predictions on test data 
+#   input: train.dta test.dta train.attr topk
+#   output: feature_score.txt preds.txt
+#################
+# gbt_train
+# description:
+#   train a GBDT model based on train.dta train.attr,then rank the features and output predictions on test data 
+#   for each mu>0 in mus.txt implement the GBFS with penalty mu on new split variables
+#   input: train.dta test.dta train.attr topk mu
+#   output: feature_score.txt preds.txt
+#################
+# postprocess.py
+# description:
+#   take true Y value and preds.txt from different model and 
+#   output all kinds of performance (Now only AUC and RMSE) indexes and plots
+#   input: all preds.txt and model informations
+#   output: AUC.txt RMSE.txt
+
+mkdir result
+
+######## preprocess
+
+#prescreening of features: exclude any feature that only has one value or has missing value (for now..)
+#output result/preprocess_unused.txt and result/trueY.txt
+python preprocess.py "$2" "$3" "$4" 
+
+#converting format
+train_data_name_fullpath_ext=$2
+test_data_name_fullpath_ext=$3
+train_data_name_fullpath="${train_data_name_fullpath_ext%.*}"
+test_data_name_fullpath="${test_data_name_fullpath_ext%.*}"
+bash /home/cuize/Desktop/experiment/ag_scripts-master/General/tsv_to_dta.sh "$train_data_name_fullpath" "$4" result/preprocess_unused.txt 
+bash /home/cuize/Desktop/experiment/ag_scripts-master/General/tsv_to_dta.sh "$test_data_name_fullpath" "$4" result/preprocess_unused.txt
+rm "$test_data_name_fullpath".attr
+mv "$train_data_name_fullpath".dta "$train_data_name_fullpath".attr "$test_data_name_fullpath".dta result/
+train_data_name=$(basename -- "$train_data_name_fullpath")
+test_data_name=$(basename -- "$test_data_name_fullpath")
+#now $train_data_name.dta, $train_data_name.attr and $test_data_name.dta are in result folder
+
+######### model training and prediction
+
+####BT model
+# input: traindata testdata attr topk
+# output: preds,model,attr for BTtopk  
+/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name".attr -k $5 -m "BT.bin" -o "BT_preds.txt"
+mv BT.bin result/
+mv BT_preds.txt result/
+mv "$train_data_name".fs.attr result/"$train_data_name"_BTfs.attr
+rm bagging_rms.txt  correlations.txt  log.txt feature_scores.txt
+
+####BTtopk model
+# input: traindata testdata topk_attr
+# output: preds,model,feature_scores
+/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name"_BTfs.attr -k -1 -m BTt"$5".bin -o BTt"$5"_preds.txt
+mv BTt"$5".bin result/
+mv BTt"$5"_preds.txt result/
+mv feature_scores.txt result/feature_scores_BTt"$5".txt
+rm "$train_data_name"_BTfs.fs.attr bagging_rms.txt  correlations.txt  log.txt
+
+####GBFS/GBDT(GBFS with mu=0) models
+# input: mus traindata testdata attr topk
+# output: preds,attr for GBFStopk 
+cat "$1"|      #read mus.txt
+while read row
+do
+	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name".attr -mu $row -k $5
+	mv preds.txt result/GBFS_mu"$row"_preds.txt
+	mv "$train_data_name".fs.attr result/"$train_data_name"_GBFS_mu"$row".attr
+	rm boosting_rms.txt feature_scores.txt log.txt 
+done
+
+####GBFStopk/GBDTtopk(GBFStopk with mu=0) models
+# input: mus traindata testdata topk_attr
+# output: preds,feature_scores 
+cat "$1"|      #read mus.txt
+while read row
+do
+	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result/"$train_data_name".dta -v result/"$test_data_name".dta -r result/"$train_data_name"_GBFS_mu"$row".attr -mu $row -k -1
+	mv preds.txt result/GBFSt"$5"_mu"$row"_preds.txt
+	mv feature_scores.txt result/feature_scores_GBFSt"$5"_mu"$row".txt
+	rm boosting_rms.txt "$train_data_name"_GBFS_mu"$row".fs.attr log.txt 
+done
+
+
+######## postprocess
