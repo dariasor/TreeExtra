@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import sys
 import csv
-def generate_unused(train,test,response_name):
+def generate_unused(train,test,response_name,folder):
 	train=pd.read_csv(train,sep="\t")
 	train_names=list(train.columns.values)
 	unused=[]
@@ -19,8 +19,8 @@ def generate_unused(train,test,response_name):
 				if len(unique)==1:
 					unused.append(name)
 
-	txtfile1="result/preprocess_unused.txt"
-	txtfile2="result/trueY.txt"
+	txtfile1=folder+"/preprocess_unused.txt"
+	txtfile2=folder+"/trueY.txt"
 	pd.read_csv(test,sep="\t")[response_name].to_csv(txtfile2, index=False)
 	with open(txtfile1, "w") as output:
 		writer = csv.writer(output, lineterminator='\n',escapechar=' ',quoting=csv.QUOTE_NONE)
@@ -32,4 +32,5 @@ if __name__ == '__main__':
 	train=sys.argv[1]
 	test=sys.argv[2]
 	response_name=sys.argv[3]
-	generate_unused(train,test,response_name)
+	folder=sys.argv[4]
+	generate_unused(train,test,response_name,folder)

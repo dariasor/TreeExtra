@@ -55,7 +55,7 @@ mkdir result_"$test_data_name"
 
 #prescreening of features: exclude any feature that only has one value or has missing value (for now..)
 #output result_"$test_data_name"/preprocess_unused.txt and result_"$test_data_name"/trueY.txt
-python preprocess.py "$2" "$3" "$4" 
+python preprocess.py "$2" "$3" "$4" result_"$test_data_name"
 
 #converting format
 bash /home/cuize/Desktop/experiment/ag_scripts-master/General/tsv_to_dta.sh "$train_data_name_fullpath" "$4" result_"$test_data_name"/preprocess_unused.txt 
