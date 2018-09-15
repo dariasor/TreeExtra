@@ -224,6 +224,11 @@ int main(int argc, char* argv[])
 
 	}
 
+	int usedAttrN=0;  // number of used features
+	for(int i=0;i<attrN;i++){
+		usedAttrN+=attrIds[i];
+	}
+
 	//output feature selection results
 	if(doFS)
 	{
@@ -232,6 +237,7 @@ int main(int argc, char* argv[])
 			topAttrN = attrN;
 
 		fstream ffeatures("feature_scores.txt", ios_base::out);
+		ffeatures << "Number of features used: " << usedAttrN << "\n";
 		ffeatures << "Top " << topAttrN << " features\n";
 		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
 			ffeatures << data.getAttrName(attrCounts[attrNo].first) << "\t"
@@ -254,12 +260,6 @@ int main(int argc, char* argv[])
 	for(int itemNo = 0; itemNo < validN; itemNo++)
 		fpreds << validPreds[itemNo] << endl;
 	fpreds.close();
-	int usedAttrN=0;
-	for(int i=0;i<attrN;i++){
-		usedAttrN+=attrIds[i];
-	}
-	cout<<"number of used features:"<<usedAttrN<<endl;
-	cout<<"number of features:"<<attrN<<endl;
 
 //------------------
 

@@ -79,7 +79,7 @@ private:
 	bool setSplit(double nodeV, double nodeSum, double mu=0, int *attrIds = NULL);
 
 	//finds and sets a splitting info with the best MSE when missing values present in the data
-	bool setSplitMV(double nodeV, double nodeSum);
+	bool setSplitMV(double nodeV, double nodeSum, double mu=0, int *attrIds = NULL);
 
 	//evaluates boolean split
 	double evalBool(SplitInfo& canSplit, double nodeV, double nodeSum);
