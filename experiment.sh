@@ -93,7 +93,9 @@ do
 	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result_"$test_data_name"/"$train_data_name".dta -v result_"$test_data_name"/"$test_data_name".dta -r result_"$test_data_name"/"$train_data_name".attr -mu $row -k $5
 	mv preds.txt result_"$test_data_name"/GBFS_mu"$row"_preds.txt
 	mv "$train_data_name".fs.attr result_"$test_data_name"/"$train_data_name"_GBFS_mu"$row".attr
-	rm boosting_rms.txt feature_scores.txt log.txt 
+	mv feature_scores.txt result_"$test_data_name"/feature_scores_GBFS_mu"$row".txt
+	mv boosting_rms.txt result_"$test_data_name"/boosting_rms_GBFS_mu"$row".txt
+	mv log.txt result_"$test_data_name"/log_GBFS_mu"$row".txt
 done
 
 ####GBFStopk/GBDTtopk(GBFStopk with mu=0) models
@@ -105,7 +107,9 @@ do
 	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t result_"$test_data_name"/"$train_data_name".dta -v result_"$test_data_name"/"$test_data_name".dta -r result_"$test_data_name"/"$train_data_name"_GBFS_mu"$row".attr -mu $row -k -1
 	mv preds.txt result_"$test_data_name"/GBFSt"$5"_mu"$row"_preds.txt
 	mv feature_scores.txt result_"$test_data_name"/feature_scores_GBFSt"$5"_mu"$row".txt
-	rm boosting_rms.txt "$train_data_name"_GBFS_mu"$row".fs.attr log.txt 
+	mv boosting_rms.txt result_"$test_data_name"/boosting_rms_GBFSt"$5"_mu"$row".txt
+	mv log.txt result_"$test_data_name"/log_GBFSt"$5"_mu"$row".txt
+	rm "$train_data_name"_GBFS_mu"$row".fs.attr 
 done
 
 
