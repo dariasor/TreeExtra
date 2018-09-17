@@ -182,6 +182,8 @@ int main(int argc, char* argv[])
 	doublev predsumsV(validN, 0); 			//sums of predictions for each data point
 
 	int attrN = data.getAttrN();
+	int attrIds[attrN];       
+	fill_n(attrIds, attrN, 0); // initialize all attrIds 0:notused 1:used
 	if(topAttrN == -1)
 		topAttrN = attrN;
 	idpairv attrCounts;	//counts of attribute importance
@@ -221,7 +223,7 @@ int main(int argc, char* argv[])
 			cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << endl;
 
 		data.newBag();
-		CTree tree(ti.alpha);
+		CTree tree(ti.alpha,0,attrIds);
 		tree.setRoot();
 		tree.grow(doFS, attrCounts);
 		tree.save(modelFName.c_str());
