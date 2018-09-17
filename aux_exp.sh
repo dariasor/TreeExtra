@@ -92,7 +92,7 @@ do
 
 	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name"_GBDTt"$row".attr
 	rm log.txt
-	mv preds.txt aux_result_"$test_data_name"/GBDTt"row"_preds.txt
+	mv preds.txt aux_result_"$test_data_name"/GBDTt"$row"_preds.txt
 	mv boosting_rms.txt aux_result_"$test_data_name"/boosting_rms_GBDTt"$row".txt
 	
 
