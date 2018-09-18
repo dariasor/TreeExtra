@@ -77,11 +77,11 @@ do
 	while read row
 	do
 		############### BT
-		/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name".attr -k "$row" -a $alpha
+		/home/cuize/Desktop/experiment/TreeExtra/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name".attr -k "$row" -a $alpha
 		rm preds.txt model.bin feature_scores.txt bagging_rms.txt  correlations.txt  log.txt
 		mv "$train_data_name".fs.attr aux_result_"$test_data_name"/"$train_data_name"_BTt"$row"_alpha"$alpha".attr
 
-		/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name"_BTt"$row".attr -m BTt"$row"_alpha"$alpha".bin -o BTt"$row"_preds_alpha"$alpha".txt -a $alpha
+		/home/cuize/Desktop/experiment/TreeExtra/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name"_BTt"$row"_alpha"$alpha".attr -m BTt"$row"_alpha"$alpha".bin -o BTt"$row"_preds_alpha"$alpha".txt -a $alpha
 		rm correlations.txt  log.txt
 		mv BTt"$row"_alpha"$alpha".bin BTt"$row"_preds_alpha"$alpha".txt aux_result_"$test_data_name"/
 		mv bagging_rms.txt aux_result_"$test_data_name"/bagging_rms_BTt"$row"_alpha"$alpha".txt
