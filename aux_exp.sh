@@ -1,7 +1,7 @@
 #############################################
 # aux_exp.sh:
 #  main program for the control outcomes
-#  input: topk.txt(1) train.tsv(2) test.tsv(3) response_name(4) 
+#  input: topk.txt(1) train.tsv(2) test.tsv(3) response_name(4) alpha.txt (5)
 #  output: AUC.txt table etc.
 #############################
 # subprograms include:
@@ -64,37 +64,42 @@ rm "$test_data_name_fullpath".attr
 mv "$train_data_name_fullpath".dta "$train_data_name_fullpath".attr "$test_data_name_fullpath".dta aux_result_"$test_data_name"/
 #now $train_data_name.dta, $train_data_name.attr and $test_data_name.dta are in aux_result_"$test_data_name" folder
 
-######### model training and prediction
+######### model training and prediction for different alpha
 
-
-####BT/GBDT topk model
-# input: topk.txt traindata testdata attr 
-# output: preds etc
-cat "$1"|      #read topk.txt
-while read row
+cat "$5"|      #read alphas.txt
+while read alpha
 do
-	############### BT
-	/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name".attr -k "$row" 
-	rm preds.txt model.bin feature_scores.txt bagging_rms.txt  correlations.txt  log.txt
-	mv "$train_data_name".fs.attr aux_result_"$test_data_name"/"$train_data_name"_BTt"$row".attr
 
-	/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name"_BTt"$row".attr -m BTt"$row".bin -o BTt"$row"_preds.txt
-	rm correlations.txt  log.txt
-	mv BTt"$row".bin BTt"$row"_preds.txt aux_result_"$test_data_name"/
-	mv bagging_rms.txt aux_result_"$test_data_name"/bagging_rms_BTt"$row".txt
+	####BT/GBDT topk model
+	# input: topk.txt traindata testdata attr 
+	# output: preds etc
+	cat "$1"|      #read topk.txt
+	while read row
+	do
+		############### BT
+		/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name".attr -k "$row" -a $alpha
+		rm preds.txt model.bin feature_scores.txt bagging_rms.txt  correlations.txt  log.txt
+		mv "$train_data_name".fs.attr aux_result_"$test_data_name"/"$train_data_name"_BTt"$row"_alpha"$alpha".attr
+
+		/home/cuize/Desktop/experiment/TreeExtra-master/Bin/bt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name"_BTt"$row".attr -m BTt"$row"_alpha"$alpha".bin -o BTt"$row"_preds_alpha"$alpha".txt -a $alpha
+		rm correlations.txt  log.txt
+		mv BTt"$row"_alpha"$alpha".bin BTt"$row"_preds_alpha"$alpha".txt aux_result_"$test_data_name"/
+		mv bagging_rms.txt aux_result_"$test_data_name"/bagging_rms_BTt"$row"_alpha"$alpha".txt
 
 
-	############### BGDT
-	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name".attr -k "$row"
-	rm preds.txt feature_scores.txt boosting_rms.txt log.txt
-	mv "$train_data_name".fs.attr aux_result_"$test_data_name"/"$train_data_name"_GBDTt"$row".attr
+		############### GBDT
+		/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name".attr -k "$row" -a $alpha
+		rm preds.txt feature_scores.txt boosting_rms.txt log.txt
+		mv "$train_data_name".fs.attr aux_result_"$test_data_name"/"$train_data_name"_GBDTt"$row"_alpha"$alpha".attr
 
 
-	/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name"_GBDTt"$row".attr
-	rm log.txt
-	mv preds.txt aux_result_"$test_data_name"/GBDTt"$row"_preds.txt
-	mv boosting_rms.txt aux_result_"$test_data_name"/boosting_rms_GBDTt"$row".txt
-	
+		/home/cuize/Desktop/experiment/TreeExtra/Bin/gbt_train -t aux_result_"$test_data_name"/"$train_data_name".dta -v aux_result_"$test_data_name"/"$test_data_name".dta -r aux_result_"$test_data_name"/"$train_data_name"_GBDTt"$row"_alpha"$alpha".attr -a $alpha
+		rm log.txt
+		mv preds.txt aux_result_"$test_data_name"/GBDTt"$row"_preds_alpha"$alpha".txt
+		mv boosting_rms.txt aux_result_"$test_data_name"/boosting_rms_GBDTt"$row"_alpha"$alpha".txt
+		
+
+	done
 
 done
 
