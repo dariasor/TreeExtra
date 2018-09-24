@@ -21,6 +21,7 @@ clean:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
 $(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
+$(SHAREDDIR)/functions.o: $(SHAREDDIR)/definitions.h
 
 vis_iplot.o: $(OBJS)
 
