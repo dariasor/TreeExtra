@@ -178,10 +178,10 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 bool CTreeNode::split(double alpha, double* pEntropy)
 {	
 //1. check basic leaf conditions
-	double nodeV, nodeSum, realNodeV;
-	bool StD0 = getStats(nodeV, nodeSum, realNodeV);
+	double nodeV, nodeSum;
+	bool isStD0 = getStats(nodeV, nodeSum);
 
-	if((realNodeV / pData->getTrainV() < alpha) || StD0)
+	if((nodeV / pData->getBagV() < alpha) || isStD0)
 	{
 		makeLeaf(nodeSum / nodeV);
 		return false;
@@ -289,48 +289,43 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 //returns several summaries of the prediction values set in this node
 // output:
-	//nodeV - sum of squared coefficients
-	//nodeSum - sum of predictions respectively multiplied by squared coefficients
-	//realNodeV - sum of coefficients
+	//nodeSum - sum of predictions respectively multiplied by coefficients
+	//nodeV - sum of coefficients
 //returns false if there are different response values, true - if all values are the same
-bool CTreeNode::getStats(double& nodeV, double& nodeSum, double& realNodeV)
+bool CTreeNode::getStats(double& nodeV, double& nodeSum)
 {
 	nodeSum = 0;
 	nodeV = 0;
-	realNodeV = 0;
 
 	double firstResp = (*pItemSet)[0].response;	//response of the first item
-	bool StD0 = true;	//whether all response values are the same (StD == 0)
+	bool isStD0 = true;	//whether all response values are the same (StD == 0)
 
 	//calculate nodeV, nodeSum and realNodeV
 	if(pData->useCoef())
 		for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)
 		{// update every sum with the info from this item
 			double& coef = itemIt->coef;
-			double coef_sq = coef * coef;
-			nodeV += coef_sq;
-			nodeSum += coef_sq * itemIt->response;
-			realNodeV += coef;
+			nodeSum += coef * itemIt->response;
+			nodeV += coef;
 
 			if(itemIt->response != firstResp)
-				StD0 = false;
+				isStD0 = false;
 		}
 	else
 	{//faster calculations for the data without missing values
 		for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)
 		{
-			nodeV++;
 			nodeSum += itemIt->response;
 			if(itemIt->response != firstResp)
-				StD0 = false;
+				isStD0 = false;
 		}
-		realNodeV = nodeV;
+		nodeV = pItemSet->size();
 	}
 
-	return StD0;
+	return isStD0;
 }
 
-//returns sum of coefficients, old definition of node volume
+//returns sum of coefficientse
 double CTreeNode::getNodeV()
 {
 	if(pData->useCoef())
@@ -564,13 +559,13 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 
 //Chooses the best split when missing values are present. Same algorithm as in setSplit with the following additions:
 //a) Cases with missing values go to both branches with coefficients proportional to the distribution of other cases. 
-//b) Cases are weighted by their squared coefficients when a leaf value is calculated
+//b) Cases are weighted by their coefficients when a leaf value is calculated
 //c) Leaf values are weighted by linear coefficients when a prediction for a single data point is calculated
 //d) There is a special split evaluated for each attribute with missing values: cases without 
 //	missing values go left, cases with missing values go right
 //in:
-	//nodeV - sum of squared coefficients
-	//nodeSum - sum of predictions respectively multiplied by squared coefficients
+	//nodeV - sum of coefficients
+	//nodeSum - sum of predictions respectively multiplied by coefficients
 //out: true, if best split found. false, if there were no splits
 bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 {
@@ -583,14 +578,13 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 		bool newSplits = false;	//true if any splits were added for this attribute
 
 		//collect info about missing values
-		double missSum = 0; //sum of responses of mv cases (multiplied by sq coefs)
-		double missV = 0; //volume of mv in the node (sum of sq coefs)
+		double missSum = 0; //sum of responses of mv cases 
+		double missV = 0; //volume of mv in the node 
 		for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
 			if(isnan(pData->getValue(itemIt->key, attr, TRAIN)))
 			{
-				double coef_sq = itemIt->coef * itemIt->coef;
-				missSum += coef_sq * itemIt->response;
-				missV += coef_sq;
+				missSum += itemIt->coef * itemIt->response;
+				missV += itemIt->coef;
 			}
 
 		if(missV && (missV != nodeV))
@@ -677,9 +671,8 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 				for(;(pairIt != sortedEnd) && (pairIt->first == curAttrVal); pairIt++)
 				{
 					ItemInfo& item = (*pItemSet)[pairIt->second];
-					double coef_sq = item.coef * item.coef;
-					curTraV += coef_sq;
-					curTraSum += coef_sq * item.response;
+					curTraV += item.coef;
+					curTraSum += item.coef * item.response;
 					if(!curDiff && (item.response != curResp))
 						curDiff = true;
 				}
@@ -816,12 +809,11 @@ double CTreeNode::evalBoolMV(SplitInfo& canSplit, double nodeV, double nodeSum, 
 	for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
 	{
 		double value = pData->getValue(itemIt->key, canSplit.divAttr, TRAIN);
-		double coef_sq = itemIt->coef * itemIt->coef;
 		double& resp = itemIt->response;
 		if(!isnan(value) && (value == 0))	//not missing, left
 		{
-			volume1 += coef_sq;
-			sum1 += resp * coef_sq;
+			volume1 += itemIt->coef;
+			sum1 += resp * itemIt->coef;
 		}
 	}
 

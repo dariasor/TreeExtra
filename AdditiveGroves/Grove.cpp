@@ -68,25 +68,25 @@ ddpair CGrove::converge(doublevv& sinpreds, doublev& jointpreds)
 
 	//get out of bag data
 	intv outofbag;	//indexes
-	doublev oobtar;	//targets
-	int oobN = pData->getOutOfBag(outofbag, oobtar);
+	doublev oobtar, oobwt;	//targets, weights
+	int oobN = pData->getOutOfBag(outofbag, oobtar, oobwt);
 			
 	//get current bag of data
 	intv bag;		//indexes
-	doublev bagtar; //targets
-	int itemN = pData->getCurBag(bag, bagtar);
+	doublev bagtar, bagwt; //targets, weights
+	int itemN = pData->getCurBag(bag, bagtar, bagwt);
 
 	//calculate previous oob rmse - rmse of the original grove on current oob data
 	doublev oobpreds(oobN);
 	for(int oobNo = 0; oobNo < oobN; oobNo++)
 		oobpreds[oobNo] = jointpreds[outofbag[oobNo]];
-	double oobPrevRMS = rmse(oobpreds, oobtar);	
+	double oobPrevRMS = rmse(oobpreds, oobtar, oobwt);	
 
 	//calculate previous bag rmse - rmse of the original grove on current bag data
 	doublev bagpreds(itemN);
 	for(int itemNo = 0; itemNo < itemN; itemNo++)
 		bagpreds[itemNo] = jointpreds[bag[itemNo]];
-	double bagPrevRMS = rmse(bagpreds, bagtar);	
+	double bagPrevRMS = rmse(bagpreds, bagtar, bagwt);	
 
 	//rebuild the trees in turn until the changes will be unsignificant
 	double oobRMS;	//rmse on oob data
@@ -103,12 +103,12 @@ ddpair CGrove::converge(doublevv& sinpreds, doublev& jointpreds)
 		//calculate rmse for out of bag data
 		for(int oobNo = 0; oobNo < oobN; oobNo++)
 			oobpreds[oobNo] = jointpreds[outofbag[oobNo]];
-		oobRMS = rmse(oobpreds, oobtar);	
+		oobRMS = rmse(oobpreds, oobtar, oobwt);	
 
 		//calculate rmse for bag data
 		for(int itemNo = 0; itemNo < itemN; itemNo++)
 			bagpreds[itemNo] = jointpreds[bag[itemNo]];
-		bagRMS = rmse(bagpreds, bagtar);
+		bagRMS = rmse(bagpreds, bagtar, bagwt);
 
 		//check the endofloop condition - negative or small changes in rmse
 		//first check in bag results, then (if bag preds are ideal) check results on oob data
@@ -131,8 +131,7 @@ void CGrove::trainLayered()
 {
 	double minAlpha = alpha;		//alpha parameter of the final grove
 	int itemN = pData->getTrainN();	//number of data points in the train set
-	double trainV = pData->getTrainV();	//volume of the train set (sum of weights)
-	int alphaN = getAlphaN(minAlpha, trainV);	//number of different alpha values to use
+	int alphaN = getAlphaN(minAlpha, itemN);	//number of different alpha values to use
 
 	doublev jointpreds(itemN, 0);	//prediction of the whole grove on the train set data points 
 	doublevv sinpreds(tigN, doublev(itemN, 0));	//predictions by tree 
@@ -182,8 +181,8 @@ void CGrove::genTreeInGrove(doublev& sinpredsx, doublev& jointpreds, int treeNo)
 //Grows the tree. Assumes that the root is all set (contains train set, attrs, etc.).
 void CGrove::growTree(CTreeNode& root)
 {	
-	double nzAlpha = (alpha == 0) ? (1.0 / pData->getTrainV()) : alpha; 
-	double b = - log((double) pData->getTrainV()) / log(2.0);
+	double nzAlpha = (alpha == 0) ? (1.0 / pData->getTrainN()) : alpha; 
+	double b = - log((double) pData->getTrainN()) / log(2.0);
 	double H = - log((double) nzAlpha) / log(2.0);
 
 	if(b >= -H)
@@ -238,8 +237,8 @@ void CGrove::chooseTree(CTreeNode& root, doublev& othpreds)
 {
 	//get out of bag data
 	intv outofbag;	//indexes
-	doublev oobtar;	//targets
-	int oobN = pData->getOutOfBag(outofbag, oobtar);
+	doublev oobtar, oobwt;	//targets
+	int oobN = pData->getOutOfBag(outofbag, oobtar, oobwt);
 	doublev sinoobtar(oobN, 0);
 	for(int oobNo = 0; oobNo < oobN; oobNo++)
 		sinoobtar[oobNo] = oobtar[oobNo] - othpreds[outofbag[oobNo]];
@@ -257,7 +256,7 @@ void CGrove::chooseTree(CTreeNode& root, doublev& othpreds)
 		doublev sinoobpreds(oobN, 0);
 		for(int oobNo = 0; oobNo < oobN; oobNo++)
 			sinoobpreds[oobNo] = localPredict(rRoots[interNo], outofbag[oobNo], TRAIN);
-		rPerfs[interNo] = rmse(sinoobpreds, sinoobtar);													
+		rPerfs[interNo] = rmse(sinoobpreds, sinoobtar, oobwt);													
 	}
 	
 	//insert the winning tree and its results into grove building process

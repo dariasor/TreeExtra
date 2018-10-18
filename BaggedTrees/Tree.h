@@ -24,7 +24,7 @@ public:
 	CTree(double alpha = 0);
 
 	//grows a tree, increases attribute counts
-	void grow(bool doFS, idpairv& attrCounts);
+	void grow(bool doFS, doublev& attrCounts);
 
 	//saves the tree into the binary file
 	void save(const char* fileName);
@@ -59,7 +59,7 @@ private:
 struct JobData
 {	
 	JobData(nodeip in_curNH, nodehstack* in_pNodes, TCondition* in_pNodesCond, int* in_pToDoN, 
-			idpairv* in_pAttrCounts, double in_b, double in_H):
+			doublev* in_pAttrCounts, double in_b, double in_H):
 	curNH(in_curNH), pNodes(in_pNodes), pNodesCond(in_pNodesCond), pToDoN(in_pToDoN), 
 	pAttrCounts(in_pAttrCounts), b(in_b), H(in_H){}
 
@@ -68,7 +68,7 @@ struct JobData
 	TCondition* pNodesCond;
 	int* pToDoN;
 	double alpha;
-	idpairv* pAttrCounts;
+	doublev* pAttrCounts;
 	double b;
 	double H;
 };

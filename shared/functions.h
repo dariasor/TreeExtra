@@ -9,7 +9,7 @@
 string trimSpace(string& str);
 
 //calculates root mean squared error
-double rmse(doublev& predicts, doublev& realvals);
+double rmse(doublev& predicts, doublev& realvals, doublev& weights);
 
 //removes an element from a vector
 int erasev(intv* pVec, int value);
@@ -43,7 +43,7 @@ void exception_errMsg(string& errstr);
 
 //calculates probabilistic roc - response can be any probability between 0 and 1
 //when response values are 0/1, behaves like a standard roc
-double roc(doublev& preds, doublev& tars);
+double roc(doublev& preds, doublev& tars, doublev& weights);
 
 //inserts suffix into a string (usually file name)
 string insertSuffix(string fileName, string suffix);

@@ -4,8 +4,8 @@ SHAREDDIR=../shared
 LIBDIR=../ThreadPool
 CXXFLAGS = -I$(SHAREDDIR) -I$(LIBDIR)
 OBJS = Grove.o $(SHAREDDIR)/SplitInfo.o  $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/TreeNode.o ag_functions.o $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o $(LIBDIR)/thread_pool.o
-PGMS = ag_predict ag_train ag_save ag_addbag ag_expand ag_merge ag_fs ag_interactions ag_nway ag_mergepreds ag_savemerge
-PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_addbag.o ag_expand.o ag_merge.o ag_fs.o ag_interactions.o ag_nway.o ag_mergepreds.o ag_savemerge.o
+PGMS = ag_predict ag_train ag_save ag_expand ag_merge ag_fs ag_interactions ag_nway ag_mergepreds ag_savemerge
+PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_expand.o ag_merge.o ag_fs.o ag_interactions.o ag_nway.o ag_mergepreds.o ag_savemerge.o
 LIBS = -lpthread
 
 
@@ -38,11 +38,6 @@ ag_save.o: $(OBJS)
 
 ag_save: ag_save.o $(OBJS)
 	g++ -O3 -o ../Bin/ag_save ag_save.o $(OBJS) $(LIBS)	
-
-ag_addbag.o: $(OBJS)
-
-ag_addbag: ag_addbag.o $(OBJS)
-	g++ -O3 -o ../Bin/ag_addbag ag_addbag.o $(OBJS) $(LIBS)
 
 ag_expand.o: $(OBJS)
 

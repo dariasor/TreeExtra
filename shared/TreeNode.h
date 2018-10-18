@@ -70,7 +70,7 @@ private:
 	void del();	
 
 	//returns several summaries of the prediction values set in this node
-	bool getStats(double& nodeV, double& nodeSum, double& realNodeV);
+	bool getStats(double& nodeV, double& nodeSum);
 
 	//cleans training data out of a leaf
 	void makeLeaf(double nodeMean); 

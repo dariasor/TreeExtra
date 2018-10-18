@@ -157,12 +157,11 @@ int main(int argc, char* argv[])
 #endif
 
 //3. Train models
-	doublev validTar;
-	int validN = data.getTargets(validTar, VALID);
-	int itemN = data.getTrainN();
+	doublev validTar, validWt;
+	int validN = data.getTargets(validTar, validWt, VALID);
 
 	//adjust minAlpha, if needed
-	double newAlpha = adjustAlpha(ti.alpha, itemN);
+	double newAlpha = adjustAlpha(ti.alpha, data.getTrainN());
 	if(ti.alpha != newAlpha)
 	{
 		if(newAlpha == 0)
@@ -184,17 +183,9 @@ int main(int argc, char* argv[])
 	int attrN = data.getAttrN();
 	if(topAttrN == -1)
 		topAttrN = attrN;
-	idpairv attrCounts;	//counts of attribute importance
+	doublev attrCounts(attrN, 0); //counts of attribute importance
+	idpairv attrCountsP; //another structure for counts of attribute importance, will need it later for sorting
 	bool doFS = (topAttrN != 0);	//whether feature selection is requested
-	if(doFS)
-	{//initialize attrCounts
-		attrCounts.resize(attrN);
-		for(int attrNo = 0; attrNo < attrN; attrNo++)
-		{
-			attrCounts[attrNo].first = attrNo;	//number of attribute	
-			attrCounts[attrNo].second = 0;		//counts
-		}
-	}
 	fstream fmodel(modelFName.c_str(), ios_base::binary | ios_base::out);
 	//header for compatibility with Additive Groves model
 	AG_TRAIN_MODE modeStub = SLOW;
@@ -232,9 +223,9 @@ int main(int argc, char* argv[])
 			predsumsV[itemNo] += tree.predict(itemNo, VALID);
 			predictions[itemNo] = predsumsV[itemNo] / (bagNo + 1);
 		}
-		rmsV[bagNo] = rmse(predictions, validTar);
+		rmsV[bagNo] = rmse(predictions, validTar, validWt);
 		if(!ti.rms)
-			rocV[bagNo] = roc(predictions, validTar);
+			rocV[bagNo] = roc(predictions, validTar, validWt);
 
 		//output an element of bagging curve 
 		fbagrms.open("bagging_rms.txt", ios_base::out | ios_base::app); 
@@ -250,8 +241,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if(doFS)	//sort attributes by counts
-		sort(attrCounts.begin(), attrCounts.end(), idGreater);
 	
 //4. Output
 		
@@ -289,23 +278,30 @@ int main(int argc, char* argv[])
 	//output feature selection results
 	if(doFS)
 	{
+		for(int attrNo = 0; attrNo < attrN; attrNo++)
+		{
+			attrCountsP[attrNo].first = attrNo;	//number of attribute	
+			attrCountsP[attrNo].second = attrCounts[attrNo];		//counts
+		}
+		sort(attrCountsP.begin(), attrCountsP.end(), idGreater);
+
 		if(topAttrN > attrN)
 			topAttrN = attrN;
 
 		fstream ffeatures("feature_scores.txt", ios_base::out);	
 		ffeatures << "Top " << topAttrN << " features\n";
 		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
-			ffeatures << data.getAttrName(attrCounts[attrNo].first) << "\t" 
-				<< attrCounts[attrNo].second / ti.bagN / itemN << "\n";
+			ffeatures << data.getAttrName(attrCountsP[attrNo].first) << "\t" 
+				<< attrCountsP[attrNo].second / ti.bagN << "\n";
 		ffeatures << "\n\nColumn numbers (beginning with 1)\n";
 		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
-			ffeatures << data.getColNo(attrCounts[attrNo].first) + 1 << " ";
+			ffeatures << data.getColNo(attrCountsP[attrNo].first) + 1 << " ";
 		ffeatures << "\nLabel column number: " << data.getTarColNo() + 1;
 		ffeatures.close();
 
 		//output new attribute file
 		for(int attrNo = topAttrN; attrNo < attrN; attrNo++)
-			data.ignoreAttr(attrCounts[attrNo].first);
+			data.ignoreAttr(attrCountsP[attrNo].first);
 		data.outAttr(ti.attrFName);
 	}
 

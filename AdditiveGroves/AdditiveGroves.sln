@@ -1,13 +1,13 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2024
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_expand", "..\win\ag_expand\ag_expand.vcxproj", "{2F07B668-F45A-4BA9-8832-D1F44BCDDD8D}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_predict", "..\win\ag_predict\ag_predict.vcxproj", "{083EF393-CD75-4860-91A9-D0DACCF12334}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_save", "..\win\ag_save\ag_save.vcxproj", "{0F73F967-80AA-4B09-900D-B3F29E3343B2}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_addbag", "..\win\ag_addbag\ag_addbag.vcxproj", "{1C583D69-00D7-4BD3-B877-0F83E6531F33}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_merge", "..\win\ag_merge\ag_merge.vcxproj", "{19083E48-3D97-461C-A182-B19105BB31EF}"
 EndProject
@@ -39,10 +39,6 @@ Global
 		{0F73F967-80AA-4B09-900D-B3F29E3343B2}.Debug|Win32.Build.0 = Debug|Win32
 		{0F73F967-80AA-4B09-900D-B3F29E3343B2}.Release|Win32.ActiveCfg = Release|Win32
 		{0F73F967-80AA-4B09-900D-B3F29E3343B2}.Release|Win32.Build.0 = Release|Win32
-		{1C583D69-00D7-4BD3-B877-0F83E6531F33}.Debug|Win32.ActiveCfg = Debug|Win32
-		{1C583D69-00D7-4BD3-B877-0F83E6531F33}.Debug|Win32.Build.0 = Debug|Win32
-		{1C583D69-00D7-4BD3-B877-0F83E6531F33}.Release|Win32.ActiveCfg = Release|Win32
-		{1C583D69-00D7-4BD3-B877-0F83E6531F33}.Release|Win32.Build.0 = Release|Win32
 		{19083E48-3D97-461C-A182-B19105BB31EF}.Debug|Win32.ActiveCfg = Debug|Win32
 		{19083E48-3D97-461C-A182-B19105BB31EF}.Debug|Win32.Build.0 = Debug|Win32
 		{19083E48-3D97-461C-A182-B19105BB31EF}.Release|Win32.ActiveCfg = Release|Win32
@@ -70,5 +66,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {62E44650-175F-480C-8526-CBF7B83B464F}
 	EndGlobalSection
 EndGlobal

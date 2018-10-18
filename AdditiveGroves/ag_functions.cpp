@@ -14,11 +14,11 @@
 
 //generates all output for train, expand and merge commands except for saving the models themselves
 void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV, doublevvv& predsumsV, 
-				double trainV, doublevv& dirStat, double validStD, int startAlphaNo, int startTiGNNo)
+				double trainN, doublevv& dirStat, double validStD, int startAlphaNo, int startTiGNNo)
 {
 //Generate temp files that can be used by other commands later. (in addition to saved groves)
 
-	int alphaN = getAlphaN(ti.minAlpha, trainV); //number of different alpha values
+	int alphaN = getAlphaN(ti.minAlpha, trainN); //number of different alpha values
 	int tigNN = getTiGNN(ti.maxTiGN);	//number of different tigN values
 	LogStream telog;
 	
@@ -191,7 +191,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 	//best.txt file is a text file
 	fstream fbest;
 	fbest.open("./AGTemp/best.txt", ios_base::out); 
-	fbest << bestPerf << '\n' << bestTiGN << '\n' << bestAlpha << '\n' << ti.bagN << '\n' << trainV 
+	fbest << bestPerf << '\n' << bestTiGN << '\n' << bestAlpha << '\n' << ti.bagN << '\n' << trainN 
 		<< endl;
 	fbest.close();	
 
@@ -239,7 +239,7 @@ void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV
 		{
 			double recAlpha = ti.minAlpha * 0.1;
 			//make sure that you don't recommend alpha that is too small for this data set
-			if(1.0/trainV >= recAlpha)
+			if(1.0 / trainN >= recAlpha)
 				recAlpha = 0;
 			telog << " -a " << recAlpha;
 		}
@@ -438,8 +438,8 @@ std::string itoa(int value, int base) {
 //returns performance on validation set
 double layeredGroves(INDdata& data, TrainInfo& ti, string modelFName)
 {
-	doublev validTar; //true response values on validation set
-	int validN = data.getTargets(validTar, VALID); 
+	doublev validTar, validWt; //true response values on validation set
+	int validN = data.getTargets(validTar, validWt, VALID); 
 	doublev predsumsV(validN, 0); 	//sums of predictions for each data point
 	
 	if(!modelFName.empty())
@@ -470,9 +470,9 @@ double layeredGroves(INDdata& data, TrainInfo& ti, string modelFName)
 		predictions[itemNo] = predsumsV[itemNo] / ti.bagN;
 
 	if(ti.rms)
-		return rmse(predictions, validTar);
+		return rmse(predictions, validTar, validWt);
 	else
-		return roc(predictions, validTar);	
+		return roc(predictions, validTar, validWt);	
 }
 
 //runs Layered Groves repeatN times, returns average performance and standard deviation

@@ -119,8 +119,8 @@ int main(int argc, char* argv[])
 		throw MODEL_ERR;
 
 //4. Load models, get predictions	
-	doublev testTar;
-	int testN = data.getTargets(testTar, TEST);
+	doublev testTar, testWt;
+	int testN = data.getTargets(testTar, testWt, TEST);
 	doublev preds(testN, 0);
 
 	ti.bagN = 0;
@@ -153,12 +153,12 @@ int main(int argc, char* argv[])
 		double performance = -1;
 		if(ti.rms)
 		{
-			performance = rmse(preds, testTar);
+			performance = rmse(preds, testTar, testWt);
 			telog << "RMSE: " << performance << "\n";
 		}
 		else
 		{
-			performance = roc(preds, testTar);
+			performance = roc(preds, testTar, testWt);
 			telog << "ROC: " << performance << "\n";
 		}
 		if(!doOut)
