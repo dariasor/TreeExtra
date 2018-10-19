@@ -141,12 +141,12 @@ int main(int argc, char* argv[])
 	CGrove::setData(data);
 	CTreeNode::setData(data);
 
-	doublev validTar;
-	int validN = data.getTargets(validTar, VALID);
-	double trainV = data.getTrainV();
+	doublev validTar, validWt;
+	int validN = data.getTargets(validTar, validWt, VALID);
+	double trainN = data.getTrainN();
 
 	//adjust minAlpha, if needed
-	double newAlpha = adjustAlpha(ti.minAlpha, trainV);
+	double newAlpha = adjustAlpha(ti.minAlpha, trainN);
 	if(ti.minAlpha != newAlpha)
 	{
 		if(newAlpha == 0)

@@ -25,7 +25,7 @@ fstream& operator >> (fstream& fbin, doublevvv& trivec);
 
 //generates output files for train and expand commands
 void trainOut(TrainInfo& ti, doublevv& dir, doublevvv& rmsV, doublevvv& surfaceV, doublevvv& predsumsV, 
-			  double trainV, doublevv& dirStat, double validStD = -1.0, int startAlphaNo = 0, int startTiGNNo = 0);
+			  double trainN, doublevv& dirStat, double validStD = -1.0, int startAlphaNo = 0, int startTiGNNo = 0);
 
 //converts the number of a valid alpha value into the actual value
 double alphaVal(int alphaNo);

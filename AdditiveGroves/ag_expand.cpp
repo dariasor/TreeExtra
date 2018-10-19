@@ -415,9 +415,9 @@ int main(int argc, char* argv[])
 						fpreds << predictions[itemNo] << endl;
 					fpreds.close();
 				}
-				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar);
+				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar, validWt);
 				if(!ti.rms)
-					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar);
+					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar, validWt);
 
 			}//end for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
 		}//end for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)

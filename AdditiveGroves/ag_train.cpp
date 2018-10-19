@@ -160,17 +160,16 @@ int main(int argc, char* argv[])
 #endif
 	
 //3. Train models
-	doublev validTar;
-	int validN = data.getTargets(validTar, VALID);
+	doublev validTar, validWt;
+	int validN = data.getTargets(validTar, validWt, VALID);
 	int itemN = data.getTrainN();
-	double trainV = data.getTrainV();
 
 	//adjust minAlpha, if needed
-	double newAlpha = adjustAlpha(ti.minAlpha, trainV);
+	double newAlpha = adjustAlpha(ti.minAlpha, itemN);
 	if(!eqDouble(ti.minAlpha, newAlpha))
 	{
 		if(newAlpha == 0)
-			telog << "Warning: due to the small train set size (" << trainV << ") the value of alpha was changed to 0"; 
+			telog << "Warning: due to the small train set size (" << itemN << ") the value of alpha was changed to 0"; 
 		else 
 			telog << "Warning: alpha value was rounded to the closest valid value - " << newAlpha;
 		telog << ".\n\n";
@@ -192,7 +191,7 @@ int main(int argc, char* argv[])
 	else //if(ti.mode == LAYERED)
 		telog << "layered mode\n\n";
 
-	int alphaN = getAlphaN(ti.minAlpha, trainV); //number of different alpha values
+	int alphaN = getAlphaN(ti.minAlpha, itemN); //number of different alpha values
 	int tigNN = getTiGNN(ti.maxTiGN); //number of different tigN values
 
 	//surfaces of performance values for validation set. 
@@ -313,9 +312,9 @@ int main(int argc, char* argv[])
 						fpreds << predictions[itemNo] << endl;
 					fpreds.close();
 				}
-				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar);
+				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar, validWt);
 				if(!ti.rms)
-					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar);
+					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar, validWt);
 			}//end for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
 		}//end for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
 	}// end for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
@@ -324,10 +323,10 @@ int main(int argc, char* argv[])
 	if(ti.rms)
 	{
 		double validStD = data.getTarStD(VALID);
-		trainOut(ti, dir, rmsV, rmsV, predsumsV, trainV, dirStat, validStD);
+		trainOut(ti, dir, rmsV, rmsV, predsumsV, itemN, dirStat, validStD);
 	}
 	else
-		trainOut(ti, dir, rmsV, rocV, predsumsV, trainV, dirStat);
+		trainOut(ti, dir, rmsV, rocV, predsumsV, itemN, dirStat);
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);
