@@ -184,7 +184,7 @@ int main(int argc, char* argv[])
 	if(topAttrN == -1)
 		topAttrN = attrN;
 	doublev attrCounts(attrN, 0); //counts of attribute importance
-	idpairv attrCountsP; //another structure for counts of attribute importance, will need it later for sorting
+	idpairv attrCountsP(attrN, idpair(0, 0)); //another structure for counts of attribute importance, will need it later for sorting
 	bool doFS = (topAttrN != 0);	//whether feature selection is requested
 	fstream fmodel(modelFName.c_str(), ios_base::binary | ios_base::out);
 	//header for compatibility with Additive Groves model

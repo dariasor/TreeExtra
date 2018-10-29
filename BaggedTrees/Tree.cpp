@@ -140,7 +140,7 @@ void CTree::grow(bool doFS, doublev& attrCounts)
 	}
 #endif
 	if(doFS)
-		for(int attrNo = 0; attrNo < attrCounts.size(); attrNo++)
+		for(size_t attrNo = 0; attrNo < attrCounts.size(); attrNo++)
 			attrCounts[attrNo] += curAttrCounts[attrNo] / pData->getBagV();
 }
 
