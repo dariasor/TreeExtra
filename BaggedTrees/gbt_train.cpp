@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
 #endif
 
 	TrainInfo ti; //model training parameters
-	int topAttrN = 0;  //how many top attributes to output and keep in the cut data 
+	int topAttrN = -1;  //how many top attributes to output and keep in the cut data 
 						//(0 = do not do feature selection)
 						//(-1 = output all available features)
 
