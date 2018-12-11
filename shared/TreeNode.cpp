@@ -180,8 +180,9 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 //1. check basic leaf conditions
 	double nodeV, nodeSum;
 	bool isStD0 = getStats(nodeV, nodeSum);
+	int itemN = pItemSet->size();
 
-	if((nodeV / pData->getBagV() < alpha) || isStD0)
+	if((itemN / pData->getBagDataN() < alpha) || isStD0)
 	{
 		makeLeaf(nodeSum / nodeV);
 		return false;
@@ -206,8 +207,6 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 	
 	left = new CTreeNode();
 	right = new CTreeNode();
-
-	int itemN = (int)pItemSet->size();
 
 	left->pItemSet = new ItemInfov();
 	right->pItemSet = new ItemInfov();

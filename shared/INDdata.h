@@ -16,6 +16,7 @@ public:
 	int getAttrN(){return attrN;}	
 	int getTrainN(){return trainN;}
 	double getBagV(){return bagV;}
+	int getBagDataN(){return bootstrap.size();}
 	int getTarColNo(){return tarColNo;}
 	int getTargets(doublev& targets, doublev& weights, DATA_SET dset);
 	int getOutOfBag(intv& oobData, doublev& oobTar, doublev& oobWt);
