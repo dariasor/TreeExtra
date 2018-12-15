@@ -71,7 +71,7 @@ CTree::CTree(double alphaIn): alpha(alphaIn), root()
 //Generates a tree and increases attribute counts
 void CTree::grow(bool doFS, doublev& attrCounts)
 {
-	double b = - log((double) pData->getTrainN()) / log(2.0); 
+	double b = - log((double) pData->getBagDataN()) / log(2.0); 
 //thought about replacing getTrainN with getBagV, decided against it. The tree should not change if we multiple all weights by 2.
 	double H = - log((double) alpha) / log(2.0);
 

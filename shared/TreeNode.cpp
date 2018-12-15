@@ -182,7 +182,7 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 	bool isStD0 = getStats(nodeV, nodeSum);
 	int itemN = pItemSet->size();
 
-	if((itemN / pData->getBagDataN() < alpha) || isStD0)
+	if(((double)itemN / pData->getBagDataN() < alpha) || isStD0)
 	{
 		makeLeaf(nodeSum / nodeV);
 		return false;
