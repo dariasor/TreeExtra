@@ -83,7 +83,7 @@ CTreeNode& CTreeNode::operator=(const CTreeNode& rhs)
 	if(pSorted)
 		delete pSorted;
 	if(rhs.pSorted)
-		pSorted = new fipairvv(*rhs.pSorted);
+		pSorted = new dipairvv(*rhs.pSorted);
 	else
 		pSorted = NULL;
 
@@ -113,7 +113,7 @@ CTreeNode::CTreeNode(const CTreeNode& rhs)
 		pAttrs = NULL;
 	
 	if(rhs.pSorted)
-		pSorted = new fipairvv(*rhs.pSorted);
+		pSorted = new dipairvv(*rhs.pSorted);
 	else
 		pSorted = NULL;
 
@@ -136,7 +136,7 @@ void CTreeNode::setRoot()
 	pData->getActiveAttrs(*pAttrs);
 
 	if(pSorted == NULL)
-		pSorted = new fipairvv();
+		pSorted = new dipairvv();
 	pData->getSortedData(*pSorted);
 	
 	if(pItemSet == NULL)
@@ -250,8 +250,8 @@ bool CTreeNode::split(double alpha, double* pEntropy, double mu, int *attrIds)
 
 	//create sorted vectors in child nodes
 	int defAttrN = (int)pAttrs->size();
-	left->pSorted = new fipairvv(defAttrN);
-	right->pSorted = new fipairvv(defAttrN);
+	left->pSorted = new dipairvv(defAttrN);
+	right->pSorted = new dipairvv(defAttrN);
 	
 	for(int attrNo = 0; attrNo < defAttrN; attrNo++)
 	{
@@ -260,15 +260,15 @@ bool CTreeNode::split(double alpha, double* pEntropy, double mu, int *attrIds)
 		(*right->pSorted)[attrNo].reserve((int)right->pItemSet->size());
 		
 		//insert pairs in childrens sorted vectors in the same order, update item # through hash
-		for(fipairv::iterator pvIt = (*pSorted)[attrNo].begin();
+		for(dipairv::iterator pvIt = (*pSorted)[attrNo].begin();
 			pvIt!=(*pSorted)[attrNo].end(); pvIt++)
 		{
 			int leftNo = leftHash[pvIt->second];
 			int rightNo = rightHash[pvIt->second];
 			if(leftNo != -1)
-				(*left->pSorted)[attrNo].push_back(fipair(pvIt->first, leftNo));
+				(*left->pSorted)[attrNo].push_back(dipair(pvIt->first, leftNo));
 			if(rightNo != -1)
-				(*right->pSorted)[attrNo].push_back(fipair(pvIt->first, rightNo));
+				(*right->pSorted)[attrNo].push_back(dipair(pvIt->first, rightNo));
 		}
 	}
 	//clean the parent node
@@ -458,8 +458,8 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum, double mu, int *attrIds)
 			double curTraV, curTraSum; //for the current block
 			prevTraV = 0; prevTraSum = 0;
 
-			fipairv* pSortedVals = &(*pSorted)[attrNo];
-			fipairv::iterator pairIt = pSortedVals->begin();
+			dipairv* pSortedVals = &(*pSorted)[attrNo];
+			dipairv::iterator pairIt = pSortedVals->begin();
 			while(pairIt != pSortedVals->end())
 			{//on each iteration of this cycle collect info about the block of cases with the
 				//same value of the attribute and if needed, evaluate the split right before it.
@@ -472,7 +472,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum, double mu, int *attrIds)
 				curTraSum = 0;	
 
 				//get next block, update transition parameters
-				fipairv::iterator sortedEnd = pSortedVals->end();
+				dipairv::iterator sortedEnd = pSortedVals->end();
 				for(;(pairIt != sortedEnd) && (pairIt->first == curAttrVal); pairIt++)
 				{
 					ItemInfo& item = (*pItemSet)[pairIt->second];
@@ -661,8 +661,8 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum, double mu, int *attrIds
 			double curTraV, curTraSum; //for the current block
 			prevTraV = 0; prevTraSum = 0;
 
-			fipairv* pSortedVals = &(*pSorted)[attrNo];
-			fipairv::iterator pairIt = pSortedVals->begin();
+			dipairv* pSortedVals = &(*pSorted)[attrNo];
+			dipairv::iterator pairIt = pSortedVals->begin();
 			while(pairIt != pSortedVals->end())
 			{//on each iteration of this cycle collect info about the block of cases with the
 				//same value of the attribute and if needed, evaluate the split right before it.
@@ -675,7 +675,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum, double mu, int *attrIds
 				curTraSum = 0;	
 
 				//get next block, update transition parameters
-				fipairv::iterator sortedEnd = pSortedVals->end();
+				dipairv::iterator sortedEnd = pSortedVals->end();
 				for(;(pairIt != sortedEnd) && (pairIt->first == curAttrVal); pairIt++)
 				{
 					ItemInfo& item = (*pItemSet)[pairIt->second];
