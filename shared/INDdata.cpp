@@ -202,6 +202,22 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			}
 
 		}
+
+		// standardize trainset
+		int cols = (train[0]).size();
+		for(int j = 0; j < cols; j++){
+			double ma = train[0][j];
+			double mi = train[0][j];
+			for(int i = 1; i < caseNo; i++){
+				ma = max(ma,train[i][j]);
+				mi = min(mi,train[i][j]);
+			}
+			if(ma > mi){
+				for(int i = 0; i < caseNo; i++)
+					train[i][j] = (train[i][j] - mi)/(ma - mi);
+			}
+		}
+
 		double trainStD = getTarStD(TRAIN);
 		telog << trainN << " points in the train set, std. dev. of " << tarName << " values = " << trainStD 
 			<< "\n\n"; 
@@ -317,6 +333,24 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	}
 	else	//no test set
 		testN = 0;
+		
+		// standardize the validation set
+		int cols = (valid[0]).size();
+		for(int j = 0; j < cols; j++){
+			double ma = valid[0][j];
+			double mi = valid[0][j];
+			for(int i = 1; i < validN; i++){
+				ma = max(ma,valid[i][j]);
+				mi = min(mi,valid[i][j]);
+			}
+			if(ma > mi){
+				for(int i = 0; i < validN; i++)
+					valid[i][j] = (valid[i][j] - mi)/(ma - mi);
+			}
+		}
+
+
+
 }
 
 //Gets a line of text, returns a vector with data points 
