@@ -45,7 +45,7 @@ public:
 		{
 			pJD->pNodes->push(nodeip(curNH.first->left, curNH.second + 1));
 			pJD->pNodes->push(nodeip(curNH.first->right, curNH.second + 1));
-			*pJD->pToDoN += 1;
+			*pJD->pToDoN += 2;
 
 			if(pAttrCounts)
 			{
