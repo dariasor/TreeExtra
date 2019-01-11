@@ -1,4 +1,5 @@
 //Gradient boosting optimizing RMS. gbt_train.cpp: main function of executable gbt_train
+
 //(c) Daria Sorokina
 
 //gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_ 
@@ -6,12 +7,12 @@
 // [-sh _shrinkage_ ] [-sub _subsampling_] | -version
 
 #include "Tree.h"
+#include "bt_functions.h"
 #include "functions.h"
 #include "TrainInfo.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
 #include "bt_definitions.h"
-#include "bt_functions.h"
 
 #ifndef _WIN32
 #include "thread_pool.h"
@@ -19,6 +20,7 @@
 
 #include <algorithm>
 #include <errno.h>
+
 
 int main(int argc, char* argv[])
 {	
@@ -54,6 +56,7 @@ int main(int argc, char* argv[])
 	int topAttrN = 0;  //how many top attributes to output and keep in the cut data 
 						//(0 = do not do feature selection)
 						//(-1 = output all available features)
+	bool doOut = true; //whether to output log information to stdout
 
 	//parse and save input parameters
 	//indicators of presence of required flags in the input
@@ -90,6 +93,15 @@ int main(int argc, char* argv[])
 			ti.seed = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-k"))
 			topAttrN = atoiExt(argv[argNo + 1]);
+		else if(!args[argNo].compare("-l"))
+		{
+			if(!args[argNo + 1].compare("log"))
+				doOut = true;
+			else if(!args[argNo + 1].compare("nolog"))
+				doOut = false;
+			else
+				throw INPUT_ERR;
+		}
 		else if(!args[argNo].compare("-sh"))
 			shrinkage = atofExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-sub"))
@@ -121,7 +133,7 @@ int main(int argc, char* argv[])
 
 //1.a) Set log file
 	LogStream telog;
-	LogStream::init(true);
+	LogStream::init(doOut);
 	telog << "\n-----\ngbt_train ";
 	for(int argNo = 1; argNo < argc; argNo++)
 		telog << argv[argNo] << " ";
@@ -143,6 +155,15 @@ int main(int argc, char* argv[])
 #endif
 
 //------------------
+	doublev validTar, validWt;
+	int validN = data.getTargets(validTar, validWt, VALID);
+
+	doublev rmsV(treeN, 0); 				//learning curve of rms values for the validation set
+	doublev rocV;							 
+	if(!ti.rms)
+		rocV.resize(treeN, 0);				//learning curve of roc values for the validation set
+	doublev predsumsV(validN, 0); 			//sums of predictions for each data point
+
 	int attrN = data.getAttrN();
 	if(topAttrN == -1)
 		topAttrN = attrN;
@@ -159,9 +180,6 @@ int main(int argc, char* argv[])
 		froccurve.close();
 	}
 
-	doublev validTar, validWt;
-	int validN = data.getTargets(validTar, validWt, VALID);
-
 	doublev trainTar, trainWt;
 	int trainN = data.getTargets(trainTar, trainWt, TRAIN);
 
@@ -176,7 +194,7 @@ int main(int argc, char* argv[])
 	
 	for(int treeNo = 0; treeNo < treeN; treeNo++)
 	{
-		if(treeNo % 10 == 0)
+		if(doOut && (treeNo % 10 == 0))
 			cout << "\titeration " << treeNo + 1 << " out of " << treeN << endl;
 
 		if(subsample == -1)
@@ -196,20 +214,38 @@ int main(int argc, char* argv[])
 		for(int itemNo = 0; itemNo < validN; itemNo++)
 			validPreds[itemNo] += shrinkage * tree.predict(itemNo, VALID);
 
+		rmsV[treeNo] = rmse(validPreds, validTar, validWt);
+		if(!ti.rms)
+			rocV[treeNo] = roc(validPreds, validTar, validWt);
+
 		//output
 		frmscurve.open("boosting_rms.txt", ios_base::out | ios_base::app); 
-		frmscurve << rmse(validPreds, validTar, validWt) << endl;
+		frmscurve << rmsV[treeNo] << endl;
 		frmscurve.close();
 		
 		if(!ti.rms)
 		{
 			froccurve.open("boosting_roc.txt", ios_base::out | ios_base::app); 
-			froccurve << roc(validPreds, validTar, validWt) << endl;
+			froccurve << rocV[treeNo] << endl;
 			froccurve.close();
 		}
 
 	}
+	//4. Output
 
+	//output results 
+	if(ti.rms)
+		telog << "RMSE on validation set = " << rmsV[treeN - 1] << "\n";
+	else
+		telog << "ROC on validation set = " << rocV[treeN - 1] << "\n";
+
+	//standard output in case of turned off log output: final performance on validation set only
+	if(!doOut)
+		if(ti.rms)
+			cout << rmsV[treeN - 1] << endl;
+		else
+			cout << rocV[treeN - 1] << endl;
+	
 	//output feature selection results
 	if(doFS)
 	{
@@ -226,7 +262,7 @@ int main(int argc, char* argv[])
 		ffeatures << "Top " << topAttrN << " features\n";
 		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
 			ffeatures << data.getAttrName(attrCountsP[attrNo].first) << "\t"
-			<< attrCountsP[attrNo].second / ti.bagN << "\n";
+			<< attrCountsP[attrNo].second / treeN << "\n";
 		ffeatures << "\n\nColumn numbers (beginning with 1)\n";
 		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
 			ffeatures << data.getColNo(attrCountsP[attrNo].first) + 1 << " ";
