@@ -37,6 +37,8 @@ public:
 	double getThresh() {return splitting.border;}
 	double getResp() {return (*pItemSet)[0].response;} //should be applied to leaves only
 	double getNodeV();
+	double getVariance() {return variance;} // only calculated for the root
+
 	
 	double getEntropy(int attrNo); //get entropy of this feature in this node
 	
@@ -96,6 +98,7 @@ private:
 	dipairvv*   pSorted;	//current itemset indexes sorted by value of attribute
 	intv*		pAttrs;		//set of valid attributes in the node	
 	SplitInfo	splitting;	//split (attribute, split point, proportion for missing values)
+	double variance; // variance (sum of square error ) of the node (just for root)
 
 };
 

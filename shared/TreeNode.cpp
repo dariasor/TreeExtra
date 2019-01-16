@@ -19,12 +19,16 @@
 
 #include <fstream>
 #include <math.h>
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+#include <cmath>
 
 INDdata* CTreeNode::pData;
 
 //Constructor. If the node is a root, download info about the train set.
 CTreeNode::CTreeNode(): 
-	left(0), right(0), pAttrs(NULL), pSorted(NULL), pItemSet(NULL)
+		left(0), right(0), pAttrs(NULL), pSorted(NULL), pItemSet(NULL),variance(0)
 {
 	
 }
@@ -130,6 +134,7 @@ CTreeNode::CTreeNode(const CTreeNode& rhs)
 void CTreeNode::setRoot()
 {
 	del();	//delete old tree
+	variance=0;
 
 	if(pAttrs == NULL)
 		pAttrs = new intv();
@@ -148,8 +153,17 @@ void CTreeNode::setRoot()
 //Changes ground truth to residuals in the root train set
 void CTreeNode::resetRoot(doublev& othpreds)
 {
+	double sums=0;
+	double square=0;
+	int count=0;
 	for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)
+	{
 		itemIt->response -= othpreds[itemIt->key];
+		count += 1; 
+		sums += itemIt->response;
+		square += (itemIt->response)*(itemIt->response);
+	}
+	variance = square - sums*sums/count;
 }
 
 //This function is used for prediction. It passes the case from the parent to child node(s).

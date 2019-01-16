@@ -245,9 +245,11 @@ double CTree::predict(int itemNo, DATA_SET dset)
 //Changes ground truth to residuals in the root train set
 void CTree::resetRoot(doublev& othpreds){
 	root.resetRoot(othpreds);
+	variance=root.getVariance();
 }
 
 //loads data into the root
 void CTree::setRoot(){
 	root.setRoot();
+	variance=0;
 }

@@ -21,7 +21,9 @@ public:
 #endif
 
 	//constructor
-	CTree(double alpha = 0,double mu = 0,int *attrIds = NULL); 
+	CTree(double alpha = 0, double mu = 0, int *attrIds = NULL, double variance = 0); 
+
+	double getVariance(){return variance;}
 
 	//grows a tree, increases attribute counts
 	void grow(bool doFS, idpairv& attrCounts);
@@ -54,6 +56,7 @@ private:
 	double alpha;		//training parameter: controls size of the tree
 	double mu;          //training parameter: penalty on new split variable
 	int *attrIds;        //used features
+	double variance;      // variance (sum of square error) of the root
 };
 
 #ifndef _WIN32 
