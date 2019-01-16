@@ -64,7 +64,7 @@ public:
 };
 #endif
 
-CTree::CTree(double alphaIn,double muIn, int* attrIdsIn, double variance): alpha(alphaIn), mu(muIn), attrIds(attrIdsIn), variance(varianceIn), root()
+CTree::CTree(double alphaIn,double muIn, int* attrIdsIn, double varianceIn): alpha(alphaIn), mu(muIn), attrIds(attrIdsIn), variance(varianceIn), root()
 {
 }
 
