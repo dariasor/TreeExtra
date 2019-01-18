@@ -205,7 +205,6 @@ int main(int argc, char* argv[])
 		CTree tree(ti.alpha);
 		tree.setRoot();
 		tree.resetRoot(trainPreds);
-		idpairv stub;
 		tree.grow(doFS, attrCounts);
 
 		//update predictions
