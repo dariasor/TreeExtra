@@ -2,7 +2,7 @@
 //(c) Daria Sorokina
 
 //gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_ 
-//[-a _alpha_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]
+//[-a _alpha_value_] [-mu _mu_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]
 // [-sh _shrinkage_ ] [-sub _subsampling_] | -version
 
 #include "Tree.h"
@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <errno.h>
+#include <ctime>
 
 int main(int argc, char* argv[])
 {	
@@ -51,7 +52,7 @@ int main(int argc, char* argv[])
 #endif
 
 	TrainInfo ti; //model training parameters
-	int topAttrN = 0;  //how many top attributes to output and keep in the cut data 
+	int topAttrN = -1;  //how many top attributes to output and keep in the cut data 
 						//(0 = do not do feature selection)
 						//(-1 = output all available features)
 
@@ -84,6 +85,8 @@ int main(int argc, char* argv[])
 		}
 		else if(!args[argNo].compare("-a"))
 			ti.alpha = atofExt(argv[argNo + 1]);
+		else if(!args[argNo].compare("-mu"))
+			ti.mu = atofExt(argv[argNo + 1]); 
 		else if(!args[argNo].compare("-n"))
 			treeN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-i"))
@@ -118,6 +121,8 @@ int main(int argc, char* argv[])
 
 	if((ti.alpha < 0) || (ti.alpha > 1))
 		throw ALPHA_ERR;
+	if(ti.mu < 0)
+		throw MU_ERR;
 
 //1.a) Set log file
 	LogStream telog;
@@ -144,6 +149,8 @@ int main(int argc, char* argv[])
 
 //------------------
 	int attrN = data.getAttrN();
+	int attrIds[attrN];       
+	fill_n(attrIds, attrN, 0); // initialize all attrIds 0:notused 1:used
 	if(topAttrN == -1)
 		topAttrN = attrN;
 	idpairv attrCounts;	//counts of attribute importance
@@ -166,6 +173,11 @@ int main(int argc, char* argv[])
 		froccurve.open("boosting_roc.txt", ios_base::out); //bagging curve (roc) 
 		froccurve.close();
 	}
+
+	fstream frootvar("root_var.txt", ios_base::out); // root variance
+	frootvar.close();
+	fstream ftime("time.txt", ios_base::out); // root variance
+	ftime.close();
 
 	doublev validTar;
 	int validN = data.getTargets(validTar, VALID);
@@ -192,11 +204,12 @@ int main(int argc, char* argv[])
 		else
 			data.newSample(sampleN);
 
-		CTree tree(ti.alpha);
+		CTree tree(ti.alpha,ti.mu,attrIds);
 		tree.setRoot();
 		tree.resetRoot(trainPreds);
 		idpairv stub;
 		tree.grow(doFS, attrCounts);
+		cout << "root variance: " << tree.getVariance() << endl;
 
 		//update predictions
 		for(int itemNo = 0; itemNo < trainN; itemNo++)
@@ -208,6 +221,15 @@ int main(int argc, char* argv[])
 		frmscurve.open("boosting_rms.txt", ios_base::out | ios_base::app); 
 		frmscurve << rmse(validPreds, validTar) << endl;
 		frmscurve.close();
+
+		frootvar.open("root_var.txt", ios_base::out | ios_base::app); 
+		frootvar << tree.getVariance() << endl;
+		frootvar.close();
+
+ 		ftime.open("time.txt", ios_base::out | ios_base::app); 
+		ftime << clock() << endl;
+		ftime.close();
+
 		
 		if(!ti.rms)
 		{
@@ -218,6 +240,11 @@ int main(int argc, char* argv[])
 
 	}
 
+	int usedAttrN=0;  // number of used features
+	for(int i=0;i<attrN;i++){
+		usedAttrN+=attrIds[i];
+	}
+
 	//output feature selection results
 	if(doFS)
 	{
@@ -226,6 +253,7 @@ int main(int argc, char* argv[])
 			topAttrN = attrN;
 
 		fstream ffeatures("feature_scores.txt", ios_base::out);
+		ffeatures << "Number of features used: " << usedAttrN << "\n";
 		ffeatures << "Top " << topAttrN << " features\n";
 		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
 			ffeatures << data.getAttrName(attrCounts[attrNo].first) << "\t"
@@ -260,11 +288,14 @@ int main(int argc, char* argv[])
 		{
 			case INPUT_ERR:
 				errlog << "Usage: gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_" 
-					<< "[-a _alpha_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]"
+					<< "[-a _alpha_value_] [-mu _mu_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]"
 					<< " [-sh _shrinkage_ ] [-sub _subsampling_] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Error: alpha value is out of [0;1] range.\n";
+				break;
+			case MU_ERR:
+				errlog << "Error: mu value should be non-negative.\n";
 				break;
 			case WIN_ERR:
 				errlog << "Input error: TreeExtra currently does not support multithreading for Windows.\n"; 

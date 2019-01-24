@@ -147,7 +147,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			if(doOut && ((caseNo + 1)% 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines..." << endl;
 			
-			floatv item;	//single data point
+			doublev item;	//single data point
 			try {
 				readData(buf, fin.gcount(), item, colN);
 			
@@ -202,6 +202,22 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			}
 
 		}
+
+		// standardize trainset
+		int cols = (train[0]).size();
+		for(int j = 0; j < cols; j++){
+			double ma = train[0][j];
+			double mi = train[0][j];
+			for(int i = 1; i < caseNo; i++){
+				ma = max(ma,train[i][j]);
+				mi = min(mi,train[i][j]);
+			}
+			if(ma > mi){
+				for(int i = 0; i < caseNo; i++)
+					train[i][j] = (train[i][j] - mi)/(ma - mi);
+			}
+		}
+
 		double trainStD = getTarStD(TRAIN);
 		telog << trainN << " points in the train set, std. dev. of " << tarName << " values = " << trainStD 
 			<< "\n\n"; 
@@ -245,7 +261,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			if (doOut && ((caseNo + 1) % 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines..." << endl;
 			
-			floatv item;	//single data point
+			doublev item;	//single data point
 			try {
 				readData(buf, fvalid.gcount(), item, colN);
 			} catch (TE_ERROR err) {
@@ -291,7 +307,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			if (doOut && ((caseNo + 1) % 100000 == 0))
 				cout << "\tRead " << caseNo + 1 << " lines...\n";
 
-			floatv item;	//single data point
+			doublev item;	//single data point
 			try {
 				readData(buf, ftest.gcount(), item, colN);
 			} catch (TE_ERROR err) {
@@ -317,12 +333,30 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	}
 	else	//no test set
 		testN = 0;
+		
+		// standardize the validation set
+		int cols = (valid[0]).size();
+		for(int j = 0; j < cols; j++){
+			double ma = valid[0][j];
+			double mi = valid[0][j];
+			for(int i = 1; i < validN; i++){
+				ma = max(ma,valid[i][j]);
+				mi = min(mi,valid[i][j]);
+			}
+			if(ma > mi){
+				for(int i = 0; i < validN; i++)
+					valid[i][j] = (valid[i][j] - mi)/(ma - mi);
+			}
+		}
+
+
+
 }
 
 //Gets a line of text, returns a vector with data points 
 //Missing values should be encoded as '?', they get converted to NANs
 //hasMV (class member) value becomes true if there are missing values (otherwise not changed)
-void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
+void INDdata::readData(char* buf, streamsize buflen, doublev& retv, int retvlen)
 {
 	//remove spaces (there can be spaces in nominal values, space should not be a delimiter
 	//and also should be ignored when it is next to a number)
@@ -451,9 +485,9 @@ void INDdata::sortItems()
 		{
 			for(int itemNo = 0; itemNo < sampleN; itemNo++)
 			{
-				float value = train[bootstrap[itemNo]][attrs[attrNo]];
+				double value = train[bootstrap[itemNo]][attrs[attrNo]];
 				if(!isnan(value))
-					sortedItems[attrNo].push_back(fipair(value, itemNo));
+					sortedItems[attrNo].push_back(dipair(value, itemNo));
 			}
 			sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
 		}
@@ -545,7 +579,7 @@ int INDdata::getCurBag(intv& bagData, doublev& bagTar)
 }
 
 //Creates a copy of sortedItems
-void INDdata::getSortedData(fipairvv& sorted)
+void INDdata::getSortedData(dipairvv& sorted)
 {
 	sorted = sortedItems;
 }
@@ -665,12 +699,12 @@ void INDdata::getValues(int attr1Id, int attr2Id, ddpairv& values)
 //in: values is a vector of (attrId, attrVal) pairs
 int INDdata::addTestItem(idpairv& values) 
 {
-	test.resize(testN + 1, floatv(attrN, QNAN));
+	test.resize(testN + 1, doublev(attrN, QNAN));
 	testTar.resize(testN + 1, QNAN);
 	testN++;
 
 	for(int valNo = 0; valNo < (int)values.size(); valNo++)
-		test[testN - 1][values[valNo].first] = (float)values[valNo].second;
+		test[testN - 1][values[valNo].first] = (double)values[valNo].second;
 
 	return testN - 1;
 }
@@ -798,23 +832,23 @@ void INDdata::correlations(string trainFName)
 	{
 		for(size_t itemNo = 0; itemNo < itemN; itemNo++)
 		{
-			float value = train[bootstrap[itemNo]][attrs[attrNo]];
+			double value = train[bootstrap[itemNo]][attrs[attrNo]];
 			if(isnan(value))
 				throw CORR_MV_ERR;
 
-			sortedItems[attrNo].push_back(fipair(value, itemNo));
+			sortedItems[attrNo].push_back(dipair(value, itemNo));
 		}
 		sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
 		
 		//replace actual values with ranks. Ties get average rank.
 		int lastDone = -1;
-		float curVal = sortedItems[attrNo][0].first;
+		double curVal = sortedItems[attrNo][0].first;
 		for(size_t itemNo = 1; itemNo <= itemN; itemNo++)
 			if((itemNo == itemN) || (sortedItems[attrNo][itemNo].first != curVal))
 			{
 				if(itemNo != itemN)
 					curVal = sortedItems[attrNo][itemNo].first;
-				float rank = (float)((lastDone + itemNo) / 2.0 + 1);
+				double rank = (double)((lastDone + itemNo) / 2.0 + 1);
 				for(size_t fillNo = lastDone + 1; fillNo < itemNo; fillNo++)
 					sortedItems[attrNo][fillNo].first = rank;
 				lastDone = itemNo - 1;

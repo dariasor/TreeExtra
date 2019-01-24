@@ -182,6 +182,8 @@ int main(int argc, char* argv[])
 	doublev predsumsV(validN, 0); 			//sums of predictions for each data point
 
 	int attrN = data.getAttrN();
+	int attrIds[attrN];       
+	fill_n(attrIds, attrN, 0); // initialize all attrIds 0:notused 1:used
 	if(topAttrN == -1)
 		topAttrN = attrN;
 	idpairv attrCounts;	//counts of attribute importance
@@ -221,7 +223,7 @@ int main(int argc, char* argv[])
 			cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << endl;
 
 		data.newBag();
-		CTree tree(ti.alpha);
+		CTree tree(ti.alpha,0,attrIds);
 		tree.setRoot();
 		tree.grow(doFS, attrCounts);
 		tree.save(modelFName.c_str());
@@ -286,6 +288,11 @@ int main(int argc, char* argv[])
 		else
 			cout << rocV[ti.bagN - 1] << endl;
 
+	int usedAttrN=0;  // number of used features
+	for(int i=0;i<attrN;i++){
+		usedAttrN+=attrIds[i];
+	}
+
 	//output feature selection results
 	if(doFS)
 	{
@@ -293,6 +300,7 @@ int main(int argc, char* argv[])
 			topAttrN = attrN;
 
 		fstream ffeatures("feature_scores.txt", ios_base::out);	
+		ffeatures << "Number of features used: " << usedAttrN << "\n";
 		ffeatures << "Top " << topAttrN << " features\n";
 		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
 			ffeatures << data.getAttrName(attrCounts[attrNo].first) << "\t" 

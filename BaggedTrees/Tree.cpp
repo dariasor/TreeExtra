@@ -38,7 +38,7 @@ public:
 		}
 		double h = curNH.second;
 		double curAlpha = (pJD->H == 0) ? 1 : pow(2, - ( pJD->b +  pJD->H) * h /  pJD->H +  pJD->b);
-		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
+		bool notLeaf = curNH.first->split(curAlpha, pEntropy, pJD->mu, pJD->attrIds);
 		
 		nodesCond.Lock();
 		if(notLeaf)
@@ -64,7 +64,7 @@ public:
 };
 #endif
 
-CTree::CTree(double alphaIn): alpha(alphaIn), root()
+CTree::CTree(double alphaIn,double muIn, int* attrIdsIn, double varianceIn): alpha(alphaIn), mu(muIn), attrIds(attrIdsIn), variance(varianceIn), root()
 {
 }
 
@@ -99,7 +99,7 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 		}	
 		double h = curNH.second;
 		double curAlpha = (H == 0) ? 1 : pow(2, - (b + H) * h / H + b);
-		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
+		bool notLeaf = curNH.first->split(curAlpha, pEntropy, mu, attrIds);
 	
 		if(notLeaf)
 		{//process child nodes of this node
@@ -129,7 +129,7 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 			idpairv* pAttrCounts = NULL;
 			if(doFS)
 				pAttrCounts = &attrCounts;
-			JobData* pJD = new JobData(curNH, &nodes, &nodesCond, &toDoN, pAttrCounts, b, H);
+			JobData* pJD = new JobData(curNH, &nodes, &nodesCond, &toDoN, pAttrCounts, b, H, mu, attrIds);
 			pPool->Run(new CNodeSplitJob(), pJD, true);
 		}
 		else
@@ -245,9 +245,11 @@ double CTree::predict(int itemNo, DATA_SET dset)
 //Changes ground truth to residuals in the root train set
 void CTree::resetRoot(doublev& othpreds){
 	root.resetRoot(othpreds);
+	variance=root.getVariance();
 }
 
 //loads data into the root
 void CTree::setRoot(){
 	root.setRoot();
+	variance=0;
 }

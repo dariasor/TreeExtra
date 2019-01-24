@@ -19,12 +19,16 @@
 
 #include <fstream>
 #include <math.h>
+#include <iostream>
+#include <sstream>
+#include <algorithm>
+#include <cmath>
 
 INDdata* CTreeNode::pData;
 
 //Constructor. If the node is a root, download info about the train set.
 CTreeNode::CTreeNode(): 
-	left(0), right(0), pAttrs(NULL), pSorted(NULL), pItemSet(NULL)
+		left(0), right(0), pAttrs(NULL), pSorted(NULL), pItemSet(NULL),variance(0)
 {
 	
 }
@@ -83,7 +87,7 @@ CTreeNode& CTreeNode::operator=(const CTreeNode& rhs)
 	if(pSorted)
 		delete pSorted;
 	if(rhs.pSorted)
-		pSorted = new fipairvv(*rhs.pSorted);
+		pSorted = new dipairvv(*rhs.pSorted);
 	else
 		pSorted = NULL;
 
@@ -113,7 +117,7 @@ CTreeNode::CTreeNode(const CTreeNode& rhs)
 		pAttrs = NULL;
 	
 	if(rhs.pSorted)
-		pSorted = new fipairvv(*rhs.pSorted);
+		pSorted = new dipairvv(*rhs.pSorted);
 	else
 		pSorted = NULL;
 
@@ -130,13 +134,14 @@ CTreeNode::CTreeNode(const CTreeNode& rhs)
 void CTreeNode::setRoot()
 {
 	del();	//delete old tree
+	variance=0;
 
 	if(pAttrs == NULL)
 		pAttrs = new intv();
 	pData->getActiveAttrs(*pAttrs);
 
 	if(pSorted == NULL)
-		pSorted = new fipairvv();
+		pSorted = new dipairvv();
 	pData->getSortedData(*pSorted);
 	
 	if(pItemSet == NULL)
@@ -148,8 +153,17 @@ void CTreeNode::setRoot()
 //Changes ground truth to residuals in the root train set
 void CTreeNode::resetRoot(doublev& othpreds)
 {
+	double sums=0;
+	double square=0;
+	int count=0;
 	for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)
+	{
 		itemIt->response -= othpreds[itemIt->key];
+		count += 1; 
+		sums += itemIt->response;
+		square += (itemIt->response)*(itemIt->response);
+	}
+	variance = square - sums*sums/count;
 }
 
 //This function is used for prediction. It passes the case from the parent to child node(s).
@@ -175,7 +189,7 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 // Returns true if succeeds, false if this node becomes a leaf
 // input: alpha - min possible ratio of internal node train subset volume to the whole train set size, 
 //		when surpassed,	the node becomes a leaf
-bool CTreeNode::split(double alpha, double* pEntropy)
+bool CTreeNode::split(double alpha, double* pEntropy, double mu, int *attrIds)
 {	
 //1. check basic leaf conditions
 	double nodeV, nodeSum, realNodeV;
@@ -189,7 +203,7 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 //2. Find the best split
 //evaluate all good splits and choose the one with the best evaluation
-	bool notFound = pData->useCoef() ? setSplitMV(nodeV, nodeSum) : setSplit(nodeV, nodeSum);	//finds and sets best split
+	bool notFound = pData->useCoef() ? setSplitMV(nodeV, nodeSum, mu, attrIds) : setSplit(nodeV, nodeSum, mu, attrIds);	//finds and sets best split
 
 	if(notFound)
 	{//no splittings or they disappeared because of tiny coefficients. This node becomes a leaf
@@ -250,8 +264,8 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 	//create sorted vectors in child nodes
 	int defAttrN = (int)pAttrs->size();
-	left->pSorted = new fipairvv(defAttrN);
-	right->pSorted = new fipairvv(defAttrN);
+	left->pSorted = new dipairvv(defAttrN);
+	right->pSorted = new dipairvv(defAttrN);
 	
 	for(int attrNo = 0; attrNo < defAttrN; attrNo++)
 	{
@@ -260,15 +274,15 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 		(*right->pSorted)[attrNo].reserve((int)right->pItemSet->size());
 		
 		//insert pairs in childrens sorted vectors in the same order, update item # through hash
-		for(fipairv::iterator pvIt = (*pSorted)[attrNo].begin();
+		for(dipairv::iterator pvIt = (*pSorted)[attrNo].begin();
 			pvIt!=(*pSorted)[attrNo].end(); pvIt++)
 		{
 			int leftNo = leftHash[pvIt->second];
 			int rightNo = rightHash[pvIt->second];
 			if(leftNo != -1)
-				(*left->pSorted)[attrNo].push_back(fipair(pvIt->first, leftNo));
+				(*left->pSorted)[attrNo].push_back(dipair(pvIt->first, leftNo));
 			if(rightNo != -1)
-				(*right->pSorted)[attrNo].push_back(fipair(pvIt->first, rightNo));
+				(*right->pSorted)[attrNo].push_back(dipair(pvIt->first, rightNo));
 		}
 	}
 	//clean the parent node
@@ -399,19 +413,20 @@ void CTreeNode::makeLeaf(double nodeMean)
 	// nodeV - size (volume) of the training subset
 	// nodeSum - sum of response values in the training subset
 //out: true, if best split found. false, if there were no splits
-bool CTreeNode::setSplit(double nodeV, double nodeSum)
+
+bool CTreeNode::setSplit(double nodeV, double nodeSum, double mu, int *attrIds)
 {
 	double bestEval = QNAN; //current value for the best evaluation
 	SplitInfov bestSplits; // all splits that have best (identical) evaluation
-
 	for(int attrNo = 0; attrNo < (int)pAttrs->size();)
 	{
 		int attr = (*pAttrs)[attrNo];
+		double penalty = (1 - attrIds[attr] ) * mu; // penalty to use this variable to split
 		if(pData->boolAttr(attr))	
 		{//boolean attribute
 			//there is exactly one split for a boolean attribute, evaluate it
 			SplitInfo boolSplit(attr, 0.5);
-			double eval = evalBool(boolSplit, nodeV, nodeSum);
+			double eval = evalBool(boolSplit, nodeV, nodeSum) + penalty;
 			if(isnan(eval))
 			{//boolean attribute is not valid anymore, remove it
 				pAttrs->erase(pAttrs->begin() + attrNo);	
@@ -457,8 +472,8 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 			double curTraV, curTraSum; //for the current block
 			prevTraV = 0; prevTraSum = 0;
 
-			fipairv* pSortedVals = &(*pSorted)[attrNo];
-			fipairv::iterator pairIt = pSortedVals->begin();
+			dipairv* pSortedVals = &(*pSorted)[attrNo];
+			dipairv::iterator pairIt = pSortedVals->begin();
 			while(pairIt != pSortedVals->end())
 			{//on each iteration of this cycle collect info about the block of cases with the
 				//same value of the attribute and if needed, evaluate the split right before it.
@@ -471,7 +486,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 				curTraSum = 0;	
 
 				//get next block, update transition parameters
-				fipairv::iterator sortedEnd = pSortedVals->end();
+				dipairv::iterator sortedEnd = pSortedVals->end();
 				for(;(pairIt != sortedEnd) && (pairIt->first == curAttrVal); pairIt++)
 				{
 					ItemInfo& item = (*pItemSet)[pairIt->second];
@@ -502,7 +517,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 					double sqErr1 =  - 2 * mean1 * sum1 + volume1 * mean1 * mean1;
 					double sqErr2 =  - 2 * mean2 * sum2 + volume2 * mean2 * mean2;
 
-					double eval = sqErr1 + sqErr2;
+					double eval = sqErr1 + sqErr2 + penalty;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
 					if(isnan(bestEval) || (eval < bestEval))
@@ -551,13 +566,13 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 		int bestSplitN = (int)bestSplits.size();
 		int randSplit = rand() % bestSplitN;
 		splitting = bestSplits[randSplit];
-
 		if(pData->boolAttr(splitting.divAttr))
 		{//one can split only once on boolean attribute, remove it from the set of attributes
 			int attrNo = erasev(pAttrs, splitting.divAttr);
 			pSorted->erase(pSorted->begin() + attrNo);	
 				//it is an empty vector (the attribute is boolean), but we still need to remove it
 		}
+		attrIds[splitting.divAttr] = 1;
 	}
 	return isnan(bestEval);
 }
@@ -572,7 +587,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 	//nodeV - sum of squared coefficients
 	//nodeSum - sum of predictions respectively multiplied by squared coefficients
 //out: true, if best split found. false, if there were no splits
-bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
+bool CTreeNode::setSplitMV(double nodeV, double nodeSum, double mu, int *attrIds)
 {
 	double bestEval = QNAN; //current value for the best evaluation
 	SplitInfov bestSplits; // all splits that have best (identical) evaluation
@@ -580,6 +595,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 	for(int attrNo = 0; attrNo < (int)pAttrs->size();)
 	{
 		int attr = (*pAttrs)[attrNo];
+		double penalty = (1 - attrIds[attr] ) * mu; // penalty to use this variable to split
 		bool newSplits = false;	//true if any splits were added for this attribute
 
 		//collect info about missing values
@@ -603,7 +619,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 			double mean2 = missSum / missV;
 			double sqErr1 =  - 2 * mean1 * nmSum + nmV * mean1 * mean1;
 			double sqErr2 = - 2 * mean2 * missSum + missV * mean2 * mean2;
-			double eval = sqErr1 + sqErr2;
+			double eval = sqErr1 + sqErr2 + penalty;
 			
 			//if it is the best (one of the best) so far, keep it
 			if(isnan(bestEval) || (eval < bestEval))
@@ -622,7 +638,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 		{//boolean attribute
 			//there is only one non-special split for a boolean attribute, evaluate it
 			SplitInfo boolSplit(attr, 0.5);
-			double eval = evalBoolMV(boolSplit, nodeV, nodeSum, missV, missSum);
+			double eval = evalBoolMV(boolSplit, nodeV, nodeSum, missV, missSum) + penalty;
 			if(!isnan(eval))
 			{//save if this is one of the best splits
 				newSplits = true;
@@ -659,8 +675,8 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 			double curTraV, curTraSum; //for the current block
 			prevTraV = 0; prevTraSum = 0;
 
-			fipairv* pSortedVals = &(*pSorted)[attrNo];
-			fipairv::iterator pairIt = pSortedVals->begin();
+			dipairv* pSortedVals = &(*pSorted)[attrNo];
+			dipairv::iterator pairIt = pSortedVals->begin();
 			while(pairIt != pSortedVals->end())
 			{//on each iteration of this cycle collect info about the block of cases with the
 				//same value of the attribute and if needed, evaluate the split right before it.
@@ -673,7 +689,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 				curTraSum = 0;	
 
 				//get next block, update transition parameters
-				fipairv::iterator sortedEnd = pSortedVals->end();
+				dipairv::iterator sortedEnd = pSortedVals->end();
 				for(;(pairIt != sortedEnd) && (pairIt->first == curAttrVal); pairIt++)
 				{
 					ItemInfo& item = (*pItemSet)[pairIt->second];
@@ -708,7 +724,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 					double sqErr2 = - 2 * mean2 * sum2 + volume2 * mean2 * mean2;
 					double missSqErr =  - 2 * missPred * missSum + missV * missPred * missPred; 
 
-					double eval = sqErr1 + sqErr2 + missSqErr;
+					double eval = sqErr1 + sqErr2 + missSqErr + penalty;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
 					if(isnan(bestEval) || (eval < bestEval))
@@ -757,6 +773,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 		int bestSplitN = (int)bestSplits.size();
 		int randSplit = rand() % bestSplitN;
 		splitting = bestSplits[randSplit];
+		attrIds[splitting.divAttr] = 1;
 	}
 	return isnan(bestEval);
 }

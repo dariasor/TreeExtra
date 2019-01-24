@@ -37,6 +37,8 @@ public:
 	double getThresh() {return splitting.border;}
 	double getResp() {return (*pItemSet)[0].response;} //should be applied to leaves only
 	double getNodeV();
+	double getVariance() {return variance;} // only calculated for the root
+
 	
 	double getEntropy(int attrNo); //get entropy of this feature in this node
 	
@@ -56,7 +58,7 @@ public:
 	void traverse(int itemNo, double coef, double& ltCoef, double& rtCoef, DATA_SET dset);
 
 	//splits the node; grows two offsprings 
-	bool split(double alpha, double* pEntropy = NULL);
+	bool split(double alpha, double* pEntropy = NULL, double mu=0, int *attrIds = NULL);
 
 	//saves the node into a binary file
 	void save(fstream& fsave);
@@ -76,10 +78,10 @@ private:
 	void makeLeaf(double nodeMean); 
 
 	//finds and sets a splitting info with the best MSE
-	bool setSplit(double nodeV, double nodeSum);
+	bool setSplit(double nodeV, double nodeSum, double mu=0, int *attrIds = NULL);
 
 	//finds and sets a splitting info with the best MSE when missing values present in the data
-	bool setSplitMV(double nodeV, double nodeSum);
+	bool setSplitMV(double nodeV, double nodeSum, double mu=0, int *attrIds = NULL);
 
 	//evaluates boolean split
 	double evalBool(SplitInfo& canSplit, double nodeV, double nodeSum);
@@ -93,9 +95,10 @@ public:
 
 private:
 	ItemInfov*	pItemSet;	//subset of the training set that belongs to the node during training
-	fipairvv*   pSorted;	//current itemset indexes sorted by value of attribute
+	dipairvv*   pSorted;	//current itemset indexes sorted by value of attribute
 	intv*		pAttrs;		//set of valid attributes in the node	
 	SplitInfo	splitting;	//split (attribute, split point, proportion for missing values)
+	double variance; // variance (sum of square error ) of the node (just for root)
 
 };
 
