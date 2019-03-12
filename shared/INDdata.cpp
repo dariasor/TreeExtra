@@ -125,6 +125,32 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	for(intset::iterator aIt = ignoreAttrs.begin(); aIt != ignoreAttrs.end(); aIt++)
 		rawIgnore[aIdToColNo[*aIt]] = true;
 
+	//Check that all files exist. Done here to avoid crashing on the absence of the test file after spending time on reading train
+	if(string(trainFName).compare("") != 0)
+	{
+		fstream fin;
+		fin.open(trainFName, ios_base::in);
+		if(fin.fail()) 
+			throw OPEN_TRAIN_ERR;
+		fin.close();
+	}
+	if(string(validFName).compare("") != 0)
+	{
+		fstream fvalid;
+		fvalid.open(validFName, ios_base::in); 
+		if(fvalid.fail())
+			throw OPEN_VALID_ERR;
+		fvalid.close();
+	}
+	if(string(testFName).compare("") != 0)
+	{//Read test set
+		fstream ftest;
+		ftest.open(testFName, ios_base::in); 
+		if(ftest.fail()) 
+			throw OPEN_TEST_ERR;
+		ftest.close();
+	}
+
 	//Read data
 	if(string(trainFName).compare("") != 0)
 	{//Read train set
