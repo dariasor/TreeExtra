@@ -78,11 +78,17 @@ private:
 	//finds and sets a splitting info with the best MSE
 	bool setSplit(double nodeV, double nodeSum);
 
-	//finds and sets a splitting info with the best MSE when missing values present in the data
+	//finds and sets a splitting info with the best MSE when weights are present in the data
+	bool setSplitW(double nodeV, double nodeSum);
+
+	//finds and sets a splitting info with the best MSE when missing values and possibly weights are present in the data
 	bool setSplitMV(double nodeV, double nodeSum);
 
 	//evaluates boolean split
 	double evalBool(SplitInfo& canSplit, double nodeV, double nodeSum);
+
+	//evaluates boolean split with weights present
+	double evalBoolW(SplitInfo& canSplit, double nodeV, double nodeSum);
 
 	//evaluates boolean split when missing values present in the data
 	double evalBoolMV(SplitInfo& canSplit, double nodeV, double nodeSum, double missV, double missSum);

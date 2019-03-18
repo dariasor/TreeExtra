@@ -20,8 +20,9 @@ public:
 	int getTarColNo(){return tarColNo;}
 	int getTargets(doublev& targets, doublev& weights, DATA_SET dset);
 	int getOutOfBag(intv& oobData, doublev& oobTar, doublev& oobWt);
-	bool useCoef(){return hasActiveMV || (weightColNo != -1);}
+	bool getHasWeights(){return weightColNo != -1;}
 	bool getHasActiveMV(){return hasActiveMV;}
+	bool useCoef(){return hasActiveMV || (weightColNo != -1);}
 
 //untrivial get functions
 
