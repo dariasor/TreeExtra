@@ -6,7 +6,7 @@
 // 2. The tree can use continuous and boolean attributes (no nominals).
 // 3. Cases with missing values go to both branches with coefficients proportional to 
 // the distribution of other cases. 
-//		3.a) Special split: all cases with missing values go to one brance, the rest go other way
+//		3.a) Special split: all cases with missing values go to one branch, the rest go other way
 // 4. We keeps several indexes of the data in the node, each copy sorted by values of one of the 
 // attributes. Because of this, splitting of each node (except for the root) takes linear time. 
 // 5. Some stl variables are implemented as pointers in order to ensure that unused memory can be 
