@@ -210,8 +210,8 @@ int main(int argc, char* argv[])
 	CGrove::setData(data);
 	CTreeNode::setData(data);
 
-	doublev validTar;
-	int validN = data.getTargets(validTar, VALID);
+	doublev validTar, validWt;
+	int validN = data.getTargets(validTar, validWt, VALID);
 
 	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
 		<< allBagN << " bagging iterations\n";
@@ -309,9 +309,9 @@ int main(int argc, char* argv[])
 						fpreds.close();
 					}
 
-					rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar);
+					rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar, validWt);
 					if(!ti.rms)
-						rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar);
+						rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar, validWt);
 
 				}// end for(int bagNo = ti.bagN; bagNo < ti.bagN + extraTI.bagN; bagNo++)
 				ftemp.close();

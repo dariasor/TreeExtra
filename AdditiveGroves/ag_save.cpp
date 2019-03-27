@@ -33,13 +33,13 @@ int main(int argc, char* argv[])
 	TrainInfo ti;		 
 	//parameters of the model to be saved
 	int saveTiGN, saveBagN, iStub;		
-	double saveAlpha, trainV, dStub;	
+	double saveAlpha, trainN, dStub;	
 	string sStub;
 	
 	//read values of Groves parameters that produced best results
 	fstream fbest;
 	fbest.open("./AGTemp/best.txt", ios_base::in); 
-	fbest >> dStub >> saveTiGN >> saveAlpha >> saveBagN >> trainV;
+	fbest >> dStub >> saveTiGN >> saveAlpha >> saveBagN >> trainN;
 	if(fbest.fail())
 		throw TEMP_ERR;
 	fbest.close();
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 		throw BAGN_ERR;
 
 	//adjust alpha, if needed
-	double newAlpha = adjustAlpha(saveAlpha, trainV);
+	double newAlpha = adjustAlpha(saveAlpha, trainN);
 	if(saveAlpha != newAlpha)
 	{
 		telog << "Warning: alpha value was rounded to the closest valid value " << newAlpha << ".\n\n";
@@ -114,9 +114,9 @@ int main(int argc, char* argv[])
 		saveTiGN = newTiGN;	
 	}
 
-	int alphaN = getAlphaN(ti.minAlpha, trainV);
+	int alphaN = getAlphaN(ti.minAlpha, trainN);
 	int tigNN = getTiGNN(ti.maxTiGN);
-	int saveAlphaNo = getAlphaN(saveAlpha, trainV) - 1;
+	int saveAlphaNo = getAlphaN(saveAlpha, trainN) - 1;
 	int saveTiGNNo = getTiGNN(saveTiGN) - 1;
 	boolv dir; //path on the parameter grid
 

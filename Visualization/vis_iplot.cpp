@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 	//2. Set parameters from command line
 	//check that the number of arguments is even (flags + value pairs)
 	if(argc % 2 == 0)
-		throw INPUT_ERR;
+		throw VIS_INPUT_ERR;
 	//convert input parameters to string from char*
 	stringv args(argc); 
 	for(int argNo = 0; argNo < argc; argNo++)
@@ -91,11 +91,11 @@ int main(int argc, char* argv[])
 		else if(!args[argNo].compare("-q2"))
 			quantN2 = atoi(argv[argNo + 1]);
 		else
-			throw INPUT_ERR;
+			throw VIS_INPUT_ERR;
 	}
 
 	if(!(hasVal && hasAttr && hasF1 && hasF2))
-		throw INPUT_ERR;
+		throw VIS_INPUT_ERR;
 
 //2. Load data
 	INDdata data(ti.trainFName.c_str(), ti.validFName.c_str(), ti.testFName.c_str(), 
@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 		ErrLogStream errlog;
 		switch(err) 
 		{
-			case INPUT_ERR:
+			case VIS_INPUT_ERR:
 				errlog << "Usage: -v _validation_set_ -r _attr_file_ -f1 _feature1_ -f2 _feature2_ "
 					<< "[-q1 _#quantile_values1_] [-q2 _#quantile_values2_] [-m _model_file_name_] "
 					<< "[-o _output_file_suffix_] [-x _fixed_values_file_] | -version\n";

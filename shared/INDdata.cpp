@@ -125,6 +125,32 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	for(intset::iterator aIt = ignoreAttrs.begin(); aIt != ignoreAttrs.end(); aIt++)
 		rawIgnore[aIdToColNo[*aIt]] = true;
 
+	//Check that all files exist. Done here to avoid crashing on the absence of the test file after spending time on reading train
+	if(string(trainFName).compare("") != 0)
+	{
+		fstream fin;
+		fin.open(trainFName, ios_base::in);
+		if(fin.fail()) 
+			throw OPEN_TRAIN_ERR;
+		fin.close();
+	}
+	if(string(validFName).compare("") != 0)
+	{
+		fstream fvalid;
+		fvalid.open(validFName, ios_base::in); 
+		if(fvalid.fail())
+			throw OPEN_VALID_ERR;
+		fvalid.close();
+	}
+	if(string(testFName).compare("") != 0)
+	{//Read test set
+		fstream ftest;
+		ftest.open(testFName, ios_base::in); 
+		if(ftest.fail()) 
+			throw OPEN_TEST_ERR;
+		ftest.close();
+	}
+
 	//Read data
 	if(string(trainFName).compare("") != 0)
 	{//Read train set
@@ -156,7 +182,8 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				trainTar.push_back(item[tarColNo]);
 			
 				if(weightColNo != -1)
-					trainW.push_back(item[weightColNo]);
+					trainWt.push_back(item[weightColNo]);
+
 				item.erase(item.begin() + max(tarColNo, weightColNo));
 				if(weightColNo != -1)
 					item.erase(item.begin() + min(tarColNo, weightColNo));
@@ -185,23 +212,12 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			getLineExt(fin, buf);
 		}
 		trainN = caseNo;
-		trainV = trainN;
 		if(trainN == 0)
 			throw TRAIN_EMPTY_ERR;
-		if(weightColNo != -1)
-		{
-			double trainSum = 0;
-			trainR.resize(trainN);
-			for(int itemNo = 0; itemNo < trainN; itemNo++)
-				trainSum += trainW[itemNo];
-			double trCoef = trainN / trainSum;
-			for(int itemNo = 0; itemNo < trainN; itemNo++)
-			{
-				trainW[itemNo] *= trCoef;
-				trainR[itemNo] = (itemNo == 0) ? trainW[itemNo] : trainW[itemNo] + trainR[itemNo - 1];
-			}
 
-		}
+		if(weightColNo == -1)
+			trainWt.resize(trainN, 1);
+
 		double trainStD = getTarStD(TRAIN);
 		telog << trainN << " points in the train set, std. dev. of " << tarName << " values = " << trainStD 
 			<< "\n\n"; 
@@ -257,7 +273,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			validTar.push_back(item[tarColNo]);
 			
 			if(weightColNo != -1)
-				validW.push_back(item[weightColNo]);
+				validWt.push_back(item[weightColNo]);
 			item.erase(item.begin() + max(tarColNo, weightColNo));
 			if(weightColNo != -1)
 				item.erase(item.begin() + min(tarColNo, weightColNo));
@@ -268,6 +284,9 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		validN = caseNo;
 		if(validN == 0)
 			throw VALID_EMPTY_ERR;
+		if(weightColNo == -1)
+			validWt.resize(validN, 1);
+
 		double validStD = getTarStD(VALID);
 		telog << validN << " points in the validation set, std. dev. of " << tarName << " values = " 
 			<< validStD << "\n\n"; 
@@ -301,7 +320,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 
 			testTar.push_back(item[tarColNo]);
 			if(weightColNo != -1)
-				testW.push_back(item[weightColNo]);
+				testWt.push_back(item[weightColNo]);
 			item.erase(item.begin() + max(tarColNo, weightColNo));
 			if(weightColNo != -1)
 				item.erase(item.begin() + min(tarColNo, weightColNo));
@@ -310,6 +329,9 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			getLineExt(ftest, buf);
 		}
 		testN = caseNo;
+
+		if(weightColNo == -1)
+			testWt.resize(testN, 1);
 		double testStD = getTarStD(TEST);
 		telog << testN << " points in the test set, std. dev. of " << tarName << " values = " << testStD 
 			<< "\n\n";
@@ -368,6 +390,7 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 void INDdata::newBag(void)
 {
 	boolv oobInx(trainN, true); //true if item is not in current bag
+	bagV = 0;
 
 	for(int itemNo = 0; itemNo < trainN; itemNo++)
 	{//put a new item into bag
@@ -375,6 +398,7 @@ void INDdata::newBag(void)
 		int nextItem = (int) ((trainN - 1) * randCoef);
 		bootstrap[itemNo] = nextItem;
 		oobInx[nextItem] = false;
+		bagV += trainWt[itemNo];
 	}
 
 	//calculate number of oob cases
@@ -388,13 +412,11 @@ void INDdata::newBag(void)
 
 	//fill out of bag data
 	oobData.resize(oobN);
-	oobTar.resize(oobN);
 	int oobNo = 0;
 	for(int itemNo = 0; itemNo < trainN; itemNo++)
 		if(oobInx[itemNo])
 		{
 			oobData[oobNo] = itemNo;
-			oobTar[oobNo] = trainTar[itemNo];
 			oobNo++;
 		}
 
@@ -411,12 +433,14 @@ void INDdata::newSample(int sampleN)
 
 	bootstrap.clear();
 	bootstrap.resize(sampleN);
+	bagV = 0;
 
 	for(int i = 0; i < sampleN; i++)
 	{
 		double randCoef = rand_coef();
 		int nextItem = (int) ((trainN - 1 - i) * randCoef);
 		bootstrap[i] = inxv[nextItem];
+		bagV += trainWt[i];
 		inxv[nextItem] = inxv[trainN - 1 - i];
 	}
 
@@ -486,29 +510,40 @@ int INDdata::getAttrId(string attrName)
 }
 
 //Gets out of bag data info (oobData, oobTar, oobN)
-int INDdata::getOutOfBag(intv& oobData_out, doublev& oobTar_out)
+int INDdata::getOutOfBag(intv& oobData_out, doublev& oobTar, doublev& oobWt)
 {
 	oobData_out = oobData;
-	oobTar_out = oobTar;
+	oobTar.resize(oobN);
+	oobWt.resize(oobN);
+	
+	for(int oobNo = 0; oobNo < oobN; oobNo++)
+	{
+		oobTar[oobNo] = trainTar[oobData[oobNo]];
+		oobWt[oobNo] = trainWt[oobData[oobNo]];
+	}
+
 	return oobN;
 }
 
 //Gets validaton data info (validTar, validN)
-int INDdata::getTargets(doublev& targets, DATA_SET dset)
+int INDdata::getTargets(doublev& targets, doublev& weights, DATA_SET dset)
 {
 	if(dset == TRAIN)
 	{
 		targets = trainTar;
+		weights = trainWt;
 		return trainN;
 	}
 	else if(dset == VALID)
 	{
 		targets = validTar;
+		weights = validWt;
 		return validN;
 	}
 	else //(dset == TEST)
 	{
 		targets = testTar;
+		weights = testWt;
 		return testN;
 	}
 }
@@ -523,22 +558,22 @@ void INDdata::getCurBag(ItemInfov& itemSet)
 	{
 		itemSet[i].key = bootstrap[i];
 		itemSet[i].response = trainTar[bootstrap[i]];
-//		if(weightColNo != -1)
-//			itemSet[i].coef = trainW[bootstrap[i]];
+		itemSet[i].coef = trainWt[bootstrap[i]];
 	}
 }
 
 //Returns ids and responses of data points in the current bag
-int INDdata::getCurBag(intv& bagData, doublev& bagTar)
+int INDdata::getCurBag(intv& bagData, doublev& bagTar, doublev& bagWt)
 { 
 	int sampleN = (int)bootstrap.size();
-	bagData.resize(sampleN);
+	bagData = bootstrap;
 	bagTar.resize(sampleN);
+	bagWt.resize(sampleN);
 
 	for(int i = 0; i < sampleN; i++)
 	{
-		bagData[i] = bootstrap[i];
 		bagTar[i] = trainTar[bootstrap[i]];
+		bagWt[i] = trainWt[bootstrap[i]];
 	}
 
 	return sampleN;
@@ -583,27 +618,43 @@ string INDdata::getAttrName(int attrId)
 double INDdata::getTarStD(DATA_SET ds)
 {
 	doublev* ptargets = NULL;
+	doublev* pweights = NULL;
 	if(ds == TRAIN)
+	{
 		ptargets = &trainTar;	
+		pweights = &trainWt;
+	}
 	if(ds == TEST)
+	{
 		ptargets = &testTar;
+		pweights = &testWt;
+	}
 	if(ds == VALID)
-		ptargets = &validTar;	
+	{	
+		ptargets = &validTar;
+		pweights = &validWt;
+	}
 	doublev& targets = *ptargets;
+	doublev& weights = *pweights;
 
-	double mean = 0;
 	int itemN = (int)targets.size();
 	if(itemN == 0)
 		return 0;
 	
+	double volume = 0;
+	double mean = 0;
+
 	for(int itemNo = 0; itemNo < itemN; itemNo++)
-		mean += targets[itemNo];				
-	mean /= itemN;														
+	{
+		mean += targets[itemNo] * weights[itemNo];		
+		volume += weights[itemNo];
+	}
+	mean /= volume;														
 
 	double var = 0;
 	for(int itemNo = 0; itemNo < itemN; itemNo++)
-		var += pow(targets[itemNo] - mean, 2);	
-	var /= itemN;														
+		var += pow(targets[itemNo] - mean, 2) * weights[itemNo];	
+	var /= volume;														
 
 	return sqrt(var);
 }
@@ -775,7 +826,7 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 	return uValsN;
 }
 
-//calculates and outputs correlation scores between active attributes based on the training set
+//Calculates and outputs correlation scores between active attributes based on the training set. Weights are ignored.
 void INDdata::correlations(string trainFName)
 {
 	LogStream telog;

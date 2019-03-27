@@ -6,7 +6,7 @@
 // 2. The tree can use continuous and boolean attributes (no nominals).
 // 3. Cases with missing values go to both branches with coefficients proportional to 
 // the distribution of other cases. 
-//		3.a) Special split: all cases with missing values go to one brance, the rest go other way
+//		3.a) Special split: all cases with missing values go to one branch, the rest go other way
 // 4. We keeps several indexes of the data in the node, each copy sorted by values of one of the 
 // attributes. Because of this, splitting of each node (except for the root) takes linear time. 
 // 5. Some stl variables are implemented as pointers in order to ensure that unused memory can be 
@@ -178,10 +178,11 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 bool CTreeNode::split(double alpha, double* pEntropy)
 {	
 //1. check basic leaf conditions
-	double nodeV, nodeSum, realNodeV;
-	bool StD0 = getStats(nodeV, nodeSum, realNodeV);
+	double nodeV, nodeSum;
+	bool isStD0 = getStats(nodeV, nodeSum);
+	int itemN = pItemSet->size();
 
-	if((realNodeV / pData->getTrainV() < alpha) || StD0)
+	if(((double)itemN / pData->getBagDataN() < alpha) || isStD0)
 	{
 		makeLeaf(nodeSum / nodeV);
 		return false;
@@ -189,7 +190,7 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 //2. Find the best split
 //evaluate all good splits and choose the one with the best evaluation
-	bool notFound = pData->useCoef() ? setSplitMV(nodeV, nodeSum) : setSplit(nodeV, nodeSum);	//finds and sets best split
+	bool notFound = pData->getHasActiveMV() ? setSplitMV(nodeV, nodeSum) : pData->getHasWeights() ? setSplitW(nodeV, nodeSum) : setSplit(nodeV, nodeSum);	//finds and sets best split
 
 	if(notFound)
 	{//no splittings or they disappeared because of tiny coefficients. This node becomes a leaf
@@ -206,8 +207,6 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 	
 	left = new CTreeNode();
 	right = new CTreeNode();
-
-	int itemN = (int)pItemSet->size();
 
 	left->pItemSet = new ItemInfov();
 	right->pItemSet = new ItemInfov();
@@ -289,48 +288,43 @@ bool CTreeNode::split(double alpha, double* pEntropy)
 
 //returns several summaries of the prediction values set in this node
 // output:
-	//nodeV - sum of squared coefficients
-	//nodeSum - sum of predictions respectively multiplied by squared coefficients
-	//realNodeV - sum of coefficients
+	//nodeSum - sum of predictions respectively multiplied by coefficients
+	//nodeV - sum of coefficients
 //returns false if there are different response values, true - if all values are the same
-bool CTreeNode::getStats(double& nodeV, double& nodeSum, double& realNodeV)
+bool CTreeNode::getStats(double& nodeV, double& nodeSum)
 {
 	nodeSum = 0;
 	nodeV = 0;
-	realNodeV = 0;
 
 	double firstResp = (*pItemSet)[0].response;	//response of the first item
-	bool StD0 = true;	//whether all response values are the same (StD == 0)
+	bool isStD0 = true;	//whether all response values are the same (StD == 0)
 
 	//calculate nodeV, nodeSum and realNodeV
 	if(pData->useCoef())
 		for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)
 		{// update every sum with the info from this item
 			double& coef = itemIt->coef;
-			double coef_sq = coef * coef;
-			nodeV += coef_sq;
-			nodeSum += coef_sq * itemIt->response;
-			realNodeV += coef;
+			nodeSum += coef * itemIt->response;
+			nodeV += coef;
 
 			if(itemIt->response != firstResp)
-				StD0 = false;
+				isStD0 = false;
 		}
 	else
 	{//faster calculations for the data without missing values
 		for(ItemInfov::iterator itemIt = pItemSet->begin();	itemIt != pItemSet->end();	itemIt++)
 		{
-			nodeV++;
 			nodeSum += itemIt->response;
 			if(itemIt->response != firstResp)
-				StD0 = false;
+				isStD0 = false;
 		}
-		realNodeV = nodeV;
+		nodeV = pItemSet->size();
 	}
 
-	return StD0;
+	return isStD0;
 }
 
-//returns sum of coefficients, old definition of node volume
+//returns sum of coefficientse
 double CTreeNode::getNodeV()
 {
 	if(pData->useCoef())
@@ -389,7 +383,7 @@ void CTreeNode::makeLeaf(double nodeMean)
 	(*pItemSet)[0].response = nodeMean;
 }
 
-//Chooses and sets best mse split over all attributes and values when no missing values are
+//Chooses and sets best mse split over all attributes and values when no missing values and no weights are
 // present.
 //To compare mse values of splits, we need to calculate only 2 of 3 squared sum components.
 //For each attribute it estimates all splits in _one_pass_ over the sorted data, i.e. O(N)
@@ -499,10 +493,7 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 					double mean1 = sum1 / volume1;
 					double mean2 = sum2 / volume2;
 
-					double sqErr1 =  - 2 * mean1 * sum1 + volume1 * mean1 * mean1;
-					double sqErr2 =  - 2 * mean2 * sum2 + volume2 * mean2 * mean2;
-
-					double eval = sqErr1 + sqErr2;
+					double eval = - mean1 * sum1 - mean2 * sum2;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
 					if(isnan(bestEval) || (eval < bestEval))
@@ -562,15 +553,182 @@ bool CTreeNode::setSplit(double nodeV, double nodeSum)
 	return isnan(bestEval);
 }
 
+//Chooses and sets best mse split over all attributes and values when no missing values are
+// present, but weights are present.
+//To compare mse values of splits, we need to calculate only 2 of 3 squared sum components.
+//For each attribute it estimates all splits in _one_pass_ over the sorted data, i.e. O(N)
+//	(trivial algorithm would produce much less code, but the running time would be O(N^2) )
+//Side effect: removes exhausted attributes from the node attribute set
+//in:
+// nodeV - size (volume) of the training subset
+// nodeSum - sum of response values in the training subset
+//out: true, if best split found. false, if there were no splits
+bool CTreeNode::setSplitW(double nodeV, double nodeSum)
+{
+	double bestEval = QNAN; //current value for the best evaluation
+	SplitInfov bestSplits; // all splits that have best (identical) evaluation
+
+	for(int attrNo = 0; attrNo < (int)pAttrs->size();)
+	{
+		int attr = (*pAttrs)[attrNo];
+		if(pData->boolAttr(attr))	
+		{//boolean attribute
+		 //there is exactly one split for a boolean attribute, evaluate it
+			SplitInfo boolSplit(attr, 0.5);
+			double eval = evalBoolW(boolSplit, nodeV, nodeSum);
+			if(isnan(eval))
+			{//boolean attribute is not valid anymore, remove it
+				pAttrs->erase(pAttrs->begin() + attrNo);	
+				pSorted->erase(pSorted->begin() + attrNo);
+			}
+			else 
+			{//save if this is one of the best splits
+				if(isnan(bestEval) || (eval < bestEval))
+				{
+					bestEval = eval;
+					bestSplits.clear();
+				}
+				if(eval == bestEval)
+					bestSplits.push_back(SplitInfo(boolSplit));
+
+				attrNo++;
+			}
+		}
+		else //continuous attribute 
+		{//candidate splits are installed between all pairs of neighbour values (values are sorted)
+		 //all splits are calculated in one pass
+
+			bool newSplits = false;	//true if any splits were added for this attribute
+									//traverse pSorted[attrNo], create splits between pairs of cases w diff response
+									//and evaluate on the fly parameters that will be changing for different splits
+			double volume1 = 0;						
+			double volume2 = nodeV;
+			double sum1 = 0;						
+			double sum2 = nodeSum;
+
+			//parameters of traverse
+			bool prevDiff, curDiff; //whether prev or cur attrval had diff response values
+			double prevAttrVal; //previous value of the attribute
+			double prevResp = QNAN; //response value if same for prev attrval 
+			double curAttrVal; //current value of attribute
+			double curResp; //current response, if the same
+
+							//parameters of the set of points that moves from one node to the other
+			double prevTraV, prevTraSum; //for the previous block
+			double curTraV, curTraSum; //for the current block
+			prevTraV = 0; prevTraSum = 0;
+
+			fipairv* pSortedVals = &(*pSorted)[attrNo];
+			fipairv::iterator pairIt = pSortedVals->begin();
+			while(pairIt != pSortedVals->end())
+			{//on each iteration of this cycle collect info about the block of cases with the
+			 //same value of the attribute and if needed, evaluate the split right before it.
+
+			 //initialize current traverse parameters
+				curAttrVal = pairIt->first;
+				curResp = (*pItemSet)[pairIt->second].response;
+				curDiff = false;
+				curTraV = 0;	
+				curTraSum = 0;	
+
+				//get next block, update transition parameters
+				fipairv::iterator sortedEnd = pSortedVals->end();
+				for(;(pairIt != sortedEnd) && (pairIt->first == curAttrVal); pairIt++)
+				{
+					ItemInfo& item = (*pItemSet)[pairIt->second];
+					curTraV += item.coef;
+					curTraSum += item.coef * item.response;
+					if(!curDiff && (item.response != curResp))
+						curDiff = true;
+				}
+
+				//if there are different responses in previous and current block 
+				//build and evaluate the split between them
+				if(!isnan(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
+				{
+					newSplits = true;
+					//calculate the "short mse" of the new split - parts of sum of se that are different for different splits
+					//1. update those parameters that we keep
+					volume1 += prevTraV;
+					volume2 -= prevTraV;
+					sum1 += prevTraSum;
+					sum2 -= prevTraSum;
+
+					//2. calculate short mse of the split from them
+					double leftRatio = volume1 / nodeV;
+
+					double mean1 = sum1 / volume1;
+					double mean2 = sum2 / volume2;
+
+					double eval = - mean1 * sum1 - mean2 * sum2;
+
+					//evaluate the split point, if it is the best (one of the best) so far, keep it
+					if(isnan(bestEval) || (eval < bestEval))
+					{
+						bestEval = eval;
+						bestSplits.clear();
+					}
+					if(eval == bestEval)
+					{
+						//create actual split with the split point halfway between attr values
+						SplitInfo goodSplit(attr, (curAttrVal + prevAttrVal) / 2, leftRatio);
+						bestSplits.push_back(goodSplit);
+					}
+
+					//"restart" prev parameters with this block
+					prevTraV = curTraV;
+					prevTraSum = curTraSum;
+				}//end if(!isnan(prevResp) && (prevDiff || curDiff || (prevResp != curResp)))
+				else
+				{//block was not used, increas "prev" parameters
+					prevTraV += curTraV;
+					prevTraSum += curTraSum;
+				}
+
+				//update previous traverse parameters with values of current
+				prevDiff = curDiff;
+				prevResp = curResp;
+				prevAttrVal = curAttrVal;
+			}//end while(pairIt != pSortedVals->end())				
+
+			 //if an attribute is exhausted, delete it, shift to next iteration
+			if(!newSplits)
+			{
+				pAttrs->erase(pAttrs->begin() + attrNo);
+				pSorted->erase(pSorted->begin() + attrNo);
+			}
+			else
+				attrNo++;
+		}//end		if(pData->boolAttr(attr)) else //continuous attribute
+	}//end 	for(int attrNo = 0; attrNo < (int)pAttrs->size();)
+
+
+	 //choose a random split from those with best mse
+	if(!isnan(bestEval))
+	{
+		int bestSplitN = (int)bestSplits.size();
+		int randSplit = rand() % bestSplitN;
+		splitting = bestSplits[randSplit];
+
+		if(pData->boolAttr(splitting.divAttr))
+		{//one can split only once on boolean attribute, remove it from the set of attributes
+			int attrNo = erasev(pAttrs, splitting.divAttr);
+			pSorted->erase(pSorted->begin() + attrNo);	
+			//it is an empty vector (the attribute is boolean), but we still need to remove it
+		}
+	}
+	return isnan(bestEval);
+}
+
 //Chooses the best split when missing values are present. Same algorithm as in setSplit with the following additions:
 //a) Cases with missing values go to both branches with coefficients proportional to the distribution of other cases. 
-//b) Cases are weighted by their squared coefficients when a leaf value is calculated
+//b) Cases are weighted by their coefficients when a leaf value is calculated
 //c) Leaf values are weighted by linear coefficients when a prediction for a single data point is calculated
 //d) There is a special split evaluated for each attribute with missing values: cases without 
 //	missing values go left, cases with missing values go right
 //in:
-	//nodeV - sum of squared coefficients
-	//nodeSum - sum of predictions respectively multiplied by squared coefficients
+	//nodeV - sum of coefficients
+	//nodeSum - sum of predictions respectively multiplied by coefficients
 //out: true, if best split found. false, if there were no splits
 bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 {
@@ -583,14 +741,13 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 		bool newSplits = false;	//true if any splits were added for this attribute
 
 		//collect info about missing values
-		double missSum = 0; //sum of responses of mv cases (multiplied by sq coefs)
-		double missV = 0; //volume of mv in the node (sum of sq coefs)
+		double missSum = 0; //sum of responses of mv cases 
+		double missV = 0; //volume of mv in the node 
 		for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
 			if(isnan(pData->getValue(itemIt->key, attr, TRAIN)))
 			{
-				double coef_sq = itemIt->coef * itemIt->coef;
-				missSum += coef_sq * itemIt->response;
-				missV += coef_sq;
+				missSum += itemIt->coef * itemIt->response;
+				missV += itemIt->coef;
 			}
 
 		if(missV && (missV != nodeV))
@@ -601,9 +758,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 			double nmV = nodeV - missV;
 			double mean1 = nmSum / nmV;
 			double mean2 = missSum / missV;
-			double sqErr1 =  - 2 * mean1 * nmSum + nmV * mean1 * mean1;
-			double sqErr2 = - 2 * mean2 * missSum + missV * mean2 * mean2;
-			double eval = sqErr1 + sqErr2;
+			double eval = - mean1 * nmSum - mean2 * missSum;
 			
 			//if it is the best (one of the best) so far, keep it
 			if(isnan(bestEval) || (eval < bestEval))
@@ -677,9 +832,8 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 				for(;(pairIt != sortedEnd) && (pairIt->first == curAttrVal); pairIt++)
 				{
 					ItemInfo& item = (*pItemSet)[pairIt->second];
-					double coef_sq = item.coef * item.coef;
-					curTraV += coef_sq;
-					curTraSum += coef_sq * item.response;
+					curTraV += item.coef;
+					curTraSum += item.coef * item.response;
 					if(!curDiff && (item.response != curResp))
 						curDiff = true;
 				}
@@ -788,14 +942,47 @@ double CTreeNode::evalBool(SplitInfo& canSplit, double nodeV, double nodeSum)
 	if((volume1 == 0) || (volume2 == 0))
 		return QNAN;
 
+	canSplit.missingL = volume1 / nodeV; 
+
 	double mean1 = sum1 / volume1;
 	double mean2 = sum2 / volume2;
-	double sqErr1 =  - 2 * mean1 * sum1 + volume1 * mean1 * mean1;
-	double sqErr2 =  - 2 * mean2 * sum2 + volume2 * mean2 * mean2;
+
+	return - mean1 * sum1 - mean2 * sum2;
+}
+
+//Calculates short sum of squared errors of the boolean split for the data without missing values, but with weights present 
+//Does not require sorting.
+//parameters: 
+//	in-out: canSplit - info about the splitting being evaluated
+//	in: nodeV - size (volume) of the node train subset
+//  in: nodeSum - sum of responses of the cases in node train subset
+double CTreeNode::evalBoolW(SplitInfo& canSplit, double nodeV, double nodeSum)
+{
+	double volume1 = 0;
+	double sum1 = 0;
+
+	for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
+	{
+		double value = pData->getValue(itemIt->key, canSplit.divAttr, TRAIN);
+		if(value == 0) //left
+		{
+			volume1 += itemIt->coef;
+			sum1 += itemIt->response * itemIt->coef;
+		}
+	}
+	double volume2 = nodeV - volume1;
+	double sum2 = nodeSum - sum1;
+
+	//if either of volumes is zero, the split is not valid
+	if((volume1 == 0) || (volume2 == 0))
+		return QNAN;
 
 	canSplit.missingL = volume1 / nodeV; 
 
-	return sqErr1 + sqErr2;
+	double mean1 = sum1 / volume1;
+	double mean2 = sum2 / volume2;
+
+	return - mean1 * sum1 - mean2 * sum2;
 }
 
 //Calculates short sum of squared errors of the boolean split for the data with missing values. Does not require sorting.
@@ -816,12 +1003,10 @@ double CTreeNode::evalBoolMV(SplitInfo& canSplit, double nodeV, double nodeSum, 
 	for(ItemInfov::iterator itemIt = pItemSet->begin(); itemIt != pItemSet->end(); itemIt++)
 	{
 		double value = pData->getValue(itemIt->key, canSplit.divAttr, TRAIN);
-		double coef_sq = itemIt->coef * itemIt->coef;
-		double& resp = itemIt->response;
 		if(!isnan(value) && (value == 0))	//not missing, left
 		{
-			volume1 += coef_sq;
-			sum1 += resp * coef_sq;
+			volume1 += itemIt->coef;
+			sum1 += itemIt->response * itemIt->coef;
 		}
 	}
 

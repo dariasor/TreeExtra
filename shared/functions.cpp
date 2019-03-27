@@ -34,18 +34,20 @@ string trimSpace(string& str)
 }
 
 //Calculates Root Mean Squared Error (RMSE)
-double rmse(doublev& predicts, doublev& realvals)
+double rmse(doublev& predicts, doublev& realvals, doublev& weights)
 {
 	int n = (int)predicts.size();
 
 	double mse = 0;
-	for(int i = 0; i < n;i++)
+	double wSum = 0;
+	for(int i = 0; i < n; i++)
 	{
 		double err = diff10d(predicts[i], realvals[i]);
-		mse += pow(err, 2);
+		mse += pow(err, 2) * weights[i];
+		wSum += weights[i];
 	}
 
-	mse /= n;
+	mse /= wSum;
 	return sqrt(mse);
 }
 
@@ -102,6 +104,7 @@ int roundInt(int number)
 double adjustAlpha(double alpha, double trainV)
 {
 	//A leaf cannot contain less than 1 point, alpha too small is indistinguishable from zero
+	//well, now we have weights and the above statement is not true any more, but I don't want to modify this part unless I really need to
 	if(leDouble(alpha, 1.0 / trainV))
 		return 0;
 
@@ -340,17 +343,20 @@ void exception_errMsg(string& errstr)
 // this code for ROC is taken (and adjusted a bit) from PERF software:
 		//R. Caruana, The PERF Performance Evaluation Code,
 		// http://www.cs.cornell.edu/~caruana/perf
-double roc(doublev& preds, doublev& tars)
+double roc(doublev& preds, doublev& tars, doublev& weights)
 {
 	int itemN = (int)preds.size();
+	double volume = 0; //sum of all weights
 
-	ddpairv data(itemN);
+	dddtriplev data(itemN);
 	bool onlyOnes = true;
 	bool onlyZeros = true;
 	for(int i = 0; i < itemN; i++)
 	{
 		data[i].first = preds[i];
-		data[i].second = tars[i];
+		data[i].second.first = tars[i];
+		data[i].second.second = weights[i];
+		volume += weights[i];
 		if((tars[i] < 0) || (tars[i] > 1))
 			throw ROC_ERR;
 		if(tars[i] != 0)
@@ -360,12 +366,12 @@ double roc(doublev& preds, doublev& tars)
 	}
 	if(onlyZeros || onlyOnes)
 		throw ROC_FLAT_ERR;
-      
+    
 	sort(data.begin(), data.end());
 	
 	/* get the fractional weights. If there are ties we count the number
     of cases tied and how many positives there are, and we assign  
-    each case to be #poz/#cases positive and the rest negative */
+    each case to be #pos/#cases positive */
 
 	doublev fraction(itemN);
 	int item = 0;
@@ -373,41 +379,43 @@ double roc(doublev& preds, doublev& tars)
 	{
 		int begin = item;
 		double posV = 0;
-		for(;(item < itemN) && (data[item].first == data[begin].first); item++) 
-			posV += data[item].second;
+		double tieV = 0;
+		for(;(item < itemN) && (data[item].first == data[begin].first); item++)
+		{
+			posV += data[item].second.first * data[item].second.second; 
+			tieV += data[item].second.second;
+		}
 
-		double curFrac = posV / (item - begin);
+		double curFrac = posV / tieV;
 		for(int i = begin; i < item; i++)
 			fraction[i] = curFrac;
     }
 
-	double tt = 0; 
-	double tf = 0; 
-	double ft = 0; 
-	double ff = 0;
-
-	//initialize tf and ff with ground truth
+	double pos = 0.0; //number of positives in the data
+	double neg = 0.0; //number of negatives in the data
 	for(int i = 0; i < itemN; i++)
 	{
-		tf += data[i].second;
-		ff += 1 - data[i].second;
+		pos += data[i].second.first * data[i].second.second;
+		neg += (1 - data[i].second.first) * data[i].second.second;
 	}
    
-	double roc_area = 0.0;
-	double tpf_prev = 0;
-	double fpf_prev = 0;
+	double tpos = 0.0; //number of true positives
+	double fpos = 0.0; //number of false positives
 
+	double roc_area = 0.0;
+	double tpr_prev = 0.0; //tpr = true positives rate
+	double fpr_prev = 0.0; //fpr = false positives rate
+
+	//calculate auc incrementally
 	for(item = itemN - 1; item > -1; item--)
     {
-		tt += fraction[item];
-		tf -= fraction[item];
-		ft += 1 - fraction[item];
-		ff -= 1 - fraction[item];
-		double tpf  = tt / (tt + tf);
-		double fpf  = 1.0 - ff / (ft + ff);
-		roc_area += 0.5 * (tpf + tpf_prev) * (fpf - fpf_prev);
-		tpf_prev = tpf;
-		fpf_prev = fpf;
+		tpos += fraction[item] * data[item].second.second;
+		fpos += (1 - fraction[item]) * data[item].second.second;
+		double tpr  = tpos / pos;
+		double fpr  = fpos / neg;
+		roc_area += 0.5 * (tpr + tpr_prev) * (fpr - fpr_prev);
+		tpr_prev = tpr;
+		fpr_prev = fpr;
     }
 
 	return roc_area;

@@ -201,8 +201,8 @@ int main(int argc, char* argv[])
 
 //4. Load data
 	INDdata data("", ti.validFName.c_str(), "", ti.attrFName.c_str());
-	doublev validTar;
-	int validN = data.getTargets(validTar, VALID);
+	doublev validTar, validWt;
+	int validN = data.getTargets(validTar, validWt, VALID);
 
 	telog << "Alpha = " << ti.minAlpha << "\nN = " << ti.maxTiGN << "\n" 
 		<< allBagN << " bagging iterations\n";
@@ -284,9 +284,9 @@ int main(int argc, char* argv[])
 					fpreds.close();
 				}
 
-				rmsV[tigNNo][alphaNo][folderNo] = rmse(predictions, validTar);
+				rmsV[tigNNo][alphaNo][folderNo] = rmse(predictions, validTar, validWt);
 				if(!ti.rms)
-					rocV[tigNNo][alphaNo][folderNo] = roc(predictions, validTar);
+					rocV[tigNNo][alphaNo][folderNo] = roc(predictions, validTar, validWt);
 
 				finpreds.close();
 			}//end for(int folderNo = 0; folderNo < folderN; folderNo++)

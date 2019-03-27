@@ -26,7 +26,7 @@ public:
 		JobData* pJD = (JobData*) ptr;
 		nodeip curNH = pJD->curNH;
 		TCondition& nodesCond = *pJD->pNodesCond;
-		idpairv* pAttrCounts = pJD->pAttrCounts;
+		doublev* pAttrCounts = pJD->pAttrCounts;
 
 		double nodeV = 0;
 		double entropy = 0;
@@ -50,7 +50,7 @@ public:
 			if(pAttrCounts)
 			{
 				entropy = max(entropy, 1.0);
-				(*pAttrCounts)[curNH.first->getDivAttr()].second += nodeV / entropy;
+				(*pAttrCounts)[curNH.first->getDivAttr()] += nodeV / entropy;
 			}
 		}
 		else
@@ -69,13 +69,16 @@ CTree::CTree(double alphaIn): alpha(alphaIn), root()
 }
 
 //Generates a tree and increases attribute counts
-void CTree::grow(bool doFS, idpairv& attrCounts)
+void CTree::grow(bool doFS, doublev& attrCounts)
 {
-	double b = - log((double) pData->getTrainN()) / log(2.0);
+	double b = - log((double) pData->getBagDataN()) / log(2.0); 
+//thought about replacing getTrainN with getBagV, decided against it. The tree should not change if we multiple all weights by 2.
 	double H = - log((double) alpha) / log(2.0);
 
 	if(b >= -H)
 		b = -H;
+
+	doublev curAttrCounts(attrCounts.size(), 0); //feature scores for the current tree
 
 	//place root into the stack of nodes for splitting
 	nodehstack nodes;	//stack
@@ -106,7 +109,7 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 			if (doFS)
 			{
 				entropy = max(entropy, 1.0);
-				attrCounts[curNH.first->getDivAttr()].second += nodeV / entropy;
+				curAttrCounts[curNH.first->getDivAttr()] += nodeV / entropy;
 			}
 			nodes.push(nodeip(curNH.first->left, curNH.second + 1));
 			nodes.push(nodeip(curNH.first->right, curNH.second + 1));
@@ -126,16 +129,19 @@ void CTree::grow(bool doFS, idpairv& attrCounts)
 			nodes.pop();
 			nodesCond.Unlock();
 
-			idpairv* pAttrCounts = NULL;
+			doublev* pCurAttrCounts = NULL;
 			if(doFS)
-				pAttrCounts = &attrCounts;
-			JobData* pJD = new JobData(curNH, &nodes, &nodesCond, &toDoN, pAttrCounts, b, H);
+				pCurAttrCounts = &curAttrCounts;
+			JobData* pJD = new JobData(curNH, &nodes, &nodesCond, &toDoN, pCurAttrCounts, b, H);
 			pPool->Run(new CNodeSplitJob(), pJD, true);
 		}
 		else
 			nodesCond.Unlock();
 	}
 #endif
+	if(doFS)
+		for(size_t attrNo = 0; attrNo < attrCounts.size(); attrNo++)
+			attrCounts[attrNo] += curAttrCounts[attrNo] / pData->getBagV();
 }
 
 //Saves the tree into the binary file. 

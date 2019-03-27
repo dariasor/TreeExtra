@@ -155,13 +155,12 @@ int main(int argc, char* argv[])
 #endif
 
 //4. Initialize other variables and produce initial output
-	doublev validTar;
-	int validN = data.getTargets(validTar, VALID);
-	double trainV = data.getTrainV();
+	doublev validTar, validWt;
+	int validN = data.getTargets(validTar, validWt, VALID);
 	int itemN = data.getTrainN();
 
 	//adjust minAlpha, if needed
-	double newAlpha = adjustAlpha(ti.minAlpha, trainV);
+	double newAlpha = adjustAlpha(ti.minAlpha, itemN);
 	if(ti.minAlpha != newAlpha)
 	{
 		if(newAlpha == 0)
@@ -194,8 +193,8 @@ int main(int argc, char* argv[])
 	else
 		telog << "Previous model's ROC on validation set = " << prevBest << "\n\n";
 
-	int alphaN = getAlphaN(ti.minAlpha, trainV); //number of different alpha values
-	int prevAlphaN = getAlphaN(prev.minAlpha, trainV); //number of alpha values already trained
+	int alphaN = getAlphaN(ti.minAlpha, itemN); //number of different alpha values
+	int prevAlphaN = getAlphaN(prev.minAlpha, itemN); //number of alpha values already trained
 	int tigNN = getTiGNN(ti.maxTiGN);	//number of different tigN values
 	int prevTiGNN = getTiGNN(prev.maxTiGN);		//number of different tigN values already trained	
 
@@ -416,9 +415,9 @@ int main(int argc, char* argv[])
 						fpreds << predictions[itemNo] << endl;
 					fpreds.close();
 				}
-				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar);
+				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar, validWt);
 				if(!ti.rms)
-					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar);
+					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar, validWt);
 
 			}//end for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
 		}//end for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
@@ -428,10 +427,10 @@ int main(int argc, char* argv[])
 	if(ti.rms)
 	{
 		double validStD = data.getTarStD(VALID);
-		trainOut(ti, dir, rmsV, rmsV, predsumsV, trainV, dirStat, validStD);
+		trainOut(ti, dir, rmsV, rmsV, predsumsV, itemN, dirStat, validStD);
 	}
 	else
-		trainOut(ti, dir, rmsV, rocV, predsumsV, trainV, dirStat);
+		trainOut(ti, dir, rmsV, rocV, predsumsV, itemN, dirStat);
 
 	}catch(TE_ERROR err){
 		ErrLogStream errlog;

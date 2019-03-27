@@ -43,6 +43,7 @@ typedef pair<int, int> iipair;
 typedef pair<bool, bool> bbpair;
 typedef pair<string, string> sspair;
 typedef pair<sspair, double> ssdtriple;
+typedef pair<double, ddpair> dddtriple;
 
 typedef vector<iipair> iipairv;
 typedef vector<dipair> dipairv;
@@ -53,6 +54,7 @@ typedef vector<dipairv> dipairvv;
 typedef vector<fipairv> fipairvv;
 typedef vector<bbpair> bbpairv; 
 typedef vector<ssdtriple> ssdtriplev;
+typedef vector<dddtriple> dddtriplev;
 
 typedef numeric_limits<float> flim;
 
@@ -108,7 +110,8 @@ enum AG_TRAIN_MODE
 };
 
 
-#define VERSION "2.5.6" //release version
+
+#define VERSION "2.5.7" //release version
 #define LINE_LEN 500000	//maximum length of line in the input file
 #define QNAN flim::quiet_NaN()
 
