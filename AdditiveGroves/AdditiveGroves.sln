@@ -19,8 +19,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_interactions", "..\win\a
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_nway", "..\win\ag_nway\ag_nway.vcxproj", "{44CF4107-68B2-4F00-BDB0-ECDBB8478367}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ag_mergepreds", "..\win\ag_mergepreds\ag_mergepreds.vcxproj", "{F3F00B74-59C8-4872-BA48-53FC9EF7C56C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -59,10 +57,6 @@ Global
 		{44CF4107-68B2-4F00-BDB0-ECDBB8478367}.Debug|Win32.Build.0 = Debug|Win32
 		{44CF4107-68B2-4F00-BDB0-ECDBB8478367}.Release|Win32.ActiveCfg = Release|Win32
 		{44CF4107-68B2-4F00-BDB0-ECDBB8478367}.Release|Win32.Build.0 = Release|Win32
-		{F3F00B74-59C8-4872-BA48-53FC9EF7C56C}.Debug|Win32.ActiveCfg = Debug|Win32
-		{F3F00B74-59C8-4872-BA48-53FC9EF7C56C}.Debug|Win32.Build.0 = Debug|Win32
-		{F3F00B74-59C8-4872-BA48-53FC9EF7C56C}.Release|Win32.ActiveCfg = Release|Win32
-		{F3F00B74-59C8-4872-BA48-53FC9EF7C56C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
