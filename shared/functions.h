@@ -52,7 +52,7 @@ string insertSuffix(string fileName, string suffix);
 string beforeLastDot(string fileName);
 
 //checks if the first set is a subset of the second set
-bool isSubset(intset& set1, intset& set2);
+bipair isSubset(intset& set1, intset& set2);
 
 //converts string to int, throws error if the string is unconvertable
 int atoiExt(char* str);

@@ -41,6 +41,7 @@ typedef pair<int, double> idpair;
 typedef pair<double, double> ddpair;
 typedef pair<int, int> iipair;
 typedef pair<bool, bool> bbpair;
+typedef pair<bool, int> bipair;
 typedef pair<string, string> sspair;
 typedef pair<sspair, double> ssdtriple;
 typedef pair<double, ddpair> dddtriple;

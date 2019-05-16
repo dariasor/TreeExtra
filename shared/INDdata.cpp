@@ -117,8 +117,14 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 	
 	int activeAttrN = attrN - (int)ignoreAttrs.size();
 	telog << attrN << " attributes\n" << activeAttrN << " active attributes\n\n";
-	if(!isSubset(nomAttrs, ignoreAttrs))
+	
+	//check for active nominals (not allowed)
+	bipair isSub = isSubset(nomAttrs, ignoreAttrs);
+	if(!isSub.first)
+	{
+		cerr << getAttrName(isSub.second);
 		throw NOM_ACTIVE_ERR;
+	}
 
 	//fill rawIgnore
 	rawIgnore.resize(colN, false);

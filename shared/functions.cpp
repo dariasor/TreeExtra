@@ -449,12 +449,12 @@ string beforeLastDot(string fileName)
 }
 
 //checks if the first set is a subset of the second set
-bool isSubset(intset& set1, intset& set2)
+bipair isSubset(intset& set1, intset& set2)
 {
 	for(intset::iterator it1 = set1.begin(); it1 != set1.end(); it1++)
 		if(set2.find(*it1) == set2.end())
-			return false;
-	return true;
+			return bipair(false, *it1);
+	return bipair(true, 0);
 }
 
 //converts string to int, throws error if the string is unconvertable
