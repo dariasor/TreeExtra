@@ -210,7 +210,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 							mvCounts[activeNo]++;
 			}
 			catch (TE_ERROR err) {
-				cerr << "\nLine " << caseNo + 1 << "\n";
+				cerr << "\nLine " << caseNo + 1;
 				throw err;
 			}
 			train.push_back(item);
@@ -270,7 +270,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			try {
 				readData(buf, fvalid.gcount(), item, colN);
 			} catch (TE_ERROR err) {
-				cerr << "\nLine " << caseNo + 1 << "\n";
+				cerr << "\nLine " << caseNo + 1;
 				throw err;
 			}
 			if(isnan(item[tarColNo]))
@@ -319,7 +319,7 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			try {
 				readData(buf, ftest.gcount(), item, colN);
 			} catch (TE_ERROR err) {
-				cerr << "\nLine " << caseNo + 1 << "\n";
+				cerr << "\nLine " << caseNo + 1;
 				throw err;
 			}
 
