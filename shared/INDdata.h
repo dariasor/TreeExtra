@@ -23,14 +23,15 @@ public:
 	bool getHasWeights(){return weightColNo != -1;}
 	bool getHasActiveMV(){return hasActiveMV;}
 	bool useCoef(){return hasActiveMV || (weightColNo != -1);}
+	int getColNo(int attrId){return aIdToColNo[attrId];}
 
 //untrivial get functions
 
 	//gets attrID by its name
 	int getAttrId(string attrName); 
 
-	//gets column number of the attribute in the data file
-	int getColNo(int attrId);
+	//return name of the column (attribute or target)
+	string colToName(int column);
 
 	//gets a list of active attributes
 	void getActiveAttrs(intv& attrs);
@@ -102,7 +103,6 @@ private:
 	//create versions of bootstrap data sorted by active continuous attributes 
 	void sortItems(); 
 
-
 private:
 	int attrN;			//number of attributes
 	int colN;			//number of columns in the data file
@@ -113,6 +113,7 @@ private:
 	intset ignoreAttrs; //attributes that should be ignored
 	boolv rawIgnore;		//boolean vector with the original number of columns, marks columns with the attributes that should not be used
 	stringv attrNames;	//names of attributes
+	string tarName;		//name of the response attribute
 	int tarColNo;		//response column number
 	int weightColNo;	//weights column number
 

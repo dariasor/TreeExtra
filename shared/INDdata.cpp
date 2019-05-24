@@ -33,7 +33,6 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 
 	//read list of attributes, collect information about them
 	int attrId, colNo; // counters
-	string tarName; //name of the response attribute
 	bool foundClass = false;	//response found flag
 	weightColNo = -1;
 	for(attrId = 0, colNo = 0; fattr.gcount(); attrId++, colNo++)
@@ -376,7 +375,7 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 			sistr >> retv[colNo];
 			if(sistr.fail() && !rawIgnore[colNo])
 			{
-				cerr << "\nColumn " << colNo + 1;
+				cerr << "\nColumn " << colNo + 1 << ", " << colToName(colNo);
 				throw NON_NUMERIC_VALUE_ERR;
 			}
 		}
@@ -677,15 +676,6 @@ bool INDdata::isActive(int attrId)
 	return true;
 }
 
-//gets column number of the attribute in the data file
-int INDdata::getColNo(int attrId)
-{
-	if(attrId < tarColNo)
-		return attrId;
-	else
-		return attrId + 1;
-}
-
 //deactivate the attribute
 void INDdata::ignoreAttr(int attrId) 
 {
@@ -934,4 +924,17 @@ void INDdata::correlations(string trainFName)
 	fcorr.close();
 
 	telog << "Correlation scores are saved into the file " << outFName << ".\n";
+}
+
+//return name of the column (attribute or target)
+string INDdata::colToName(int column)
+{
+	if(column == tarColNo)
+		return tarName;
+
+	for(int attrNo = 0; attrNo < attrN; attrNo++)
+		if(aIdToColNo[attrNo] == column)
+			return attrNames[attrNo];
+
+	return "";
 }
