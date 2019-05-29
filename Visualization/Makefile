@@ -22,6 +22,7 @@ clean:
 
 $(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/functions.o: $(SHAREDDIR)/definitions.h
+$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o
 
 vis_iplot.o: $(OBJS)
 

@@ -21,6 +21,8 @@ clean:
 
 $(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/functions.o: $(SHAREDDIR)/definitions.h
+$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o
+Tree.o: $(SHAREDDIR)/TreeNode.o
 
 bt_predict.o: $(OBJS)
 
