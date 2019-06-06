@@ -327,6 +327,9 @@ void te_errMsg(TE_ERROR err)
 		case CORR_MV_ERR:
 			errlog << "Error: the data has missing values and cannot be used for correlation analysis.\n";
 			break;
+		case DUPLICATE_ATTRIBUTES_ERR:
+			errlog << "Error: the same name used for several attributes.\n";
+			break;
 		default:
 			throw err;
 	}
@@ -455,6 +458,15 @@ bipair isSubset(intset& set1, intset& set2)
 		if(set2.find(*it1) == set2.end())
 			return bipair(false, *it1);
 	return bipair(true, 0);
+}
+
+//checks if the element is in the array
+bool isIn(stringv& v, string str)
+{
+	for(stringv::iterator it = v.begin(); it != v.end(); it++)
+		if(it->compare(str) == 0)
+			return true;
+	return false;
 }
 
 //converts string to int, throws error if the string is unconvertable

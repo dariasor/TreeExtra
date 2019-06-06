@@ -98,7 +98,8 @@ enum TE_ERROR
 	MV_CLASS_TRAIN_ERR = 28,
 	MV_CLASS_VALID_ERR = 29,
 	NON_NUMERIC_VALUE_ERR = 30,
-	CORR_MV_ERR = 31
+	CORR_MV_ERR = 31,
+	DUPLICATE_ATTRIBUTES_ERR = 32
 };
 
 //this enum has to be in the general definition file, because it is a part of a model file, and all model 

@@ -71,6 +71,12 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 		string attrName = attrStr.substr(0, nameLen);
 		if(attrName.find_first_of("\\/*?\"<>|:") != string::npos)
 			throw ATTR_NAME_DEF_ERR;
+		if(isIn(attrNames, attrName))
+		{
+			clog << "\n" << attrName;
+			clog.flush();
+			throw DUPLICATE_ATTRIBUTES_ERR;
+		}
 		attrNames.push_back(trimSpace(attrName));
 		aIdToColNo.push_back(colNo);
 

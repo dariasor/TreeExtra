@@ -54,6 +54,9 @@ string beforeLastDot(string fileName);
 //checks if the first set is a subset of the second set
 bipair isSubset(intset& set1, intset& set2);
 
+//checks if the element is in the array
+bool isIn(stringv& v, string str);
+
 //converts string to int, throws error if the string is unconvertable
 int atoiExt(char* str);
 
