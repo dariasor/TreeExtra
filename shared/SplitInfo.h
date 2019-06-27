@@ -4,7 +4,6 @@
 
 #pragma once
 #include "definitions.h"
-#include "INDdata.h"
 
 //data structure describing how the node is split into two subnodes
 struct SplitInfo

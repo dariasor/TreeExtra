@@ -1,7 +1,6 @@
 // Additive Groves / ag_functions.h: declarations of Additive Groves global functions
 // (c) Daria Sorokina
 
-#include "definitions.h"
 #include "TrainInfo.h"
 #include "INDdata.h"
 

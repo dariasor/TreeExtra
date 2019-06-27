@@ -222,6 +222,8 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			train.push_back(item);
 			getLineExt(fin, buf);
 		}
+		fin.close();
+
 		trainN = caseNo;
 		if(trainN == 0)
 			throw TRAIN_EMPTY_ERR;
@@ -230,9 +232,10 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			trainWt.resize(trainN, 1);
 
 		double trainStD = getTarStD(TRAIN);
-		telog << trainN << " points in the train set, std. dev. of " << tarName << " values = " << trainStD 
-			<< "\n\n"; 
-		fin.close();
+		telog << trainN << " points in the train set, std. dev. of " << tarName << " values = " << trainStD << "\n\n"; 
+
+		if(trainStD == 0)
+			telog << "Warning: all values of "<< tarName << " are the same in the training data. Impossible to train a model.\n\n";
 
 		//output missing values counts
 		for(int activeNo = 0; activeNo < activeAttrN; activeNo++)

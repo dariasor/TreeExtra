@@ -5,6 +5,7 @@
 
 #pragma once
 #include "ag_definitions.h"
+#include "definitions.h"
 
 struct TrainInfo
 {
