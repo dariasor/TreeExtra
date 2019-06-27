@@ -1,5 +1,3 @@
-
-
 SHAREDDIR=../shared
 LIBDIR=../ThreadPool
 CXXFLAGS = -I$(SHAREDDIR) -I$(LIBDIR)
@@ -24,7 +22,12 @@ clean:
 
 $(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/functions.o: $(SHAREDDIR)/definitions.h
+$(SHAREDDIR)/SplitInfo.o: $(SHAREDDIR)/definitions.h
+$(SHAREDDIR)/LogStream.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o
+
+Grove.o: $(SHAREDDIR)/TreeNode.o
+ag_functions.o: $(SHAREDDIR)/INDdata.o TrainInfo.h
 
 ag_predict.o: $(OBJS)
 
