@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Data Format</title>
+    <link rel="stylesheet" type="text/css"  href="TreeExtra.css" />    
+</head>
+<body>
+    <a href="index.html">Back to TreeExtra package web page</a>
+   <h2>    Data format</h2>
+        <h3>Data files</h3>
+    <p>
+        Train, validation and test data sets for all tools in TreeExtra should be provided in separate tab-delimited
+        text files without any headers. Only continuous and Boolean features are supported. Nominal features are allowed in the data file, but they should be explicitly 
+        marked as unused in the attribute file (see next section).
+        Missing values should be encoded with question marks. All data sets should have
+        the same number and order of columns. &nbsp;If your test data does not have labels,
+        you can put missing values instead, but the column should be still present. Binary classification problems should use 0 and 1 for the response
+        values.</p>
+        <h3>Attribute files </h3>
+    <p>
+        A separate attribute file describing data is required. I reused the idea of an attribute
+        file from IND package, so the format of this file should be compatible with IND
+        to some extent.</p>
+    <p>
+        Each line in the first part of the attribute file corresponds to a single attribute.
+        The order of attributes should be the same as in the data file.</p>
+    <p>
+        The structure of the attribute description is the following:</p>
+    <p>
+        <span class="snippet">_attr_name_: _type_ [(class)|(weight)]</span>.</p>
+    <p>
+        <span class="snippet">_type_</span> should be either <span class="snippet">cont</span> for continuous features, <span class="snippet">0,1</span> for boolean or 
+        <span class="snippet">nom</span> for nominals. <span class="snippet">(class)</span>
+        marks the label, there should be exactly one attribute marked with <span class="snippet">(class)</span> per attribute
+        file. <span class="snippet">(weight)</span> marks the column with weights. <br/>
+        The first and the second parts of the attribute file should be separated by a line
+        "contexts:". <br />
+        The second part lists attributes that should not be used for training. Each line
+        contains one attribute in the format:</p>
+    <p>
+        <span class="snippet">_attr_name_ never</span></p>
+    <p>
+        Here is an example of a valid attribute file: </p>
+    <p>
+<span class="snippet">
+latitude: cont.
+longtitude: cont.
+x: cont.
+y: cont.
+name: nom.
+label: 0,1 (class).
+region_Pacific: 0,1.
+region_Mountain: 0,1.
+region_NA: 0,1.
+coefficient: cont (weight).
+contexts:
+y never
+x never
+name never
+</span>
+    </p>
+ 
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-13054580-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>

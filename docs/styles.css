@@ -1,0 +1,348 @@
+
+BODY
+{
+	COLOR: #999999; 
+}
+
+
+IMG
+{
+	border : 0
+}
+
+
+.BigText
+{
+	FONT-SIZE: 48pt; 
+	FONT-FAMILY:Garamond,'Times New Roman';
+	font-style 	:italic;
+	text-decoration : underline;
+	font-weight :normal;
+	color:#999999;
+}
+
+.BigTextNU
+{
+	FONT-SIZE: 48pt; 
+	FONT-FAMILY:Garamond,'Times New Roman';
+	font-style 	:italic;
+	text-decoration : none;
+	font-weight :normal;
+	color:#999999;
+}
+
+.TinyLink
+{
+	text-decoration : none;
+	FONT-FAMILY :Courier New;
+	font-style 	:normal;
+	font-weight :bold;
+	font-size	:12pt;
+	color:Black;
+}
+
+A
+{
+	text-decoration : underline;
+	color: #707070;
+}
+
+.WhiteCell
+{
+	border : solid 1px gray;
+	background-color : White;
+	padding : 10;
+	font-family :Times New Roman;
+	font-size :12pt;
+	color: #606060;
+	font-style:italic;
+	text-align:justify;		
+}
+.WhiteCell .contact
+{
+	font-style:normal;
+}
+
+
+.ResumeWhiteCell
+{
+	border : solid 1px gray;
+	background-color : White;
+	padding : 10;
+	font-family :Times New Roman;
+	font-size :12pt;
+	color: #404040;
+	text-align:justify;
+	
+}
+
+.ResumeWhiteCell TABLE
+{
+	background-color : White;
+	padding : 10;
+	font-family :Times New Roman;
+	font-size :12pt;
+	color: #404040;
+	text-align:justify;
+}
+
+.DatesCell 
+{
+	font-weight: bold;
+	
+		
+}
+.DatesCell2
+{
+	font-weight: bold;
+}
+
+.ResumeHeader2
+{
+	font-family:Garamond, 'Times New Roman';
+	text-align : center;
+	font-size :16pt;
+	font-weight:bold;
+}
+.ResumeHeader3
+{
+	font-family:Garamond, 'Times New Roman';
+	text-align : center;
+	font-size:20pt;
+	font-weight:bold;
+}
+.ResumeTable
+{
+}
+.ResumeTable TD
+{
+	PADDING-BOTTOM: 10px;
+}
+.Name
+{
+	font-family:Garamond, 'Times New Roman';
+	font-size:18pt;
+	font-style:italic;
+}
+.NameHeader
+{
+	font-style:normal;
+	font-family:Garamond, 'Times New Roman';
+	font-size:16pt;
+	font-weight:bold;
+}
+.ButtonWhiteCell
+{
+	background-color : White;
+	font-family :Times New Roman;
+	font-size :12pt;
+	color: #505050;
+	text-align:center;
+	width:120;
+	height:28;
+	padding :0;
+	border : solid 1px gray;
+}
+
+.ButtonWhiteCell2
+{
+	background-color : White;
+	font-family :Times New Roman;
+	font-size :12pt;
+	color: #505050;
+	text-align:left;	
+	height:28;
+	padding-left :10;
+	padding-right :10;
+	border : solid 1px gray;
+}
+.PhotoWhiteCell
+{
+	background-color : White;
+	font-family :Times New Roman;
+	font-size :12pt;
+	color: #505050;
+	text-align:center;
+	padding :15;
+	border : solid 1px gray;
+}
+
+.BigPhotoWhiteCell
+{
+	background-color : White;
+	font-family :Times New Roman;
+	font-style:italic;
+	font-size :12pt;
+	color: #707070;
+	text-align:center;
+	padding-left:40;
+	padding-right:40;
+	padding-top:40;
+	border : solid 1px gray;
+}
+.MainText
+{
+	padding-bottom :0;
+	padding-top :0;
+	line-height : 10px;
+	text-decoration:none;
+}
+.SmallFont
+{
+    font-size :8pt;
+    color :Gray
+}
+.Date
+{
+	font-weight:normal;
+	FONT-FAMILY :Times New Roman;
+	font-size :12pt;
+}
+.Button
+{
+	width:100;
+	height:30;
+	text-align:center;
+	background-color:#A0A0A0;
+}
+.Button A 
+{
+	color:White;
+	text-decoration:none;
+	font-size:16pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.BigPushedButton
+{
+	width:116;
+	height:24;
+	text-align:center;
+	background-color:White;
+	color:Gray;
+	font-size:15pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.BigUnderButton
+{
+	width:120;
+	height:30;
+	text-align:center;
+	background-color:Gray;
+}
+.Big2PushedButton
+{
+	width:136;
+	height:24;
+	text-align:center;
+	background-color:White;
+	color:Gray;
+	font-size:15pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.Big2UnderButton
+{
+	width:140;
+	height:30;
+	text-align:center;
+	background-color:Gray;
+}
+.PushedButton
+{
+	width:96;
+	height:24;
+	text-align:center;
+	background-color:White;
+	color:Gray;
+	font-size:15pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.UnderButton
+{
+	width:100;
+	height:30;
+	text-align:center;
+	background-color:Gray;
+}
+
+.SmallLettersButton
+{
+	width:100;
+	height:30;
+	text-align:center;
+	background-color:#A0A0A0;
+}
+.SmallLettersButton A 
+{
+	color:White;
+	text-decoration:none;
+	font-size:14pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.BigButton
+{
+	width:120;
+	height:30;
+	text-align:center;
+	background-color:#A0A0A0;
+}
+.BigButton A 
+{
+	color:White;
+	text-decoration:none;
+	font-size:16pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.Big2Button
+{
+	width:140;
+	height:30;
+	text-align:center;
+	background-color:#A0A0A0;
+}
+.Big2Button A 
+{
+	color:White;
+	text-decoration:none;
+	font-size:16pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.ShortButton
+{
+	width:60;
+	height:30;
+	text-align:center;
+	background-color:#A0A0A0;
+}
+.ShortButton A 
+{
+	color:White;
+	text-decoration:none;
+	font-size:16pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.ShortPushedButton
+{
+	width:56;
+	height:24;
+	text-align:center;
+	background-color:White;
+	color:Gray;
+	font-size:15pt;
+	font-family:Courier;
+	font-weight:600;
+}
+.ShortUnderButton
+{
+	width:60;
+	height:30;
+	text-align:center;
+	background-color:Gray;
+}

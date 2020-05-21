@@ -1,0 +1,6 @@
+﻿   body { font-family:Times New Roman;font-size:12pt}
+    .code { white-space: pre ; font-size:10pt;font-family: Courier New;font-weight: bolder;}
+    .snippet { white-space: pre ; font-size:10pt;font-family: Courier New;font-face:bold;}
+    .codeblue { white-space: pre ; font-size:10pt; font-weight: bolder;font-family: Courier New;font-face:bold; color: #000099;}
+    .output { white-space: pre ;font-size:10pt; font-weight: bolder;font-family: Courier New;font-face:bold; color: #009900;}
+    .folder {font-family: Courier New;}

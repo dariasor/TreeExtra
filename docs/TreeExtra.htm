@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Additive Groves code</title>
+    <link rel="stylesheet" type="text/css"  href="TreeExtra.css" />    
+</head>
+<body>
+    <h2>
+        Additive Groves code: TreeExtra package</h2>
+    TreeExtra is a set of tools implementing the following algorithms:<br />
+    <ul>
+        <li>Additive Groves - a supervised learning algorithm</li>
+        <li>Bagged trees with "multiple counts" feature evaluation</li>
+        <li>Interaction detection with Additive Groves</li>
+        <li>Feature selection by backward elimination with Additive Groves</li>
+        <li>Effect and interaction visualization</li>
+    </ul>
+    <p>
+        Additive Groves is an ensemble of regression trees developed by Daria Sorokina,
+        Rich Caruana and Mirek Riedewald.</p>
+    <p>
+        Feature evaluation technique referred as "multiple counts" is developed by Art Munson
+        and all of the above.</p>
+    <p>
+        All code is written by Daria Sorokina unless stated otherwise. The code is available
+        under BSD license and is free to use for any purpose.</p>
+    <p>
+        Contact: <a href="http://www.cs.cmu.edu/%7Edaria">Daria Sorokina</a><i> (daria AT cs.cmu.edu)</i></p>
+    <p>
+        <em>Please e-mail me any comments, suggestions, bug reports or feature requests. I am
+            interested in how my algorithm is doing: if you have successfully (or unsuccessfully)
+            applied Additive Groves to your data, I'd be happy to hear about your experience
+            with it.</em></p>
+    <h4><table>
+        <tr>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#updates">Updates</a>
+            </td>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#manuals">Manuals</a>
+            </td>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#downloads">Downloads</a>
+            </td>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#papers">Research papers</a>
+            </td>
+        </tr>
+    </table></h4>
+    <h3><a name="updates">Updates</a></h3>
+    <ul>
+      <li>13 Jun '10. Additive Groves officialy got 4th place in the main track of the 
+               <a href="http://learningtorankchallenge.yahoo.com/">Learning To Rank Challenge.</a>
+                <ul>
+                    <li>Read the <a href="papers/ranking_AG.pdf" onClick="javascript:
+pageTracker._trackPageview('ranking.pdf'); ">description of our solution</a>.</li>
+                </ul>
+        <br />
+        </li>
+      <li>30 Dec '09. Additive Groves got the third place in the supervised challenge of 
+                <a href="http://www.cse.ust.hk/~qyang/icdm2009/">2009 IEEE ICDM Data Mining Contest</a>. 
+            <ul>
+                <li>Read the <a href="papers/brain.pdf" onClick="javascript:
+pageTracker._trackPageview('brain.pdf'); ">description of our solution</a>.</li>
+            </ul>
+        <br />
+        </li>
+        <li>29 Nov '09. <strong>TreeExtra 2.0</strong> is released. 
+            <ul>
+                <li>New set of commands implements interaction detection, feature selection and effect / 
+                interaction visualization with Additive Groves.</li>
+                <li>New training mode of Additive Groves: option <span class="code">-s layered</span> 
+                invokes layered training algorithm.</li>
+                <li>The header format of the model files has changed and is not compatible with
+                TreeExtra 1.x versions.</li>
+                <li><span class="code">bt_train</span> command now saves a new attribute file where only
+                top k features are left active. Setting <span class="code">-k</span> option to -1 allows to 
+                create ranking for all features.
+                </li>
+            </ul>
+        <br />
+        </li>
+        <li>8 Oct '09. Several updates on the web site.
+            <ul>
+                <li>This summer, Additive Groves ensemble scored the best result on one of the tasks in 
+                KDD Cup '09. Read the <a href="http://www.cs.cmu.edu/%7Edaria/papers/kddcup09.pdf" onClick="javascript:
+pageTracker._trackPageview('kddcup09.pdf'); ">detailed 
+                account</a>. </li>
+                <li>Another paper about Additive Groves, 
+                <a href="http://www.cs.cmu.edu/%7Edaria/papers/rmbo_full.pdf" onClick="javascript:
+pageTracker._trackPageview('rmbo_full.pdf'); ">Detecting and Interpreting 
+                Variable Interactions in Observational Ornithology Data</a>, is accepted to DDDM'09.</li>
+                <li>New chapter in the manual describes the 
+                <a href="AG_model.htm">structure of the model file</a>. </li>
+                <li>A <a href="http://cv-web-annotation-toolkit.googlecode.com/svn/trunk/django/web_annotations_server/autograding/build_te_model.py" onClick="javascript:
+pageTracker._trackPageview('build_te_model.py'); ">
+                script</a> by Alex Sorokin allows for an automatic run 
+                of<span class="code"> ag_train - ag_expand - ag_save </span>sequence.</li>
+            </ul>
+        <br />
+        </li>
+        <li>11 Aug '09. <strong>TreeExtra 1.2</strong> is released. 
+            <ul>
+                <li>New command <span class="code">ag_merge</span> joins several model grids. Therefore it 
+                is now possible to parallelize training of Additive Groves.</li>
+                <li>New option <span class="code">-l</span> allows to control the volume of information in 
+                standard output for bagged trees commands.</li>
+                <li>The size of temporary folder <span class="folder">AGTemp</span> is decreased.</li>
+            </ul>
+        <br />
+        </li>
+        <li>08 Jun '09.&nbsp; <strong>TreeExtra 1.1</strong> is released. &nbsp;A choice of ROC for a model evaluation metric
+            is added for binary classification problems.&nbsp;
+        </li>
+    </ul>
+    <h3><a name="manuals">Manuals</a></h3>
+    <ul>
+        <li><a href="Data_Format.htm">Input data format</a>&nbsp;</li>
+        <li><a href="BT_manual.htm">Bagged trees with feature evaluation</a></li>
+        <li>Additive Groves
+        <ul><li><a href="AG_quickstart.htm">Quick start</a></li>
+            <li><a href="AG_manual.htm">Full manual</a></li>
+            <li><a href="AG_model.htm">Model structure</a><br /></li>
+        </ul>
+        </li>
+        <li><a href="AG_interactions.htm">Interaction detection and feature selection</a></li>
+        <li><a href="visualize.htm">Interaction and feature effects visualization</a></li>
+    </ul>
+    <h3><a name="downloads">Downloads</a></h3>
+    <h4>TreeExtra 2.0</h4>
+    <ul>
+        <li><a href="TE.2.0.linux.zip" onClick="javascript:
+pageTracker._trackPageview('TE.2.0.linux.zip'); ">Binaries for 64-bit linux </a> </li>
+        <li><a href="TE.2.0.win.zip" onClick="javascript:
+pageTracker._trackPageview('TE.2.0.win.zip'); ">Binaries for Windows</a> </li>
+        <li><a href="TreeExtra.2.0.zip" onClick="javascript:
+pageTracker._trackPageview('TreeExtra.2.0.zip'); ">Sources (C++/STL)</a> </li>
+    </ul>
+    <h4>Additional code</h4>
+    <ul>
+        <li><a href="http://cv-web-annotation-toolkit.googlecode.com/svn/trunk/django/web_annotations_server/autograding/build_te_model.py" onClick="javascript:
+pageTracker._trackPageview('build_te_model.py'); ">
+            Automated training of Additive Groves</a> &ndash; python script by 
+            <a href="http://visionpc.cs.uiuc.edu/%7Esorokin2/">Alex Sorokin</a> 
+            (Script updated on 20 Nov '09.)</li>
+        <li><a href="vis.matlab.zip" onClick="javascript:
+pageTracker._trackPageview('vis.matlab.zip'); ">MatLab code</a> for creating visualization plots.</li>    
+    </ul>
+    <h4>History of TreeExtra versions</h4>
+    <ul>
+        <li><a href="TreeExtra.2.0.zip" onClick="javascript:
+pageTracker._trackPageview('TreeExtra.2.0.zip'); ">TreeExtra 2.0</a> </li>
+        <li><a href="TreeExtra.1.2.zip" onClick="javascript:
+pageTracker._trackPageview('TreeExtra.1.2.zip'); ">TreeExtra 1.2</a> </li>
+        <li><a href="TreeExtra.1.1.zip" onClick="javascript:
+pageTracker._trackPageview('TreeExtra.1.1.zip'); ">TreeExtra 1.1</a> </li>
+        <li><a href="TreeExtra.1.0.zip" onClick="javascript:
+pageTracker._trackPageview('TreeExtra.1.0.zip'); ">TreeExtra 1.0</a> </li>
+    </ul>
+        
+    <h3><a name="papers">Research papers</a></h3>
+    <p>
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald, Wes Hochachka, Steve Kelling.</em><br />
+        <a href="http://www.cs.cmu.edu/%7Edaria/papers/rmbo_full.pdf" onClick="javascript:
+pageTracker._trackPageview('rmbo_full.pdf'); ">Detecting and Interpreting Variable Interactions 
+        in Observational Ornithology Data.</a> <br />
+        To appear in the International Workshop on Domain Driven Data Mining (DDDM'09).<br /></p>
+    <p>
+        <em>Daria Sorokina.</em><br />
+        <a href="http://www.cs.cmu.edu/%7Edaria/papers/kddcup09.pdf" onClick="javascript:
+pageTracker._trackPageview('kddcup09.pdf'); ">Application of Additive Groves Ensemble with 
+        Multiple Counts Feature Evaluation to KDD Cup'09 Small Data Set.</a> <br />
+        In proceedings of the KDD Cup 2009 workshop.<br /></p>
+    <p>
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald, Daniel Fink.
+            <br />
+        </em><a href="http://www.cs.cmu.edu/%7Edaria/papers/Interactions.pdf" onClick="javascript:
+pageTracker._trackPageview('Interactions.pdf'); ">Detecting Statistical
+            Interactions with Additive Groves of Trees.</a> <br />In proceedings of the 25th International
+        Conference on Machine Learning (ICML'08).<br />
+        <a href="http://videolectures.net/icml08_sorokina_dsi/">
+        Video of ICML presentation<br />
+        </a><a href="Interactions.ppt" onClick="javascript:
+pageTracker._trackPageview('Interactions.ppt'); ">Slides (.ppt)</a></p>
+    <p>
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald.
+            <br />
+        </em><a href="http://www.cs.cmu.edu/%7Edaria/papers/groves.pdf" onClick="javascript:
+pageTracker._trackPageview('groves.pdf'); ">Additive Groves of Regression
+            Trees.</a> <br />
+            In proceedings of the 18th European Conference on Machine Learning (ECML'07) 
+            (<b>Best Student Paper award.</b>)<br />
+        <a href="http://videolectures.net/ecml07_sorokina_agr/">
+        Video of ECML presentation<br />
+        </a><a href="AdditiveGroves.ppt" onClick="javascript:
+pageTracker._trackPageview('AdditiveGroves.ppt'); ">Slides (.ppt)</a></p>
+    <p>
+        <em>R. Caruana, M. Elhawary, A. Munson, M. Riedewald, D. Sorokina, D. Fink, W. Hochachka,
+            S. Kelling.
+            <br />
+        </em><a href="http://www.cs.cmu.edu/%7Edaria/papers/BirdMining.pdf" onClick="javascript:
+pageTracker._trackPageview('BirdMining.pdf'); ">Mining Citizen Science
+            Data to Predict Prevalence of Wild Bird Species.</a> <span style="font-size: small">(Feature
+                evaluation methods described here)<br />
+            </span>In proceedings of the 12th
+        ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD'06). <br />
+    </p>
+
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-13054580-1");
+pageTracker._trackPageview();
+} catch(err) {}</script>
+</body>
+</html>

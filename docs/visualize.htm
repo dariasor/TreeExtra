@@ -1,0 +1,359 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Visualization</title>
+    <link rel="stylesheet" type="text/css"  href="TreeExtra.css" />
+</head>
+<body>
+    <a href="index.html">Back to TreeExtra package web page</a>
+    <h1>Visualization of Feature Effects and Interactions in TreeExtra Models</h1>
+    <h3>Overview</h3>
+    <p>
+    After one detects important features and interactions in the model, one might be interested to know how
+    exactly they look like &mdash; what effect this feature or pair of features show on the response 
+    function. TreeExtra provides several tools that allow the user to perform such analysis. The primary 
+    output of these tools are text files. An example of MatLab code that converts such files into actual 
+    graphical plots is available as well.
+    </p>
+    
+    <h3>Feature effects</h3>
+    <p>
+    <span class="code">vis_effect</span> command produces an estimate of a single feature effect on the 
+    response. One of its input parameters is Q &mdash; a number of points to show on the effect curve. 
+    <span class="code">vis_effect</span> separates all values the feature takes on the validation set into 
+    Q quantiles*. For each center of a quantile it calculates the average prediction the model makes for 
+    this value of the feature. These average predictions form the feature effect curve. 
+    </p>
+    <p>
+    The curve is then saved into the output file in the following format. The file has three tab-delimited
+    columns. The first column is counts: how many quantiles have the same value of the center. The second
+    column is quantile center values. The third column is the model prediction average.
+    </p> 
+    <p>
+    * <i>(In fact it separates them into Q + 1 quantiles, throws away half of a quantile from each end, and 
+    re-separates the rest into Q quantiles.)</i>
+    </p>
+
+    <h3>Interactions - joint effects of two features</h3>
+    <p>
+    In order to visualize a 2-way interaction, we need to estimate a joint effect of 2 features at the same
+    time. This procedure is implemented in <span class="code">vis_iplot</span> command. Similarly to
+    <span class="code">vis_effect</span>, it calculates centers of quantiles for each of the two features.
+    Then it creates a matrix of joint effect values by calculating the average prediction that the model
+    makes for each pair of quantile centers.
+    </p>
+    <p>
+    The matrix is then saved into the output file in the following format. Four upper left values in the 
+    matrix are always zeros. First column contains quantile counts for feature 1, second column contains
+    quantile center values for feature 1, first row - quantile counts for feature 2, second row - quantile 
+    center values for feature 2, and the rest is the matrix of average model predictions.
+    </p>
+    
+    <h4>Higher order interactions</h4> 
+    If you want to view a higher order (n-way) interaction, ideally you would need to look at an n-dimensional interaction 
+    plot. <span class="code">-x</span> option of <span class="code">vis_iplot</span> tool allows you to look at any 2-dimensional slice of such a plot. 
+    You need to choose two features, whose joint effect you want to plot, and fix the values of the other n-2 features. The names and fixed values of those n-2 features
+    should be provided in a separate file in a tab-delimited 2 column format: feature names in the first column, fixed values in a second column. By fixing additional features
+    at different values, you can visualize the effect that those features have on the 2-way interaction of the original two features.
+
+    <h3>Joint density</h3>
+    <p>
+    You can only trust the interaction plots in the areas where the joint distribution of the two features
+    is sufficiently high. For this purpose <span class="code">vis_iplot</span> also generates a joint 
+    density estimation matrix in a separate file. The density file name is the same as the output file name
+    with the ".dens" suffix before the extension. Its format is as follows: the first column contains 
+    quantile borders for feature 1, the first row contains quantile borders for feature 2, and the matrix 
+    contains proportions of validation set data points in the corresponding cells*. Note that the first 
+    column/row contain borders, not centers of quantiles, therefore they are one number longer than 
+    corresponding dimensions of the density matrix.<br />
+    <br />
+    <i>Warning: the density plots show joint distribution of densities for two features only, they don't take into account densities of fixed-value features.</i>
+    </p>
+    <p>
+    * <i>(Some data on edges of the distribution was ignored when calculating quantile borders, so the sum 
+    of these numbers might be less than one.)</i>
+    </p>
+	
+	<h3>Correlations</h3>
+	Independent of models, vis_correlations command provides a table of pairwise correlation scores between features in a data set. The scores are Spearman's scores: they take into account only the relative order of values, and do not make assumptions about their distribution. Scores take on values in the range [-1;1]. 1 implies correlation, 0 -  absence of correlation, -1 - reverse correlation.
+    
+    <h3>MatLab code for producing plots</h3>
+    <p>
+    We provide several MatLab/Octave functions to illustrate how the output of 
+    <span class="code">vis_effect</span> and <span class="code">vis_iplot</span> can be used to create 
+    actual plots.
+    </p>
+    <p><span class="code">plot_effects</span> creates an effect plot for every .effect.txt file it finds
+    in the working directory. X axis shows feature values, Y axis shows the average prediction 
+    values.
+    </p>
+    <p><span class="code">plot_interactions</span> creates two interaction plots for every .iplot.txt file 
+    accompanied by a .iplot.dens.txt file. In the first plot different effect curves correspond to 
+    different values of feature 1, X axis shows values of feature 2, Y axis shows the average prediction 
+    values. The second, "flipped" plot swaps the features. The areas where the density is 
+    dangerously low are marked by red circles. The areas where the density is unusually high are marked by 
+    green circles. Absence of any circle means that the density is not too far from expected.
+    </p>    
+    
+    <h3>Commands specification</h3>
+    <span class="codeblue" >vis_effect -v _validation_set_ -r _attr_file_ -f _feature_ [-q _#quantile_values_] [-m _model_file_name] 
+[-o _output_file_name_] | -version</span>
+  
+        <table border="1">
+            <tr>
+                <td style="width: 26px; height: 24px">
+                    <span style="font-family: Wingdings">O</span></td>
+                <td style="width: 100px; font-family: Times New Roman; height: 24px">
+                    <strong>argument</strong></td>
+                <td style="width: 354px; font-family: Times New Roman; height: 24px">
+                    <strong>description</strong></td>
+                <td style="width: 115px; font-family: Times New Roman; height: 24px">
+                    <strong>default value</strong></td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -v
+                </td>
+                <td style="width: 100px">
+                    _validation_set_</td>
+                <td style="width: 354px">
+                    validation set file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -r
+                </td>
+                <td style="width: 100px">
+                    _attr_file_</td>
+                <td style="width: 354px">
+                    attribute file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -f</td>
+                <td style="width: 100px">
+                    _feature_</td>
+                <td style="width: 354px">
+                    feature of interest name</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -q</td>
+                <td style="width: 100px">
+                    _#quantile_values_</td>
+                <td style="width: 354px">
+                    number of values to estimate</td>
+                <td style="width: 115px">
+                    10</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -m
+                </td>
+                <td style="width: 100px">
+                    _model_file_name_</td>
+                <td style="width: 354px">
+                    model file name</td>
+                <td style="width: 428px">
+                    model.bin</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -o
+                </td>
+                <td style="width: 100px">
+                    &nbsp;_output_file_name_</td>
+                <td style="width: 354px">
+                    feature effect file name</td>
+                <td style="width: 115px">
+                    &lt;_feature_&gt; .effect.txt</td>
+            </tr>
+        </table>
+    
+    <p>
+    Outputs feature effect curve into the specified output file. Output file name is composed as f.o.effect.txt, where "f" and "o" are values of the correspondent arguments.
+    </p>
+
+     <span class="codeblue" >vis_iplot -v _validation_set_ -r _attr_file_ -f1 _feature1_ -f2 _feature2_ [-q1 _#quantile_values1_] 
+[-q2 _#quantile_values2_] [-m _model_file_name] [-o _output_file_name_] [-x _fixed_values_file_name] | -version </span>
+  
+        <table border="1">
+            <tr>
+                <td style="width: 29px; height: 24px">
+                    <span style="font-family: Wingdings">O</span></td>
+                <td style="width: 100px; font-family: Times New Roman; height: 24px">
+                    <strong>argument</strong></td>
+                <td style="width: 427px; font-family: Times New Roman; height: 24px">
+                    <strong>description</strong></td>
+                <td style="width: 350px; font-family: Times New Roman; height: 24px">
+                    <strong>default value</strong></td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -v
+                </td>
+                <td style="width: 100px">
+                    _validation_set_</td>
+                <td style="width: 427px">
+                    validation set file name</td>
+                <td style="width: 350px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -r
+                </td>
+                <td style="width: 100px">
+                    _attr_file_</td>
+                <td style="width: 427px">
+                    attribute file name</td>
+                <td style="width: 350px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -f1</td>
+                <td style="width: 100px">
+                    _feature1_</td>
+                <td style="width: 427px">
+                    first
+                    feature of interest name</td>
+                <td style="width: 350px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -f2</td>
+                <td style="width: 100px">
+                    _feature2_</td>
+                <td style="width: 427px">
+                    second
+                    feature of interest name</td>
+                <td style="width: 350px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -q1</td>
+                <td style="width: 100px">
+                    _#quantile_values1_</td>
+                <td style="width: 427px">
+                    number of values to estimate for the first feature</td>
+                <td style="width: 350px">
+                    10</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -q2</td>
+                <td style="width: 100px">
+                    _#quantile_values2_</td>
+                <td style="width: 427px">
+                    number of values to estimate for the second feature</td>
+                <td style="width: 350px">
+                    10</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -m
+                </td>
+                <td style="width: 100px">
+                    _model_file_name_</td>
+                <td style="width: 427px">
+                    model file name</td>
+                <td style="width: 350px">
+                    model.bin</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -o
+                </td>
+                <td style="width: 100px">
+                    &nbsp;_output_file_name_</td>
+                <td style="width: 427px">
+                    interaction (joint effect) file name</td>
+                <td style="width: 350px">
+                    &lt;_feature1_&gt;. &lt;_feature2_&gt; .iplot.txt</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -x
+                </td>
+                <td style="width: 100px">
+                    &nbsp;_fixed_values_file_name_</td>
+                <td style="width: 427px">
+                    fixed attributes-values file name</td>
+                <td style="width: 350px">
+                    no fixed value attributes</td>
+            </tr>
+        </table>
+    
+    <p>
+        Output:
+    </p>
+    <ol>
+    <li>Outputs joint effect matrix into the specified output file. Output file name is composed as f1.f2.o.iplot.txt, where "f1", "f2" and "o" are values of the correspondent arguments.</li>
+    <li>Outputs joint density matrix into a separate density file. The name of the density file is the 
+    name of the output file with the suffix ".dens" before the last extension.</li></ol>
+	
+     <span class="codeblue" >vis_correlations -t _training_set_ -r _attr_file_  | -version </span>
+  
+        <table border="1">
+            <tr>
+                <td style="width: 29px; height: 24px">
+                    <span style="font-family: Wingdings">O</span></td>
+                <td style="width: 100px; font-family: Times New Roman; height: 24px">
+                    <strong>argument</strong></td>
+                <td style="width: 427px; font-family: Times New Roman; height: 24px">
+                    <strong>description</strong></td>
+                <td style="width: 350px; font-family: Times New Roman; height: 24px">
+                    <strong>default value</strong></td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -t
+                </td>
+                <td style="width: 100px">
+                    _training_set_</td>
+                <td style="width: 427px">
+                    input data set file name</td>
+                <td style="width: 350px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 29px">
+                    -r
+                </td>
+                <td style="width: 100px">
+                    _attr_file_</td>
+                <td style="width: 427px">
+                    attribute file name</td>
+                <td style="width: 350px">
+                    &nbsp;</td>
+            </tr>
+        </table>
+    
+    <p>
+        Outputs Spearman's correlations between all pairs of active attributes into file correlations.txt.
+    </p>
+	
+ <script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-13054580-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>    
+</body>
+</html>

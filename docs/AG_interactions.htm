@@ -1,0 +1,553 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Interaction Detection with Additive Groves</title>
+     <link rel="stylesheet" type="text/css"  href="TreeExtra.css" />    
+</head>
+<body>
+    <a href="index.html">Back to TreeExtra package web page</a>
+    <h1>Interaction Detection with Additive Groves</h1>
+    <h3>Overview</h3>
+    <p>Interaction detection is a helpful instrument for analyzing the structure of the response function. 
+    Some of the features are more important than others; and some of those important features are involved
+    in complex non-additive effects. TreeExtra package contains tools that allow you to detect and 
+    visualize effects of single important features together with their joint interactive effects. In order 
+    to understand better how exactly our algorithms work, see the following two papers. </p>
+    <p>
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald, Daniel Fink.</em><br>
+        <a href="papers/Interactions.pdf" onClick="javascript: 
+		_gaq.push(['_trackPageview', 'Interactions.pdf']);">Detecting Statistical Interactions with Additive 
+		Groves of Trees.</a><br>
+        In proceedings of the 25th International Conference on Machine Learning (ICML'08).<br>
+        <a href="http://videolectures.net/icml08_sorokina_dsi/">Video of ICML presentation</a><br>
+        <a href="Interactions.ppt" onClick="javascript: _gaq.push(['_trackPageview', 'Interactions.ppt']);">
+        Slides (.ppt)</a></p>
+    <p>
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald, Wes Hochachka, Steve Kelling.</em><br>
+        <a href="papers/rmbo_full.pdf" onClick="javascript: 
+		_gaq.push(['_trackPageview', 'rmbo_full.pdf']);">Detecting and Interpreting Variable Interactions in 
+		Observational Ornithology Data.</a><br>
+        To appear in the International Workshop on Domain Driven Data Mining (DDDM'09).<br></p>
+    <p>
+    Now we are going to explain how to perform the analysis of feature effects and interactions step by step.
+    </p>
+    <h3>Preparing the data</h3>
+    <p>All steps described below should be performed with the same fixed training and validation data sets. 
+    For many data sets, setting aside 1/5 of the data as a validation set works well.</p>
+    
+    <h3>Fast feature selection</h3>
+    <p>If your data has hundreds or thousands of features, we recommend to run <a href = "BT_manual.htm">
+    bagging with feature evaluation</a> first. Set <span class="code">-k</span> parameter to some reasonable 
+    number of features. 50 can be a good number for complex data sets, 20 is often enough for simple or 
+    noisy ones. An attribute file corresponding to the reduced version of the data set will be automatically 
+    generated: use this file in the following two steps.</p>
+    
+    <h3>Layered Additive Groves</h3>
+    <p>For descriptive analysis we are going to use a simplified version of Additive Groves. In this version,
+    a complex grove is always built from a grove with the same number of smaller trees. (The exact algorithm 
+    is described in the Section 2.2 of the <a href="papers/groves.pdf" 
+    onClick="javascript: _gaq.push(['_trackPageview', 'groves.pdf']);">Additive Groves</a> paper).</p>
+    <p>Train the standard grid of Additive Groves models to determine the best combination of the algorithm's
+    parameters for your data set. To force your Additive Groves to be trained in the layered mode,  
+    <span class="code">ag_train</span> should be called with the argument 
+    <span class="code">-s layered</span>. (See <a href=AG_manual.htm>AG manual</a> for detailed training 
+    instructions.)</p>
+	<p>	In the layered model, the best model parameters provided in the output correspond to the best model for interaction detection, not to the model providing the best performance. Use those recommended values of α and N for the next steps.
+
+    <h3>Thorough feature selection</h3>    
+    <p>Next step is feature selection by backward elimination. It leaves you with a small set of crucially 
+    important features: the performance drops significantly if you remove any one of them. 
+    <span class="code">ag_fs</span> command implements backward elimination wrapped around Layered Groves. 
+    Call <span class="code">ag_fs</span> with <span class="code">-a</span>, <span class="code">-n</span> and 
+    <span class="code">-b</span> parameters set to values that were recommended by Layered Groves on the previous step.
+    As a part of its output, <span class="code">ag_fs</span> creates a new attribute file 
+    and a new model file that can be used for interaction detection. It also creates an effect visualization 
+    file for every important feature. <a href=visualize.htm>Visualization manual</a> explains how to 
+    interprete the data in those files.</p>
+    
+    <h3>Interaction detection</h3>
+    <p>
+    There are two commands in the package you can use to run interaction tests. 
+    <span class="code">ag_interactions</span> makes all possible pairwise tests between important features.
+    Run it using the information (attribute file, mean and std of performance) produced by
+    the last run of <span class="code">ag_fs</span>. The log output shows results of all tests. Also, 
+    <span class="code">ag_interactions</span> creates partial dependence files for each detected 
+    interaction. You can use these files for <a href=visualize.htm>visualizing</a> the joint effect of the 
+    two features involved.</p>
+    <p> If detected pairwise interactions form a clique between 3 or more variables, it is a good idea to 
+    test these variables for a higher-order interaction. <span class="code">ag_nway</span> command allows 
+    you to perform such test. You need to provide it with a file listing n variables (one on each line) to 
+    run a test for an n-way interaction. <span class="code">ag_nway</span> also allows you to save a 
+    restricted model.
+    </p>
+    
+    <h3>Variation in the results</h3>
+    <p>
+    If there is a lot of variance in the data, the results of the above analysis can be unstable: the exact
+    sets of detected important features and interactions will depend on the train/validation data split,
+    random seed, order of tests, etc. In this case it is recommended to perform the whole process several
+    times, using different ways to split data on train and test sets.  
+    </p>
+
+    <h3>Commands specification</h3>
+    <span class="codeblue" >ag_fs -t _train_set_ -v _validation_set_ -r _attr_file_ -a _alpha_value_ -n _N_value_ 
+-b _bagging_iterations_ [-m _model_file_name] [-i _init_random_] [-c rms|roc] [-h _threads_] | -version</span>
+  
+        <table border="1">
+            <tr>
+                <td style="width: 26px; height: 24px">
+                    <span style="font-family: Wingdings">O</span></td>
+                <td style="width: 100px; font-family: Times New Roman; height: 24px">
+                    <strong>argument</strong></td>
+                <td style="width: 354px; font-family: Times New Roman; height: 24px">
+                    <strong>description</strong></td>
+                <td style="width: 115px; font-family: Times New Roman; height: 24px">
+                    <strong>default value</strong></td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px; height: 24px">
+                    -t
+                </td>
+                <td style="width: 100px; height: 24px">
+                    _train_set_
+                </td>
+                <td style="width: 354px; height: 24px">
+                    training set file name</td>
+                <td style="width: 115px; height: 24px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -v
+                </td>
+                <td style="width: 100px">
+                    _validation_set_</td>
+                <td style="width: 354px">
+                    validation set file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -r
+                </td>
+                <td style="width: 100px">
+                    _attr_file_</td>
+                <td style="width: 354px">
+                    attribute file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -a</td>
+                <td style="width: 100px">
+                    _alpha_value_</td>
+                <td style="width: 354px">
+                    parameter that controls size of tree</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -n</td>
+                <td style="width: 100px">
+                    _N_value_</td>
+                <td style="width: 354px">
+                    number of trees in a Grove</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -b</td>
+                <td style="width: 100px">
+                    _bagging_iterations_</td>
+                <td style="width: 354px">
+                    number of bagging iterations</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -m
+                </td>
+                <td style="width: 100px">
+                    _model_file_name_</td>
+                <td style="width: 354px">
+                    name of the output file for the model</td>
+                <td style="width: 428px">
+                    model.bin</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -i
+                </td>
+                <td style="width: 100px">
+                    &nbsp;_init_random_</td>
+                <td style="width: 354px">
+                    init value for random number generator</td>
+                <td style="width: 115px">
+                    1</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 26px">
+                    -c</td>
+                <td style="width: 100px">
+                    &nbsp;rms|roc</td>
+                <td style="width: 354px">
+                    performance metric</td>
+                <td style="width: 115px">
+                    rms</td>
+            </tr>
+           <tr>
+                <td>-h</td>
+                <td>_threads_</td>
+                <td>number of threads, linux version only</td>
+                <td>6</td>
+            </tr>
+        </table>
+    
+    <p>
+        Output:
+    </p>
+    <ol>
+    <li>Performs feature selection by backward elimination using layered training of Additive
+        Groves. Shows the process in the log output.</li>
+    <li>Produces a set of important features. Lists them in the end of log output.</li>
+    <li>Estimates mean and standard deviation of the final model performance. </li>
+    <li>Saves the final model into the specified file.</li>
+    <li>Saves the attribute file for the final model. The name of the new file has
+        a suffix ".fs" before the file extension.</li>
+    <li>Creates an effect visualization source file for every important feature. These files have an 
+        extension ".effect.txt".</li>
+	<li>Outputs a file named core_features.txt, containing list of selected features sorted by the level of importance.</li>		
+    </ol>
+
+    <span class="codeblue" >ag_interactions -t _train_set_ -v _validation_set_ -r _attr_file_ -a _alpha_value_ -n _N_value_ 
+-b _bagging_iterations_ -ave _mean_performance_ -std _std_of_performance_ [-m _model_file_name] 
+[-i _init_random_] [-c rms|roc] [-h _threads_] | -version</span>
+  
+        <table border="1">
+            <tr>
+                <td style="width: 39px; height: 24px">
+                    <span style="font-family: Wingdings">O</span></td>
+                <td style="width: 100px; font-family: Times New Roman; height: 24px">
+                    <strong>argument</strong></td>
+                <td style="width: 354px; font-family: Times New Roman; height: 24px">
+                    <strong>description</strong></td>
+                <td style="width: 115px; font-family: Times New Roman; height: 24px">
+                    <strong>default value</strong></td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 24px">
+                    -t
+                </td>
+                <td style="width: 100px; height: 24px">
+                    _train_set_
+                </td>
+                <td style="width: 354px; height: 24px">
+                    training set file name</td>
+                <td style="width: 115px; height: 24px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -v
+                </td>
+                <td style="width: 100px">
+                    _validation_set_</td>
+                <td style="width: 354px">
+                    validation set file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -r
+                </td>
+                <td style="width: 100px">
+                    _attr_file_</td>
+                <td style="width: 354px">
+                    attribute file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -a</td>
+                <td style="width: 100px">
+                    _alpha_value_</td>
+                <td style="width: 354px">
+                    parameter that controls size of tree</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -n</td>
+                <td style="width: 100px">
+                    _N_value_</td>
+                <td style="width: 354px">
+                    number of trees in a Grove</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -b</td>
+                <td style="width: 100px">
+                    _bagging_iterations_</td>
+                <td style="width: 354px">
+                    number of bagging iterations</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 26px;">
+                    -ave</td>
+                <td style="width: 100px; height: 26px;">
+                    _mean_performance_</td>
+                <td style="width: 354px; height: 26px;">
+                    mean performance of and unrestricted model</td>
+                <td style="width: 428px; height: 26px;">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 26px;">
+                    -std
+                </td>
+                <td style="width: 100px; height: 26px;">
+                    _std_of_performance_</td>
+                <td style="width: 354px; height: 26px;">
+                    std of an unrestricted model's performance</td>
+                <td style="width: 428px; height: 26px;">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 26px;">
+                    -m
+                </td>
+                <td style="width: 100px; height: 26px;">
+                    _model_file_name_</td>
+                <td style="width: 354px; height: 26px;">
+                    input file containing the unrestricted model</td>
+                <td style="width: 428px; height: 26px;">
+                    model.bin</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -i
+                </td>
+                <td style="width: 100px">
+                    &nbsp;_init_random_</td>
+                <td style="width: 354px">
+                    init value for random number generator</td>
+                <td style="width: 115px">
+                    1</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -c</td>
+                <td style="width: 100px">
+                    &nbsp;rms|roc</td>
+                <td style="width: 354px">
+                    performance metric</td>
+                <td style="width: 115px">
+                    rms</td>
+            </tr>
+           <tr>
+                <td>-h</td>
+                <td>_threads_</td>
+                <td>number of threads, linux version only</td>
+                <td>6</td>
+            </tr>
+        </table>
+    
+    <p>
+        Output:
+    </p>
+    <ol>
+    <li>Performs all possible 2-way interaction tests using layered training of Additive
+        Groves. Shows the process and the results in the log output.</li>
+    <li>Creates a joint effect visualization source file for every pair of interacting features.
+        These files have an extension ".iplot.txt". </li>  
+    <li>Creates joint density distribution file for every pair of interacting features.
+            These files have an extension ".iplot.dens.txt".</li>
+    </ol>
+
+    <span class="codeblue" >ag_nway -t _train_set_ -v _validation_set_ -r _attr_file_ -a _alpha_value_ -n _N_value_ 
+-b _bagging_iterations_ -ave _mean_performance_ -std _std_of_performance_ -w _interaction_file 
+[-m _model_file_name][-i _init_random_] [-c rms|roc] [-h _threads_] | -version</span>
+  
+        <table border="1">
+            <tr>
+                <td style="width: 39px; height: 24px">
+                    <span style="font-family: Wingdings">O</span></td>
+                <td style="width: 100px; font-family: Times New Roman; height: 24px">
+                    <strong>argument</strong></td>
+                <td style="width: 395px; font-family: Times New Roman; height: 24px">
+                    <strong>description</strong></td>
+                <td style="width: 115px; font-family: Times New Roman; height: 24px">
+                    <strong>default value</strong></td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 24px">
+                    -t
+                </td>
+                <td style="width: 100px; height: 24px">
+                    _train_set_
+                </td>
+                <td style="width: 395px; height: 24px">
+                    training set file name</td>
+                <td style="width: 115px; height: 24px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -v
+                </td>
+                <td style="width: 100px">
+                    _validation_set_</td>
+                <td style="width: 395px">
+                    validation set file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -r
+                </td>
+                <td style="width: 100px">
+                    _attr_file_</td>
+                <td style="width: 395px">
+                    attribute file name</td>
+                <td style="width: 115px">
+                    &nbsp;</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -a</td>
+                <td style="width: 100px">
+                    _alpha_value_</td>
+                <td style="width: 395px">
+                    parameter that controls size of tree</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -n</td>
+                <td style="width: 100px">
+                    _N_value_</td>
+                <td style="width: 395px">
+                    number of trees in a Grove</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -b</td>
+                <td style="width: 100px">
+                    _bagging_iterations_</td>
+                <td style="width: 395px">
+                    number of bagging iterations</td>
+                <td style="width: 115px">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 26px;">
+                    -ave</td>
+                <td style="width: 100px; height: 26px;">
+                    _mean_performance_</td>
+                <td style="width: 395px; height: 26px;">
+                    mean performance of and unrestricted model</td>
+                <td style="width: 428px; height: 26px;">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 26px;">
+                    -std
+                </td>
+                <td style="width: 100px; height: 26px;">
+                    _std_of_performance_</td>
+                <td style="width: 395px; height: 26px;">
+                    std of an unrestricted model's performance</td>
+                <td style="width: 428px; height: 26px;">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 26px;">
+                    -w
+                </td>
+                <td style="width: 100px; height: 26px;">
+                    _interaction_file_</td>
+                <td style="width: 395px; height: 26px;">
+                    list of n features to test for an n-way interaction</td>
+                <td style="width: 428px; height: 26px;">
+                    </td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px; height: 26px;">
+                    -m
+                </td>
+                <td style="width: 100px; height: 26px;">
+                    _model_file_name_</td>
+                <td style="width: 395px; height: 26px;">
+                    output file name for the restricted model</td>
+                <td style="width: 428px; height: 26px;">
+                    restricted_model.bin</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -i
+                </td>
+                <td style="width: 100px">
+                    &nbsp;_init_random_</td>
+                <td style="width: 395px">
+                    init value for random number generator</td>
+                <td style="width: 115px">
+                    1</td>
+            </tr>
+            <tr style="font-family: Times New Roman">
+                <td style="width: 39px">
+                    -c</td>
+                <td style="width: 100px">
+                    &nbsp;rms|roc</td>
+                <td style="width: 395px">
+                    performance metric</td>
+                <td style="width: 115px">
+                    rms</td>
+            </tr>
+            <tr>
+                <td>-h</td>
+                <td>_threads_</td>
+                <td>number of threads, linux version only</td>
+                <td>6</td>
+            </tr>
+       </table>
+    
+    <p>
+        Output:
+    </p>
+    <ol>
+    <li>Performs an n-way interaction test using layered training of Additive
+        Groves. Shows the results in the log output.</li>
+    <li>Saves a restricted model.</li>
+    </ol>
+    
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-13054580-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>    
+</body>
+</html>

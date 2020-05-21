@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>Additive Groves - quick start</title>
+    <link rel="stylesheet" type="text/css"  href="TreeExtra.css" /> 
+</head>
+<body>
+    <a href="index.html">Back to TreeExtra package web page</a> <br />
+    <a href="AG_manual.htm">Back to Additive Groves manual web page</a>
+    <h3>
+    Additive Groves - quick start
+    </h3>
+    <ul><li>
+        <p>Download executable binaries from the <a href="https://github.com/dariasor/TreeExtra/releases/latest">latest TreeExtra release</a>. You can also download sources and compile them, but normally you don't have to. TreeExtra binaries are standalone tools that run from command line. (In Windows, you need to use something like Command Line Prompt (cmd) to run command line tools.)</p>
+    </li><li>
+        <p>Prepare your data set following the instructions on <a href="Data_Format.htm">input data format</a>. 
+        You will need train, validation, test and attribute files. Here is a sample synthetic data set: 
+        <a href="data.train">data.train</a>, <a href="data.valid">data.valid</a>, 
+        <a href="data.test">data.test</a>, <a href="data.attr">data.attr</a>.</p>
+    </li><li>
+        <p>Create a new folder where you want to run this experiment and cd there. Output and temporary files 
+        will be placed in this folder.</p>
+    </li><li>
+        <p>Run <span class="code" >ag_train</span> (if needed, modify the file names in the following command 
+        line):<br /><br />
+<span class="codeblue" >&gt; ag_train -t data.train -v data.valid -r data.attr</span></p>
+    </li><li>
+        <p>The log output will end with the recommendation which command to run next. Most likely the 
+        recommendation will be to run <span class="code">ag_expand</span>. Keep following 
+        recommendations (often it takes about 6 runs of <span class="code">ag_expand</span>) until you 
+        run <span class="code" >ag_save</span>. <br /> <br />
+<span class="output" >... recommendation: ag_expand -b 90</span><br />
+<span class="codeblue" >&gt; ag_expand -b 90</span> <br />
+<span class="output" >... recommendation: ag_expand -b 140 </span><br />
+<span class="codeblue" >&gt; ag_expand -b 140 
+...</span><br />
+<span class="output" >... recommendation: ag_save -a 0.02 -n 6</span><br />
+<span class="codeblue" >&gt; ag_save -a 0.02 -n 6</span><br /><br />
+
+        The best model is saved in the file model.bin.<br />
+    </li><li>
+        <p>Run <span class="code" >ag_predict</span> on the test data:<br /><br />
+<span class="codeblue" >&gt; ag_predict -p data.test -r data.attr</span><br />
+<span class="output" >... RMSE: 0.574717 </span><br /><br />
+        
+        That's it. The predictions on the test set are saved in preds.txt.</p>
+    </li><li>
+        <p>If you can afford to increase the running time of the program, I recommend you repeat the same 
+        experiment in the slow mode. This will create a better model with better performance. To do it, 
+        run <span class="code">ag_train</span> with an additional flag <span class="code">-s slow</span>. The
+        rest of the process is the same.<br />
+<span class="codeblue" >&gt; ag_train -t data.train -v data.valid -r data.attr -s slow</span><br />
+<span class="codeblue" >&gt; ag_expand -n 16 -b 90</span> <br />
+<span class="codeblue" >&gt; ag_expand -b 140
+...</span><br />
+<span class="codeblue" >&gt; ag_save -a 0.05 -n 4</span><br />
+<span class="codeblue" >&gt; ag_predict -p data.test -r data.attr</span><br />
+<span class="output" >... RMSE: 0.565393 </span></p>
+ 
+    </li><li>
+        <p>Check out the rest of <a href="AG_manual.htm">Additive Groves manual</a> for other options like 
+        parallelization, evaluation by ROC, "superfast" training with fixed parameters, etc. </p>       
+    </li></ul>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-13054580-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+    
+</body>
+</html>

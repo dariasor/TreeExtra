@@ -1,0 +1,253 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" >
+<head>
+    <title>TreeExtra package</title>
+    <link rel="stylesheet" type="text/css"  href="TreeExtra.css" />    
+</head>
+<body>
+    <h2>Additive Groves code: TreeExtra package</h2>
+    TreeExtra is a set of tools implementing the following algorithms:<br />
+    <ul>
+        <li>Additive Groves - a supervised learning algorithm, ensemble of regression trees</li>
+        <li>Bagged trees with "multiple counts normalized by entropy" feature evaluation</li>
+        <li>Interaction detection with Additive Groves</li>
+        <li>Feature selection by backward elimination with Additive Groves</li>
+        <li>Effect and interaction visualization</li>
+        <li>Spearman's correlation scores</li>		
+    </ul>
+		The code along with executable binaries is <a href="https://github.com/dariasor/TreeExtra/" onClick="javascript: _gaq.push(['_trackPageview', 
+        'GitHub-main']);">available on GitHub</a>
+        under BSD license and is free to use for any purpose. (It also makes use of external libraries available under LGPLv2.1 license.)</p>
+    <p>
+		TreeExtra is maintained for both Windows and Linux platforms. There is no support for OS X/macOS systems at this time.</p>
+    <p>
+        Primary contact: <a href=https://www.linkedin.com/in/dariasorokina/> Daria Sorokina</a>. Questions about the package can be submitted <a href="https://github.com/dariasor/TreeExtra/issues">through GitHub</a>.</p> 
+
+    <h4><table>
+        <tr>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#updates">Updates</a>
+            </td>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#manuals">Manuals</a>
+            </td>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#downloads">Downloads</a>
+            </td>
+            <td style="width: 150px; background-color: silver;">
+            <a href = "#papers">Research papers</a>
+            </td>
+        </tr>
+    </table></h4>
+    <h3><a name="updates">Updates</a></h3>
+    <ul>
+		<li>26 Apr '19. <strong>TreeExtra 2.6</strong> is <a href="https://github.com/dariasor/TreeExtra/releases/tag/2.6" onClick="javascript: _gaq.push(['_trackPageview', 
+        'GitHub-releases']);">released on GitHub</a>. See release notes for details.
+			<ul></ul><br />
+		</li>
+
+		<li>10 Feb '17. <strong>TreeExtra 2.5</strong> is <a href="https://github.com/dariasor/TreeExtra/releases/tag/2.5" onClick="javascript: _gaq.push(['_trackPageview', 
+        'GitHub-releases']);">released on GitHub</a>. See release notes for details.
+			<ul></ul><br />
+		</li>
+
+        <li>25 Mar '16. <strong>TreeExtra 2.4</strong> is <a href="https://github.com/dariasor/TreeExtra/releases/tag/2.4" onClick="javascript: _gaq.push(['_trackPageview', 
+        'GitHub-releases']);">released on GitHub</a>
+			<ul>
+				<li>Feature evaluation algorithm in bagged trees is changed. Now a score in each node is normalized by the entropy of the split feature in that node. This way the scores of binary features become comparable with the scores of continuous features with multiple values.</li>
+				<li>Effect and interaction plots now consider all data, including data points with missing values. For the features with substantial number of missing values, the effect of missing value is also plotted.</li>
+			</ul>
+            <br />
+		</li>
+		
+         <li>13 Aug '13. <strong>TreeExtra 2.3</strong> is released
+            <ul>
+                <li>Tree-building algorithm is modified towards building more balanced trees. Up to 10% improvement in predictive performance on some data sets. Note that the 
+				best values of parameters might differ from those produced by previous versions.</li>
+                <li>Linux version is now making use of multithreading and trains different branches of a tree in parallel. The running time for training decreased 1.5 times 
+				on average.</li>
+                <li>A major issue is fixed in the Windows version. It is possible now to train good models on data sets larger than 32,000 data points. (Linux version did not 
+				have this problem.)</li>
+				<li>One of <span class="code">bt_train</span> output files is renamed from features.txt to feature_scores.txt to decrease a chance of conflict with the input 
+				data file name.
+            </ul>
+
+        </li>
+
+		<li>21 Apr '12. <strong>TreeExtra 2.2</strong> is released
+            <ul>
+                <li>Tree training is now faster without any impact on performance</li>
+                <li>Treatment of missing values is improved: both probabilistic and "missing value is a separate value" approaches are evaluated in every split.</li>
+                <li>N - number of trees in a grove - is now increased exponentially instead of linearly. It takes on values 1,2,3,4,6,8,11,16,23,32,45,64,... - major running 
+                time savings on data sets with strong additive structure.</li>
+                <li>Several tweaks on the original Additive Groves algorithm result in further performance improvement. Namely, in most cases convergence test and vertical vs 
+                horizontal step tests are made on training instead of validation data now.</li>
+                <li><span class="code">-x</span> option in <span class="code">vis_iplot</span> tool allows to visualize slices of n-dimensional effect plots for higher order
+                 interactions.</li>
+                <li>Nominals are accepted in the data files as long as they are not used.  </li>
+            </ul>
+            <br />
+        </li>
+
+        <li>05 Oct '10. <strong>TreeExtra 2.1</strong> is released
+            <ul>
+                <li>More convenient interface for <span class="code">ag_merge</span>: now you can run any
+                number of iterations in parallel and merge them with a single command.</li>
+                <li>Memory usage is decreased almost by a factor of two without any impact on 
+                performance.</li>
+            </ul>
+            <br />
+        </li>
+
+       <li>13 Jun '10. Additive Groves officialy got 4th place in the main track of the 
+                <a href="http://learningtorankchallenge.yahoo.com/">Yahoo! Learning To Rank Challenge.</a>
+                <ul>
+                    <li>Read the <a href="papers/ranking_AG.pdf" onClick="javascript: 
+					_gaq.push(['_trackPageview', 'ranking_AG.pdf']);">description of our solution</a>.</li>
+                </ul>
+        <br />
+        </li>
+        <li>30 Dec '09. Additive Groves got the third place in the supervised challenge of 
+                <a href="http://www.cse.ust.hk/~qyang/icdm2009/">2009 IEEE ICDM Data Mining Contest</a>. 
+            <ul>
+                <li>Read the <a href="papers/brain.pdf" onClick="javascript: 
+					_gaq.push(['_trackPageview', 'brain.pdf']);">description of our solution</a>.</li>
+            </ul>
+        <br />
+        </li>
+        <li>29 Nov '09. <strong>TreeExtra 2.0</strong> is released. 
+            <ul>
+                <li>New set of commands implements interaction detection, feature selection and effect / 
+                interaction visualization with Additive Groves.</li>
+                <li>New training mode of Additive Groves: option <span class="code">-s layered</span> 
+                invokes layered training algorithm.</li>
+                <li>The header format of the model files has changed and is not compatible with
+                TreeExtra 1.x versions.</li>
+                <li><span class="code">bt_train</span> command now saves a new attribute file where only
+                top k features are left active. Setting <span class="code">-k</span> option to -1 allows to 
+                create ranking for all features.
+                </li>
+            </ul>
+        <br />
+        </li>
+        <li>8 Oct '09. Several updates on the web site.
+            <ul>
+                <li>This summer, Additive Groves ensemble scored the best result on one of the tasks in 
+                KDD Cup '09. Read the <a href="papers/kddcup09.pdf" onClick="javascript: 
+                _gaq.push(['_trackPageview', 'kddcup09.pdf']);">detailed account</a>. </li>
+                <li>Another paper about Additive Groves, <a href="papers/rmbo_full.pdf" onClick="javascript: 
+				_gaq.push(['_trackPageview', 'rmbo_full.pdf']);">Detecting and Interpreting Variable 
+				Interactions in Observational Ornithology Data</a>, is accepted to DDDM'09.</li>
+                <li>New chapter in the manual describes the <a href="AG_model.htm">structure of the model 
+                file</a>. </li>
+                <li>A <a href="https://github.com/dariasor/ag_scripts/blob/master/General/build_te_model.py" 
+                onClick="javascript: gaq.push(['_trackPageview', 'build_te_model.py']);">script</a> by Alex 
+                Sorokin allows for an automatic run of
+                <span class="code"> ag_train - ag_expand - ag_save </span>sequence.</li>
+            </ul>
+        <br />
+        </li>
+        <li>11 Aug '09. <strong>TreeExtra 1.2</strong> is released. 
+            <ul>
+                <li>New command <span class="code">ag_merge</span> joins several model grids. Therefore it 
+                is now possible to parallelize training of Additive Groves.</li>
+                <li>New option <span class="code">-l</span> allows to control the volume of information in 
+                standard output for bagged trees commands.</li>
+                <li>The size of temporary folder <span class="folder">AGTemp</span> is decreased.</li>
+            </ul>
+        <br />
+        </li>
+        <li>08 Jun '09. <strong>TreeExtra 1.1</strong> is released. A choice of ROC for a model evaluation metric
+            is added for binary classification problems.
+        </li>
+    </ul>
+    <h3><a name="manuals">Manuals</a></h3>
+    <ul>
+        <li><a href="Data_Format.htm">Input data format</a></li>
+        <li><a href="BT_manual.htm">Bagged trees with feature evaluation</a></li>
+        <li>Additive Groves
+        <ul><li><a href="AG_quickstart.htm">Quick start</a></li>
+            <li><a href="AG_manual.htm">Full manual</a></li>
+            <li><a href="AG_model.htm">Model structure</a><br /></li>
+        </ul>
+        </li>
+        <li><a href="AG_interactions.htm">Interaction detection and feature selection</a></li>
+        <li><a href="visualize.htm">Interaction and feature effects visualization</a></li>
+    </ul>
+        
+    <h3><a name="papers">Research papers and presentations</a></h3>
+    <p>
+        <em>Daria Sorokina.</em><br />
+        <a href="papers/ranking_AG.pdf" onClick="javascript: _gaq.push(['_trackPageview', 
+        'ranking_AG.pdf']);">Application of Additive Groves to the Yahoo! Learning to Rank Challenge.</a>
+        <br></p>
+    <p>
+        <em>Daria Sorokina.</em><br />
+        <b>Modeling Additive Structure and Detecting Interactions with Additive Groves of Regression Trees</b><br />
+        CMU Machine Learning Lunch, March 2010<br />
+        <a href="http://www.cs.cmu.edu/~learning/#current_talks" onClick="javascript: 
+        _gaq.push(['_trackPageview', 'video/cmu']);">Video</a> (You need to scroll down to March 1 2010 talk. Sound is bad for the first few minutes only.)<br>
+        <a href="CMU_2010.ppt" onClick="javascript: _gaq.push(['_trackPageview', 'CMU_2010.ppt']);">
+        Slides (.ppt)</a></p>        
+        </p>
+    
+    <p>        
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald, Wes Hochachka, Steve Kelling.</em><br>
+        <a href="papers/rmbo_full.pdf" onClick="javascript: _gaq.push(['_trackPageview', 
+        'rmbo_full.pdf']);"> Detecting and Interpreting Variable Interactions in Observational Ornithology 
+        Data.</a><br>
+        In proceedings of the ICDM'09 Workshop on Domain Driven Data Mining (DDDM'09).<br></p>
+    <p>
+        <em>Daria Sorokina.</em><br />
+        <a href="papers/kddcup09.pdf" onclick="javascript: _gaq.push(['_trackPageview', 'kddcup09.pdf']);">
+        Application of Additive Groves Ensemble with Multiple Counts Feature Evaluation to KDD Cup'09 Small 
+        Data Set.</a> <br>
+        In proceedings of the KDD Cup 2009 workshop.<br></p>
+    <p>
+        <em>Daria Sorokina.</em><br />
+        <a href="papers/thesis.pdf" onclick="javascript: _gaq.push(['_trackPageview', 'thesis.pdf']);">
+        Modeling Additive Structure and Detecting Interactions with Groves of Trees.</a> <br />
+        PhD dissertation, Cornell University, 2008.<br /></p>
+    <p>
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald, Daniel Fink.</em><br>
+        <a href="papers/Interactions.pdf" onClick="javascript: _gaq.push(['_trackPageview', 
+        'Interactions.pdf']);">Detecting Statistical Interactions with Additive Groves of Trees.</a><br />
+        In proceedings of the 25th International Conference on Machine Learning (ICML'08).<br />
+        <a href="http://videolectures.net/icml08_sorokina_dsi/" onClick="javascript: 
+        _gaq.push(['_trackPageview', 'video/icml08']);">Video of ICML presentation</a><br>
+        <a href="Interactions.ppt" onClick="javascript: _gaq.push(['_trackPageview', 'Interactions.ppt']);">
+        Slides (.ppt)</a></p>
+    <p>
+        <em>Daria Sorokina, Rich Caruana, Mirek Riedewald.</em><br>
+        <a href="papers/groves.pdf" onclick="javascript: _gaq.push(['_trackPageview', 'groves.pdf']);">
+        Additive Groves of Regression Trees.</a><br>
+        In proceedings of the 18th European Conference on Machine Learning (ECML'07) (<b>Best Student Paper 
+        award.</b>)<br>
+        <a href="http://videolectures.net/ecml07_sorokina_agr/" onClick="javascript: 
+        _gaq.push(['_trackPageview', 'video/ecml07']);"> Video of ECML presentation</a><br>
+        <a href="AdditiveGroves.ppt" onClick="javascript: _gaq.push(['_trackPageview', 
+        'AdditiveGroves.ppt']);">Slides (.ppt)</a></p>
+    <p>
+        <em>R. Caruana, M. Elhawary, A. Munson, M. Riedewald, D. Sorokina, D. Fink, W. Hochachka, 
+        S. Kelling.</em><br>
+        <a href="papers/BirdMining.pdf" onClick="javascript: _gaq.push(['_trackPageview', 
+        'BirdMining.pdf']);">Mining Citizen Science Data to Predict Prevalence of Wild Bird Species.</a> <-- 
+        feature evaluation methods described here<br>
+        In proceedings of the 12th ACM SIGKDD International Conference on Knowledge Discovery and Data 
+        Mining (KDD'06). <br>
+    </p>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-13054580-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+</body>
+</html>
