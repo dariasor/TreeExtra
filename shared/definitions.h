@@ -13,6 +13,11 @@
 #include <limits>
 #include <stack>
 
+// XW. Solve an error: unknown type name 'streamsize'
+#ifdef __APPLE__
+#include <ios>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <float.h>
