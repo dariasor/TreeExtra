@@ -1,11 +1,18 @@
 SHAREDDIR=../shared
 LIBDIR=../ThreadPool
 CXXFLAGS = -I$(SHAREDDIR) -I$(LIBDIR)
-OBJS = Grove.o $(SHAREDDIR)/SplitInfo.o  $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/TreeNode.o ag_functions.o $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o $(LIBDIR)/thread_pool.o
-PGMS = ag_predict ag_train ag_save ag_expand ag_merge ag_fs ag_interactions ag_nway ag_mergepreds ag_savemerge
-PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_expand.o ag_merge.o ag_fs.o ag_interactions.o ag_nway.o ag_mergepreds.o ag_savemerge.o
 LIBS = -lpthread
 
+# XW
+OBJS = Grove.o ag_functions.o $(LIBDIR)/thread_pool.o \
+	$(SHAREDDIR)/SplitInfo.o  $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o \
+	$(SHAREDDIR)/TreeNode.o $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o
+PGMS = ag_predict ag_train ag_save ag_expand ag_merge ag_fs \
+	ag_interactions ag_nway ag_mergepreds ag_savemerge
+PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_expand.o ag_merge.o ag_fs.o \
+	ag_interactions.o ag_nway.o ag_mergepreds.o ag_savemerge.o
+PGMS = ag_train ag_expand ag_fs ag_interactions ag_save
+PGMOBJS = ag_train.o ag_expand.o ag_fs.o ag_interactions.o ag_save.o
 
 all: directories $(PGMS)
 
@@ -13,21 +20,25 @@ directories:
 	mkdir -p ../Bin
 
 clean:
-	rm $(OBJS)
-	rm $(PGMOBJS)
-	rm $(PGMS)
+	# XW. Should not abort if the files do not exist
+	rm -f $(OBJS)
+	rm -f $(PGMOBJS)
+	rm -rf ../Bin
 
 .cpp.o:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
+# XW. Put thread-specific data into a separate class
 $(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
+$(SHAREDDIR)/INDsample.o: $(SHAREDDIR)/definitions.h
+
 $(SHAREDDIR)/functions.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/SplitInfo.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/LogStream.o: $(SHAREDDIR)/definitions.h
-$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o
+$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o # XW
 
 Grove.o: $(SHAREDDIR)/TreeNode.o
-ag_functions.o: $(SHAREDDIR)/INDdata.o TrainInfo.h
+ag_functions.o: $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o TrainInfo.h # XW
 
 ag_predict.o: $(OBJS)
 

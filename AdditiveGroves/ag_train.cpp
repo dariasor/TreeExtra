@@ -156,7 +156,11 @@ int main(int argc, char* argv[])
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
+	// XW. Parallel node split on top of bagging won't much reduce training time
+	// XW. It is impossible to set random seed for parallel node split
+	/*
 	CGrove::setPool(pool);
+	*/
 #endif
 	
 //3. Train models
@@ -221,6 +225,10 @@ int main(int argc, char* argv[])
 	//make bags, build trees, collect predictions
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
 	{
+		// XW
+		unsigned int state = time(NULL) + bagNo;
+		INDsample sample(state, data);
+
 		cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << endl;
 		//predictions of single trees in groves on the train set data points
 		doublevvv sinpreds(tigNN, doublevv(ti.maxTiGN, doublev(itemN, 0)));	
@@ -246,7 +254,7 @@ int main(int argc, char* argv[])
 			//generate a column with the same alpha 
 			for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
 			{
-				data.newBag();
+				sample.newBag(); // XW
 
 				int tigN = tigVal(tigNNo);	//number of trees in the current grove
 				CGrove leftGrove(alpha, tigN); //(alpha, tigN) grove grown from the left neighbor
@@ -259,13 +267,15 @@ int main(int argc, char* argv[])
 				if((tigNNo == 0)  //bottom row
 					|| (ti.mode == LAYERED)	//layered training style				
 					|| ((ti.mode == FAST) && (bagNo > 0) && (dir[tigNNo][alphaNo] == 0))) //fixed direction
+				{
 					//build from left neighbor
-					leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo]);
+					leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
+				}
 				else if((alphaNo == 0) || (dir[tigNNo][alphaNo] == 1))	//direction fixed upwards 
 				{//build from lower neighbour 
 					sinpreds[tigNNo] = sinpreds[tigNNo - 1];
 					jointpreds[tigNNo] = jointpreds[tigNNo - 1];
-					bottomGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo]);
+					bottomGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
 					winGrove = &bottomGrove;
 					if((ti.mode == FAST) && (bagNo == 0))	
 						dir[tigNNo][alphaNo] = 1;	//set direction upwards
@@ -276,8 +286,9 @@ int main(int argc, char* argv[])
 					doublevv sinpreds2 = sinpreds[tigNNo - 1];
 					doublev jointpreds2 = jointpreds[tigNNo - 1];
 
-					ddpair rmse_l = leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo]);
-					ddpair rmse_b = bottomGrove.converge(sinpreds2, jointpreds2);
+					// XW
+					ddpair rmse_l = leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample);
+					ddpair rmse_b = bottomGrove.converge(sinpreds2, jointpreds2, sample);
 
 					if((rmse_b < rmse_l) || ((rmse_b == rmse_l) && (rand()%2 == 0)))
 					{//bottom grove is the winning one

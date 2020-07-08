@@ -511,6 +511,16 @@ double rand_coef()
 #endif
 }
 
+// XW. Make the rand_coef function thread-safe
+double rand_coef(unsigned int& state)
+{
+#if RAND_MAX > 32767
+		return (double) rand_r(&state) / RAND_MAX;
+#else
+		return (double) ((rand_r(&state) << int(log(RAND_MAX + 1.0) / log(2.0) + 0.5)) + rand_r(&state) ) / ((RAND_MAX + 1) * (RAND_MAX + 1) - 1);
+#endif
+}
+
 //less function with NaN greater than numbers
 bool lessNaN(double i, double j) 
 { 

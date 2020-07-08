@@ -454,9 +454,13 @@ double layeredGroves(INDdata& data, TrainInfo& ti, string modelFName)
 	//build bagged models, calculate sums of predictions
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
 	{
+		// XW
+		unsigned int state = time(NULL) + bagNo;
+		INDsample sample(state, data);
+
 		cout << "\t\tIteration " << bagNo + 1 << " out of " << ti.bagN << endl;
 		CGrove grove(ti.minAlpha, ti.maxTiGN, ti.interaction);
-		grove.trainLayered();
+		grove.trainLayered(sample); // XW
 		for(int itemNo = 0; itemNo < validN; itemNo++)
 			predsumsV[itemNo] += grove.predict(itemNo, VALID);
 

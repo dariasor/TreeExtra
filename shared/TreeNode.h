@@ -8,6 +8,7 @@
 #pragma once
 
 #include "INDdata.h"
+#include "INDsample.h" // XW
 #include "SplitInfo.h"
 
 //Node of a regression tree
@@ -41,7 +42,7 @@ public:
 	double getEntropy(int attrNo); //get entropy of this feature in this node
 	
 	//initializes fresh root
-	void setRoot();
+	void setRoot(INDsample& sample); // XW
 
 	//changes train set responses to residuals
 	void resetRoot(doublev& othpreds);
@@ -56,7 +57,7 @@ public:
 	void traverse(int itemNo, double coef, double& ltCoef, double& rtCoef, DATA_SET dset);
 
 	//splits the node; grows two offsprings 
-	bool split(double alpha, double* pEntropy = NULL);
+	bool split(double alpha, INDsample& sample, double* pEntropy = NULL); // XW
 
 	//saves the node into a binary file
 	void save(fstream& fsave);
