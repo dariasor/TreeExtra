@@ -34,6 +34,7 @@ typedef vector<intvv> intvvv;
 typedef vector<double> doublev;
 typedef vector<doublev> doublevv;
 typedef vector<doublevv> doublevvv;
+typedef vector<doublevvv> doublevvvv;
 typedef vector<float> floatv;
 typedef vector<floatv> floatvv;
 typedef vector<string> stringv;

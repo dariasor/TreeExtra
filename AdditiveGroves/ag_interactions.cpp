@@ -9,6 +9,7 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
+#include "ag_layeredjob.h"
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -210,7 +211,7 @@ int main(int argc, char* argv[])
 			ti.interaction[1] = attrs[attrNo2];
 			telog << "\nRestricting interaction between " << data.getAttrName(attrs[attrNo1]) << " and " 
 				<< data.getAttrName(attrs[attrNo2]) << "\n";
-			double rPerf = layeredGroves(data, ti, string(""));
+			double rPerf = layeredGroves(data, ti, string(""), pool); // XW
 			double score = (meanPerf - rPerf) / stdPerf;
 			if(ti.rms)
 				score *= -1; 

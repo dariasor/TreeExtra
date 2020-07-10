@@ -8,6 +8,7 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
+#include "ag_layeredjob.h"
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -169,7 +170,10 @@ int main(int argc, char* argv[])
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
+	// XW
+	/*
 	CGrove::setPool(pool);
+	*/
 #endif
 
 //3. main part - feature selection
@@ -186,7 +190,7 @@ int main(int argc, char* argv[])
 		removedAny = false;	
 		int firstNotRemoved = -1; //first attribute after the last that was removed
 
-		mean = meanLG(data, ti, 10, std, modelFName);
+		mean = meanLG(data, ti, 10, std, modelFName, pool); // XW
 		telog << "\n\nAverage performance: " << mean << ", std: " << std << ", importance threshold: " << std*3 << "\n\n";
 
 		intv::reverse_iterator attrRIt = attrs.rbegin();
@@ -209,7 +213,7 @@ int main(int argc, char* argv[])
 			else
 			{
 				telog << "Testing " << data.getAttrName(*attrRIt) << ":\n"; 
-				testPerf = layeredGroves(data, ti, string(""));
+				testPerf = layeredGroves(data, ti, string(""), pool); // XW
 			}
 			if((ti.rms && (testPerf <= mean + std * 3)) || (!ti.rms && (testPerf >= mean - std * 3)))
 			{//remove attribute completely

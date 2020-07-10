@@ -7,6 +7,7 @@ LIBS = -lpthread
 OBJS = Grove.o ag_functions.o $(LIBDIR)/thread_pool.o \
 	$(SHAREDDIR)/SplitInfo.o  $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o \
 	$(SHAREDDIR)/TreeNode.o $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o
+ADDOBJS = $(OBJS) ag_layeredjob.o
 PGMS = ag_predict ag_train ag_save ag_expand ag_merge ag_fs \
 	ag_interactions ag_nway ag_mergepreds ag_savemerge
 PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_expand.o ag_merge.o ag_fs.o \
@@ -39,6 +40,7 @@ $(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o # XW
 
 Grove.o: $(SHAREDDIR)/TreeNode.o
 ag_functions.o: $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o TrainInfo.h # XW
+ag_layeredjob.o: $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o TrainInfo.h # XW
 
 ag_predict.o: $(OBJS)
 
@@ -65,15 +67,15 @@ ag_merge.o: $(OBJS)
 ag_merge: ag_merge.o $(OBJS)
 	g++ -O3 -o ../Bin/ag_merge ag_merge.o $(OBJS)  $(LIBS)
 
-ag_fs.o: $(OBJS)
+ag_fs.o: $(ADDOBJS)
 
-ag_fs: ag_fs.o $(OBJS)
-	g++ -O3 -o ../Bin/ag_fs ag_fs.o $(OBJS) $(LIBS)
+ag_fs: ag_fs.o $(ADDOBJS)
+	g++ -O3 -o ../Bin/ag_fs ag_fs.o $(ADDOBJS) $(LIBS)
 
-ag_interactions.o: $(OBJS)
+ag_interactions.o: $(ADDOBJS)
 
-ag_interactions: ag_interactions.o $(OBJS)	
-	g++ -O3 -o ../Bin/ag_interactions ag_interactions.o $(OBJS) $(LIBS)
+ag_interactions: ag_interactions.o $(ADDOBJS)
+	g++ -O3 -o ../Bin/ag_interactions ag_interactions.o $(ADDOBJS) $(LIBS)
 
 ag_nway.o: $(OBJS)
 

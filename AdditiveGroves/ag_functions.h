@@ -4,6 +4,8 @@
 #include "TrainInfo.h"
 #include "INDdata.h"
 
+#include "thread_pool.h" // XW
+
 //saves a vector into a binary file
 fstream& operator << (fstream& fbin, doublev& vec);
 
@@ -41,15 +43,6 @@ int getAlphaN(double minAlphaVal, double trainV);
 //converts max tigN value into the number of tigN values
 int getTiGNN(int tigN);
 
-//converts number to string
-std::string itoa(int value, int base);
-
-//trains and saves a Layered Groves ensemble (Additive Groves trained in layered style)
-double layeredGroves(INDdata& data, TrainInfo& ti, string modelFName);
-
-//runs Layered Groves repeatN times, returns average performance and standard deviation, saves the last model 
-double meanLG(INDdata& db, TrainInfo ti, int repeatN, double& resStd, string modelFName);
-
 //implementation for erase for reverse iterator
 void rerase(intv& vec, intv::reverse_iterator& iter);
 
@@ -64,3 +57,4 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 //calculate the best place on the performance grid for the interaction detection
 bool bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo);
 
+string getPrefix(int bagNo, double alpha, int tigN); // XW

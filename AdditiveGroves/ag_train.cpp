@@ -19,10 +19,220 @@
 
 #include <errno.h>
 
+// XW. The reference arguments are used for the following two reasons:
+//	(1) To pass large sized variables without copying
+//	(2) To modify variables from the main function
+struct trainArg
+{
+	trainArg(
+			int bagNo,
+			TrainInfo& ti,
+			int tigNN,
+			int itemN,
+			int alphaN,
+			INDdata& data,
+			doublevv& dir,
+			int validN,
+			doublev& validTar,
+			doublev& validWt,
+			doublevvv& _dirStat,
+			doublevvvv& _predsumsV
+			):
+		bagNo(bagNo),
+		ti(ti),
+		tigNN(tigNN),
+		itemN(itemN),
+		alphaN(alphaN),
+		data(data),
+		dir(dir),
+		validN(validN),
+		validTar(validTar),
+		validWt(validWt),
+		_dirStat(_dirStat),
+		_predsumsV(_predsumsV)
+		{}
+	int bagNo;
+	TrainInfo& ti;
+	int tigNN;
+	int itemN;
+	int alphaN;
+	INDdata& data;
+	doublevv& dir;
+	int validN;
+	doublev& validTar;
+	doublev& validWt;
+	doublevvv& _dirStat;
+	doublevvvv& _predsumsV;
+};
 
+// XW
+#ifndef _WIN32
+TMutex StdOutMutex; // Make sure only one thread is using the standard output
+TMutex DirMutex; // Probably not needed as only the first thread writes to dir
+TMutex ReturnMutex; // Write to the variables computed and returned by threads
+#endif
+// XW. Can be used in both a single-threaded setting and a multi-threaded setting
+void doTrain(trainArg* ptr)
+{
+	// XW. These variables are read-only and can be shared across threads
+	int bagNo = ptr->bagNo;
+	TrainInfo& ti = ptr->ti;
+	int tigNN = ptr->tigNN;
+	int itemN = ptr->itemN;
+	int alphaN = ptr->alphaN;
+	INDdata& data = ptr->data;
+	doublevv& dir = ptr->dir; // Only the first thread will modify dir
+	int validN = ptr->validN;
+	doublev& validTar = ptr->validTar;
+	doublev& validWt = ptr->validWt;
 
-//ag_train -t _train_set_ -v _validation_set_ -r _attr_file_ [-a _alpha_value_] [-n _N_value_] 
-//		[-b _bagging_iterations_] [-s slow|fast|layered] [-c rms|roc] [-i seed] | -version
+	// XW. Used to collect results computed by this thread
+	doublevv __dirStat(tigNN, doublev(alphaN, 0));
+	doublevvv __predsumsV(tigNN, doublevv(alphaN, doublev(validN, 0)));
+
+	// XW
+	unsigned int state = time(NULL) + bagNo;
+	INDsample sample(state, data);
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+	cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << " (begin)" << endl;
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+
+	//predictions of single trees in groves on the train set data points
+	doublevvv sinpreds(tigNN, doublevv(ti.maxTiGN, doublev(itemN, 0)));	
+	//outer array: running column in surface matrix
+	//middle array: grove (multiple trees)
+	//inner array: predictions by a tree in a grove
+
+	//predictions of groves on the train set data points 
+	doublevv jointpreds(tigNN, doublev(itemN, 0));
+	//outer array: running column in surface matrix
+	//inner array: predictions by the grove
+	//generate a grid of models
+	for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
+	{
+		double alpha;
+		if(alphaNo < alphaN - 1)
+			alpha = alphaVal(alphaNo);
+		else	//this is a special case because minAlpha can be zero
+			alpha = ti.minAlpha;
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+		cout << "\tBuilding models with alpha " << alpha << " at iteration " << bagNo + 1 << endl;
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+
+		//generate a column with the same alpha 
+		for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
+		{
+			sample.newBag(); // XW
+
+			int tigN = tigVal(tigNNo);	//number of trees in the current grove
+			CGrove leftGrove(alpha, tigN); //(alpha, tigN) grove grown from the left neighbor
+			CGrove bottomGrove(alpha, tigN); //(alpha, tigN) grove grown from the bottom neighbor
+			CGrove* winGrove = &leftGrove; //better of the two groves
+
+			//note: grove from left is automatically ready for further use,
+			//	but when grove from below is needed instead, it requires extra effort 
+			// (update winGrove, sinpreds, jointpreds)
+			if((tigNNo == 0)  //bottom row
+				|| (ti.mode == LAYERED)	//layered training style				
+				|| ((ti.mode == FAST) && (bagNo > 0) && (dir[tigNNo][alphaNo] == 0))) //fixed direction
+			{
+				//build from left neighbor
+				leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
+			}
+			else if((alphaNo == 0) || (dir[tigNNo][alphaNo] == 1))	//direction fixed upwards 
+			{//build from lower neighbour 
+				sinpreds[tigNNo] = sinpreds[tigNNo - 1];
+				jointpreds[tigNNo] = jointpreds[tigNNo - 1];
+				bottomGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
+				winGrove = &bottomGrove;
+
+				// XW. Only the first thread writes to dir and thus mutex is not needed
+				if((ti.mode == FAST) && (bagNo == 0))	
+					dir[tigNNo][alphaNo] = 1;	//set direction upwards
+				__dirStat[tigNNo][alphaNo] += 1; // XW
+			}
+			else
+			{//build both groves, compare performances on train and oob data
+				doublevv sinpreds2 = sinpreds[tigNNo - 1];
+				doublev jointpreds2 = jointpreds[tigNNo - 1];
+
+				// XW
+				ddpair rmse_l = leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample);
+				ddpair rmse_b = bottomGrove.converge(sinpreds2, jointpreds2, sample);
+
+				if((rmse_b < rmse_l) || ((rmse_b == rmse_l) && (rand()%2 == 0)))
+				{//bottom grove is the winning one
+					winGrove = &bottomGrove;
+					sinpreds[tigNNo] = sinpreds2;
+					jointpreds[tigNNo] = jointpreds2;
+
+					// XW. Only the first thread writes to dir and thus mutex is not needed
+					if((ti.mode == FAST) && (bagNo == 0))	
+						dir[tigNNo][alphaNo] = 1;	//set direction upwards
+					__dirStat[tigNNo][alphaNo] += 1; // XW
+				}
+			}
+
+			// XW. Add the winning grove to a model file with bagNo, alpha, and tigN values in the name
+			string _tempFName = getPrefix(bagNo, alpha, tigN) + ".tmp";
+			winGrove->save(_tempFName.c_str()); // XW. This doesn't cost much time
+
+			// XW. Generate predictions on validation set
+			for(int itemNo = 0; itemNo < validN; itemNo++)
+			{
+				__predsumsV[tigNNo][alphaNo][itemNo] = winGrove->predict(itemNo, VALID);
+			}
+		}//end for(int tigNNo = 0; tigNNo < tigNN; tigNNo++)
+	}//end for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
+
+	// XW. Only use mutex once here and not everywhere
+#ifndef _WIN32
+ReturnMutex.Lock();
+#endif
+	// XW. Mutex is not needed because threads access different slices (memory addresses)
+	ptr->_dirStat[bagNo] = __dirStat;
+	ptr->_predsumsV[bagNo] = __predsumsV;
+#ifndef _WIN32
+ReturnMutex.Unlock();
+#endif
+	// XW. Add mutex here doesn't reduce training time but improves reproducibility
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+	cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << " (end)" << endl;
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+
+	return;
+}
+
+// XW. Wrap the doTrain function by TJob to be submitted to a thread pool
+#ifndef _WIN32
+class TrainJob: public TThreadPool::TJob
+{
+public:
+	void Run(void* ptr)
+	{
+		doTrain((trainArg*) ptr);
+	}
+};
+#endif
+
+//ag_train -t _train_set_ -v _validation_set_ -r _attr_file_ [-a _alpha_value_] 
+//		[-n _N_value_] [-b _bagging_iterations_] [-s slow|fast|layered] 
+//		[-c rms|roc] [-i seed] | -version
 int main(int argc, char* argv[])
 {	
 	try{
@@ -153,16 +363,16 @@ int main(int argc, char* argv[])
 	CGrove::setData(data);
 	CTreeNode::setData(data);
 
+
+	// XW. Parallelizing node split reduces training time a bit but increases code complexity
+	/*
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
-	// XW. Parallel node split on top of bagging won't much reduce training time
-	// XW. It is impossible to set random seed for parallel node split
-	/*
 	CGrove::setPool(pool);
-	*/
 #endif
-	
+	*/
+
 //3. Train models
 	doublev validTar, validWt;
 	int validN = data.getTargets(validTar, validWt, VALID);
@@ -222,84 +432,97 @@ int main(int argc, char* argv[])
 	//direction of initialization (1 - up, 0 - right), collects statistics in the slow mode
 	doublevv dirStat(tigNN, doublev(alphaN, 0));
 
-	//make bags, build trees, collect predictions
-	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
+// XW. 3.a) If the mode is FAST, the first bag cannot be run in parallel with the rest bags
+	// These two variables are used to collect the returned results of all threads
+	doublevvv _dirStat(ti.bagN, doublevv(tigNN, doublev(alphaN, 0)));
+	// Collect the winning grove's predictions on validation set by all threads
+	doublevvvv _predsumsV(ti.bagN, doublevvv(tigNN, doublevv(alphaN, doublev(validN, 0))));
+	
+	int bagNo = 0;
+	if (ti.mode == FAST)
 	{
-		// XW
-		unsigned int state = time(NULL) + bagNo;
-		INDsample sample(state, data);
+		// Mutex is not needed because only one thread will write to dir (and dirStat)
+		doTrain(new trainArg(
+				bagNo,
+				ti,
+				tigNN,
+				itemN,
+				alphaN,
+				data,
+				dir,
+				validN,
+				validTar,
+				validWt,
+				_dirStat,
+				_predsumsV
+				));
+		bagNo += 1;
+	}
 
-		cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << endl;
-		//predictions of single trees in groves on the train set data points
-		doublevvv sinpreds(tigNN, doublevv(ti.maxTiGN, doublev(itemN, 0)));	
-		//outer array: running column in surface matrix
-		//middle array: grove (multiple trees)
-		//inner array: predictions by a tree in a grove
+// XW. 3.b) Make bags, build trees, collect predictions in parallel if not Windows
+#ifdef _WIN32
+	for (; bagNo < ti.bagN; bagNo ++)
+	{
+		doTrain(new trainArg(
+				bagNo,
+				ti,
+				tigNN,
+				itemN,
+				alphaN,
+				data,
+				dir,
+				validN,
+				validTar,
+				validWt,
+				_dirStat,
+				_predsumsV
+				));
+	}
+#else
+	TThreadPool pool(threadN);
+	for (; bagNo < ti.bagN; bagNo ++)
+	{
+		// Mutex is needed because multiple threads will write to dirStat and predsumsV
+		trainArg* ptr = new trainArg(
+				bagNo,
+				ti,
+				tigNN,
+				itemN,
+				alphaN,
+				data,
+				dir,
+				validN,
+				validTar,
+				validWt,
+				_dirStat,
+				_predsumsV
+				);
+		pool.Run(new TrainJob, ptr);
+	}
+	pool.SyncAll();
+#endif
 
-		//predictions of groves on the train set data points 
-		doublevv jointpreds(tigNN, doublev(itemN, 0));
-		//outer array: running column in surface matrix
-		//inner array: predictions by the grove
-		//generate a grid of models
-		for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
+// XW. 3.c) Aggregate results
+	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
+	{
+		for (int alphaNo = 0; alphaNo < alphaN; alphaNo ++)
 		{
 			double alpha;
 			if(alphaNo < alphaN - 1)
 				alpha = alphaVal(alphaNo);
 			else	//this is a special case because minAlpha can be zero
 				alpha = ti.minAlpha;
-
-			cout << "\tBuilding models with alpha = " << alpha << endl;
-
-			//generate a column with the same alpha 
-			for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
+			for (int tigNNo = 0; tigNNo < tigNN; tigNNo ++)
 			{
-				sample.newBag(); // XW
-
 				int tigN = tigVal(tigNNo);	//number of trees in the current grove
-				CGrove leftGrove(alpha, tigN); //(alpha, tigN) grove grown from the left neighbor
-				CGrove bottomGrove(alpha, tigN); //(alpha, tigN) grove grown from the bottom neighbor
-				CGrove* winGrove = &leftGrove; //better of the two groves
 
-				//note: grove from left is automatically ready for further use,
-				//	but when grove from below is needed instead, it requires extra effort 
-				// (update winGrove, sinpreds, jointpreds)
-				if((tigNNo == 0)  //bottom row
-					|| (ti.mode == LAYERED)	//layered training style				
-					|| ((ti.mode == FAST) && (bagNo > 0) && (dir[tigNNo][alphaNo] == 0))) //fixed direction
-				{
-					//build from left neighbor
-					leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
-				}
-				else if((alphaNo == 0) || (dir[tigNNo][alphaNo] == 1))	//direction fixed upwards 
-				{//build from lower neighbour 
-					sinpreds[tigNNo] = sinpreds[tigNNo - 1];
-					jointpreds[tigNNo] = jointpreds[tigNNo - 1];
-					bottomGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
-					winGrove = &bottomGrove;
-					if((ti.mode == FAST) && (bagNo == 0))	
-						dir[tigNNo][alphaNo] = 1;	//set direction upwards
-					dirStat[tigNNo][alphaNo] += 1;
-				}
-				else
-				{//build both groves, compare performances on train and oob data
-					doublevv sinpreds2 = sinpreds[tigNNo - 1];
-					doublev jointpreds2 = jointpreds[tigNNo - 1];
-
-					// XW
-					ddpair rmse_l = leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample);
-					ddpair rmse_b = bottomGrove.converge(sinpreds2, jointpreds2, sample);
-
-					if((rmse_b < rmse_l) || ((rmse_b == rmse_l) && (rand()%2 == 0)))
-					{//bottom grove is the winning one
-						winGrove = &bottomGrove;
-						sinpreds[tigNNo] = sinpreds2;
-						jointpreds[tigNNo] = jointpreds2;
-						if((ti.mode == FAST) && (bagNo == 0))	
-							dir[tigNNo][alphaNo] = 1;	//set direction upwards
-						dirStat[tigNNo][alphaNo] += 1;
-					}
-				}
+				// XW. Load the winning grove saved by threads
+				CGrove* winGrove = new CGrove(alpha, tigN);
+				string _tempFName = getPrefix(bagNo, alpha, tigN) + ".tmp";
+				fstream fload(_tempFName.c_str(), ios_base::binary | ios_base::in);
+				winGrove->load(fload);
+				fload.close();
+				
 				//add the winning grove to a model file with alpha and tigN values in the name
 				string prefix = string("./AGTemp/ag.a.") 
 									+ alphaToStr(alpha)
@@ -308,11 +531,14 @@ int main(int argc, char* argv[])
 				string tempFName = prefix + ".tmp";
 				winGrove->save(tempFName.c_str());
 
+				// XW. Aggregate the results of all threads
+				dirStat[tigNNo][alphaNo] += _dirStat[bagNo][tigNNo][alphaNo];
+
 				//generate predictions for validation set
 				doublev predictions(validN);
 				for(int itemNo = 0; itemNo < validN; itemNo++)
 				{
-					predsumsV[tigNNo][alphaNo][itemNo] += winGrove->predict(itemNo, VALID);
+					predsumsV[tigNNo][alphaNo][itemNo] += _predsumsV[bagNo][tigNNo][alphaNo][itemNo]; // XW
 					predictions[itemNo] = predsumsV[tigNNo][alphaNo][itemNo] / (bagNo + 1);
 				}
 				if(bagNo == ti.bagN - 1)
@@ -326,9 +552,9 @@ int main(int argc, char* argv[])
 				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar, validWt);
 				if(!ti.rms)
 					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar, validWt);
-			}//end for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
-		}//end for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
-	}// end for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
+			}
+		}
+	}
 
 //4. Output
 	if(ti.rms)

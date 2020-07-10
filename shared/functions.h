@@ -101,3 +101,6 @@ bool ltSecond(fipair p1, fipair p2);
 
 //greater function comparing by the absolute value of the third item
 bool gtAbsThird(ssdtriple t1, ssdtriple t2);
+
+//converts number to string
+std::string itoa(int value, int base);
