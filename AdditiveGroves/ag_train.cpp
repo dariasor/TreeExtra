@@ -531,6 +531,9 @@ int main(int argc, char* argv[])
 				string tempFName = prefix + ".tmp";
 				winGrove->save(tempFName.c_str());
 
+				// XW. Free the winning grove's memory to avoid being killed
+				delete winGrove;
+
 				// XW. Aggregate the results of all threads
 				dirStat[tigNNo][alphaNo] += _dirStat[bagNo][tigNNo][alphaNo];
 

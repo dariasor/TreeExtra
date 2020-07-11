@@ -139,6 +139,7 @@ StdOutMutex.Unlock();
 
 			if(bagNo < prev.bagN)
 			{
+// XW. TODO. oldGrove is never used elsewhere
 				//on old edge, retrieve old models and regenerate sinpreds and jointpreds
 				if((tigNNo == prevTiGNN - 1) && (alphaNo < prevAlphaN) ||
 				   (alphaNo == prevAlphaN - 1) && (tigNNo < prevTiGNN))
@@ -151,6 +152,8 @@ StdOutMutex.Unlock();
 
 					oldGrove.batchPredict(sinpreds[tigNNo], jointpreds[tigNNo]);
 				}
+
+// XW. TODO. predsumsV[tigNNo < prevTiGNN][alphaNo < prevAlphaN][itemNo] = 0
 				//skip the rest of the iteration when the model is already built
 				if((tigNNo < prevTiGNN) && (alphaNo < prevAlphaN))
 					continue;
@@ -589,6 +592,7 @@ int main(int argc, char* argv[])
 	}
 	pool.SyncAll();
 #endif
+	telog << "Info: All of the threads have been synchronized\n"; // XW
 
 	// XW
 	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
@@ -606,6 +610,8 @@ int main(int argc, char* argv[])
 
 				if(bagNo < prev.bagN)
 				{
+
+// XW. TODO. predictions[tigNNo < prevTiGNN][alphaNo < prevAlphaN] are wrong
 					// XW. These temp files have already been added
 					if((tigNNo < prevTiGNN) && (alphaNo < prevAlphaN))
 						continue;
@@ -626,6 +632,9 @@ int main(int argc, char* argv[])
 				string tempFName = prefix + ".tmp";
 				winGrove->save(tempFName.c_str());
 
+				// XW. Free the winning grove's memory to avoid being killed
+				delete winGrove;
+
 				// XW. Aggregate the results of all threads
 				dirStat[tigNNo][alphaNo] += _dirStat[bagNo][tigNNo][alphaNo];
 
@@ -644,6 +653,8 @@ int main(int argc, char* argv[])
 						fpreds << predictions[itemNo] << endl;
 					fpreds.close();
 				}
+
+// XW. TODO. tigNNo < prevTiGNN and alphaNo < prevAlphaN are never best
 				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar, validWt);
 				if(!ti.rms)
 					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar, validWt);
