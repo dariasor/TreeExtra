@@ -1,4 +1,4 @@
-//Additive Groves / ag_interactions.cpp: main function of executable ag_interactions
+//Additive Groves / ag_nway.cpp: main function of executable ag_nway
 //
 //(c) Daria Sorokina
 
@@ -9,6 +9,7 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
+#include "ag_layeredjob.h" // XW
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -189,7 +190,10 @@ int main(int argc, char* argv[])
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
+	// XW
+	/*
 	CGrove::setPool(pool);
+	*/
 #endif
 
 //3. Main part - run interaction detection
@@ -216,7 +220,7 @@ int main(int argc, char* argv[])
 		telog << data.getAttrName(ti.interaction[nwayNo]) << ", "; 
 	telog << data.getAttrName(ti.interaction[ti.interaction.size() - 1]) << "\n";
 		
-	double rPerf = layeredGroves(data, ti, modelFName);
+	double rPerf = layeredGroves(data, ti, modelFName, pool); // XW
 	double score = (meanPerf - rPerf) / stdPerf;
 	if(ti.rms)
 		score *= -1; 

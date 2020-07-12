@@ -12,8 +12,8 @@ PGMS = ag_predict ag_train ag_save ag_expand ag_merge ag_fs \
 	ag_interactions ag_nway ag_mergepreds ag_savemerge
 PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_expand.o ag_merge.o ag_fs.o \
 	ag_interactions.o ag_nway.o ag_mergepreds.o ag_savemerge.o
-PGMS = ag_train ag_expand ag_fs ag_interactions ag_save
-PGMOBJS = ag_train.o ag_expand.o ag_fs.o ag_interactions.o ag_save.o
+PGMS = ag_train ag_expand ag_fs ag_interactions ag_save ag_nway
+PGMOBJS = ag_train.o ag_expand.o ag_fs.o ag_interactions.o ag_save.o ag_nway.o
 
 all: directories $(PGMS)
 
@@ -77,10 +77,10 @@ ag_interactions.o: $(ADDOBJS)
 ag_interactions: ag_interactions.o $(ADDOBJS)
 	g++ -O3 -o ../Bin/ag_interactions ag_interactions.o $(ADDOBJS) $(LIBS)
 
-ag_nway.o: $(OBJS)
+ag_nway.o: $(ADDOBJS)
 
-ag_nway: ag_nway.o $(OBJS)
-	g++ -O3 -o ../Bin/ag_nway ag_nway.o $(OBJS) $(LIBS)
+ag_nway: ag_nway.o $(ADDOBJS)
+	g++ -O3 -o ../Bin/ag_nway ag_nway.o $(ADDOBJS) $(LIBS)
 
 ag_mergepreds.o: $(OBJS)
 

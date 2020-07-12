@@ -9,7 +9,7 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
-#include "ag_layeredjob.h"
+#include "ag_layeredjob.h" // XW
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -189,7 +189,10 @@ int main(int argc, char* argv[])
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
+	// XW
+	/*
 	CGrove::setPool(pool);
+	*/
 #endif
 
 	//3. Main part - run interaction detection
