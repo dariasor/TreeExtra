@@ -3,10 +3,11 @@
 // (c) Xiaojie Wang
 
 #include "INDsample.h"
+#include "LogStream.h"
 #include "functions.h"
 
-#include <algorithm> // XW. Solve error: 'sort' was not declared in this scope
-#include <cmath> // XW. Solve error: use of undeclared identifier 'isnan'
+#include <algorithm> // Solve error: 'sort' was not declared in this scope
+#include <cmath> // Solve error: use of undeclared identifier 'isnan'
 
 INDsample::INDsample(unsigned int state, INDdata& data):
 	state(state), data(data)
@@ -51,6 +52,34 @@ void INDsample::newBag(void)
 			oobData[oobNo] = itemNo;
 			oobNo++;
 		}
+
+	//create versions of data sorted by values of attributes
+	sortItems();
+}
+
+//subsampling without replacement
+void INDsample::newSample(int sampleN)
+{
+	// XW. Get data references from INDdata
+	int trainN = data.getTrainN();
+	doublev& trainWt = data.getTrainWt();
+
+	intv inxv(trainN);
+	for(int i = 0; i < trainN; i++)
+		inxv[i] = i;
+
+	bootstrap.clear();
+	bootstrap.resize(sampleN);
+	bagV = 0;
+
+	for(int i = 0; i < sampleN; i++)
+	{
+		double randCoef = rand_coef(state); // XW. Use rand_r for thread safety
+		int nextItem = (int) ((trainN - 1 - i) * randCoef);
+		bootstrap[i] = inxv[nextItem];
+		bagV += trainWt[i];
+		inxv[nextItem] = inxv[trainN - 1 - i];
+	}
 
 	//create versions of data sorted by values of attributes
 	sortItems();

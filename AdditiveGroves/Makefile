@@ -24,7 +24,8 @@ clean:
 	# XW. Should not abort if the files do not exist
 	rm -f $(OBJS)
 	rm -f $(PGMOBJS)
-	rm -rf ../Bin
+	rm -rf ../Bin/ag_train ../Bin/ag_expand ../Bin/ag_fs ../Bin/ag_interactions \
+		../Bin/ag_save ../Bin/ag_nway
 
 .cpp.o:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@

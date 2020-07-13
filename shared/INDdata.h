@@ -109,21 +109,19 @@ public:
 	//gets all values of a specific attribute in the validation set
 	void getValues(int attrId, doublev& values);
 
-	// XW. TODO. Move to INDsample
-	/*
+	/*// XW. Move to INDsample
 	//calculates and outputs correlation scores between active attributes based on the training set
 	void correlations(string trainFName);
-	*/
+	*///
 
 private:
 	//gets a line of text, returns a vector with data points
 	void readData(char* buf, streamsize buflen, floatv& retv, int retvlen); 
 
-	// XW. TODO. Move to INDsample
-	/*
+	/*// XW. Move to INDsample
 	//create versions of bootstrap data sorted by active continuous attributes 
 	void sortItems();
-	*/
+	*///
 
 private:
 	int attrN;			//number of attributes
