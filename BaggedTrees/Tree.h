@@ -24,7 +24,10 @@ public:
 	CTree(double alpha = 0);
 
 	//grows a tree, increases attribute counts
-	void grow(bool doFS, doublev& attrCounts, INDsample& sample); // XW
+	// XW. Variable attrCounts is shared and modified by different bagging threads
+	void growGBT(bool doFS, doublev& attrCounts, INDsample& sample);
+	// XW. Variable curAttrCounts is local and specific to a certain bagging thread
+	void growBT(bool doFS, doublev& curAttrCounts, INDsample& sample);
 
 	//saves the tree into the binary file
 	void save(const char* fileName);

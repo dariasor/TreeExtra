@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 		CTree tree(ti.alpha);
 		tree.setRoot(sample); // XW
 		tree.resetRoot(trainPreds);
-		tree.grow(doFS, attrCounts, sample); // XW
+		tree.growGBT(doFS, attrCounts, sample); // XW
 
 		//update predictions
 		for(int itemNo = 0; itemNo < trainN; itemNo++)

@@ -187,3 +187,113 @@ void INDsample::getSortedData(fipairvv& sorted)
 {
 	sorted = sortedItems;
 }
+
+//Calculates and outputs correlation scores between active attributes based on the training set. Weights are ignored.
+void INDsample::correlations(string trainFName)
+{
+	// XW. Get data references from INDdata
+	floatvv& train = data.getTrain();
+
+	LogStream telog;
+
+	//get a list of defined attributes
+	intv attrs;
+	data.getActiveAttrs(attrs); // XW
+	size_t activeN = attrs.size();
+
+	size_t itemN = data.getTrainN(); // XW
+
+	//reserve space for sortedItems
+	sortedItems.clear();
+	sortedItems.resize(activeN);
+	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
+		sortedItems[attrNo].reserve(itemN);
+
+	//fill sortedItems 
+	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
+	{
+		for(size_t itemNo = 0; itemNo < itemN; itemNo++)
+		{
+			float value = train[bootstrap[itemNo]][attrs[attrNo]];
+			if(isnan(value))
+				throw CORR_MV_ERR;
+
+			sortedItems[attrNo].push_back(fipair(value, itemNo));
+		}
+		sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
+		
+		//replace actual values with ranks. Ties get average rank.
+		int lastDone = -1;
+		float curVal = sortedItems[attrNo][0].first;
+		for(size_t itemNo = 1; itemNo <= itemN; itemNo++)
+			if((itemNo == itemN) || (sortedItems[attrNo][itemNo].first != curVal))
+			{
+				if(itemNo != itemN)
+					curVal = sortedItems[attrNo][itemNo].first;
+				float rank = (float)((lastDone + itemNo) / 2.0 + 1);
+				for(size_t fillNo = lastDone + 1; fillNo < itemNo; fillNo++)
+					sortedItems[attrNo][fillNo].first = rank;
+				lastDone = itemNo - 1;
+			}
+
+		//re-sort by itemId
+		sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end(), ltSecond);
+	}
+
+	//calculate Spearman's rank correlation values
+	double coef = 6.0 / (itemN * ((double)itemN * itemN - 1.0));
+
+	doublev stub(activeN, 0);
+	doublevv correlations(activeN, stub);
+
+	ssdtriplev corrv;
+	corrv.reserve(activeN * (activeN - 1));
+
+	for(size_t attrNo1 = 0; attrNo1 < activeN; attrNo1++)
+		for(size_t attrNo2 = 0; attrNo2 < activeN; attrNo2++)
+			if(attrNo1 > attrNo2)
+				correlations[attrNo1][attrNo2] = correlations[attrNo2][attrNo1];
+			else if(attrNo1 == attrNo2)
+				correlations[attrNo1][attrNo2] = QNAN;
+			else
+			{
+				double corr = 0;
+				for(size_t itemNo = 0; itemNo < itemN; itemNo++)
+				{
+					double d = sortedItems[attrNo1][itemNo].first - sortedItems[attrNo2][itemNo].first;
+					corr += coef * d * d;
+				}
+				correlations[attrNo1][attrNo2] = 1 - corr;
+				corrv.push_back(ssdtriple(sspair(
+						data.getAttrName(attrs[attrNo1]), 
+						data.getAttrName(attrs[attrNo2])
+						), 1 - corr)); // XW
+			}
+
+	//open output file
+	string outFName = /*beforeLastDot(trainFName) + "." + */"correlations.txt";
+	fstream fcorr(outFName.c_str(), ios_base::out);
+
+	//output in the sorted list of triples format
+	sort(corrv.begin(), corrv.end(), gtAbsThird);
+	for(size_t pairNo = 0; pairNo < corrv.size(); pairNo++)
+		fcorr << corrv[pairNo].first.first << "\t" << corrv[pairNo].first.second << "\t" << corrv[pairNo].second << endl;
+
+
+	// output in the table format
+	fcorr << "\n" << QNAN;
+	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
+		fcorr << "\t" << data.getAttrName(attrs[attrNo]); // XW
+	fcorr << endl;
+
+	for(size_t attrNo1 = 0; attrNo1 < activeN; attrNo1++)
+	{
+		fcorr << data.getAttrName(attrs[attrNo1]); // XW
+		for(size_t attrNo2 = 0; attrNo2 < activeN; attrNo2++)
+			fcorr << "\t" << correlations[attrNo1][attrNo2];
+		fcorr << endl;
+	}
+	fcorr.close();
+
+	telog << "Correlation scores are saved into the file " << outFName << ".\n";
+}

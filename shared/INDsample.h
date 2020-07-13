@@ -30,11 +30,8 @@ public:
 	//subsampling without replacement
 	void newSample(int sampleN);
 
-	// XW. TODO
-	/*
 	//calculates and outputs correlation scores between active attributes based on the training set
 	void correlations(string trainFName);
-	*/
 
 private:
 	//create versions of bootstrap data sorted by active continuous attributes 

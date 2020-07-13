@@ -4,8 +4,8 @@ CXXFLAGS = -I$(SHAREDDIR) -I$(LIBDIR)
 OBJS = Tree.o bt_functions.o $(LIBDIR)/thread_pool.o \
 	$(SHAREDDIR)/SplitInfo.o $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o \
 	$(SHAREDDIR)/TreeNode.o $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o # XW
-PGMS = gbt_train # bt_predict bt_train
-PGMOBJS = gbt_train.o # bt_predict.o bt_train.o
+PGMS = bt_predict bt_train gbt_train
+PGMOBJS = bt_predict.o bt_train.o gbt_train.o
 LIBS = -lpthread
 
 all: directories $(PGMS)

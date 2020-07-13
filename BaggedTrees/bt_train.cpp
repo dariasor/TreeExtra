@@ -211,10 +211,21 @@ int main(int argc, char* argv[])
 		if(doOut)
 			cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << endl;
 
-		data.newBag();
+		// XW
+		unsigned int state = bagNo; // TODO. time(NULL) + bagNo;
+		INDsample sample(state, data);
+		sample.newBag();
+
 		CTree tree(ti.alpha);
-		tree.setRoot();
-		tree.grow(doFS, attrCounts);
+
+		// XW
+		tree.setRoot(sample);
+		doublev curAttrCounts(attrCounts.size(), 0);
+		tree.growBT(doFS, curAttrCounts, sample);
+		if(doFS)
+			for(size_t attrNo = 0; attrNo < attrCounts.size(); attrNo++)
+				attrCounts[attrNo] += curAttrCounts[attrNo] / sample.getBagV();
+		
 		tree.save(modelFName.c_str());
 
 		//generate predictions for validation set
@@ -308,7 +319,15 @@ int main(int argc, char* argv[])
 	if(data.getHasActiveMV())
 		telog << "Warning: the data has missing values in active attributes, correlations can not be calculated.\n\n";
 	else
-		data.correlations(ti.trainFName);
+	{
+		// XW
+		int bagNo = ti.bagN - 1;
+		unsigned int state = bagNo; // TODO. time(NULL) + bagNo;
+		INDsample sample(state, data);
+		sample.newBag();
+
+		sample.correlations(ti.trainFName);
+	}
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);
