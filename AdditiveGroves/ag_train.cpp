@@ -437,7 +437,7 @@ int main(int argc, char* argv[])
 	doublevvv _dirStat(ti.bagN, doublevv(tigNN, doublev(alphaN, 0)));
 	// Collect the winning grove's predictions on validation set by all threads
 	doublevvvv _predsumsV(ti.bagN, doublevvv(tigNN, doublevv(alphaN, doublev(validN, 0))));
-	
+
 	int bagNo = 0;
 	if (ti.mode == FAST)
 	{
@@ -482,7 +482,7 @@ int main(int argc, char* argv[])
 	TThreadPool pool(threadN);
 	for (; bagNo < ti.bagN; bagNo ++)
 	{
-		// Mutex is needed because multiple threads will write to dirStat and predsumsV
+		// Mutex is needed because multiple threads will write to the same variable
 		trainArg* ptr = new trainArg(
 				bagNo,
 				ti,
@@ -501,6 +501,7 @@ int main(int argc, char* argv[])
 	}
 	pool.SyncAll();
 #endif
+	telog << "Info: All of the threads have been synchronized\n"; // XW
 
 // XW. 3.c) Aggregate results
 	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)

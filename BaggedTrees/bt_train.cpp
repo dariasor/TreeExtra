@@ -22,6 +22,132 @@
 #include <errno.h>
 #include <cmath>
 
+// XW. Used for passing arguments to a job submitted to a thread pool
+struct trainArg
+{
+	trainArg(
+			bool doOut,
+			int bagNo,
+			TrainInfo& ti,
+			INDdata& data,
+			doublev& attrCounts,
+			bool doFS,
+			string modelFName,
+			int validN,
+			doublevv& _predsumsV
+			):
+		doOut(doOut),
+		bagNo(bagNo),
+		ti(ti),
+		data(data),
+		attrCounts(attrCounts),
+		doFS(doFS),
+		modelFName(modelFName),
+		validN(validN),
+		_predsumsV(_predsumsV)
+		{}
+	bool doOut;
+	int bagNo;
+	TrainInfo& ti;
+	INDdata& data;
+	doublev& attrCounts;
+	bool doFS;
+	string modelFName;
+	int validN;
+	doublevv& _predsumsV;
+};
+
+// XW. Use mutex to access shared resources like variables within a thread
+#ifndef _WIN32
+TMutex StdOutMutex; // Make sure only one thread is using the standard output
+TMutex ReturnMutex; // Write to the variables computed and returned by threads
+#endif
+
+// XW. Can be used in both a single-threaded setting and a multi-threaded setting
+void doTrain(trainArg* ptr)
+{
+	bool doOut = ptr->doOut;
+	int bagNo = ptr->bagNo;
+	TrainInfo& ti = ptr->ti;
+	INDdata& data = ptr->data;
+	doublev& attrCounts = ptr->attrCounts;
+	bool doFS = ptr->doFS;
+	string modelFName = ptr->modelFName;
+	int validN = ptr->validN;
+	doublevv& _predsumsV = ptr->_predsumsV;
+
+	doublev __predsumsV(validN, 0);
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+	if(doOut)
+		cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << " (begin)" << endl;
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+
+	// XW
+	unsigned int state = time(NULL) + bagNo;
+	INDsample sample(state, data);
+	sample.newBag();
+
+	CTree tree(ti.alpha);
+
+	// XW
+	tree.setRoot(sample);
+	doublev curAttrCounts(attrCounts.size(), 0);
+	tree.growBT(doFS, curAttrCounts, sample);
+
+	string _modelFName = insertSuffix(modelFName, "b." + itoa(bagNo, 10));
+	// XW. Clear previous temp files as the save function appends to the files
+	fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
+	fload.close();
+	tree.save(_modelFName.c_str());
+
+	//generate predictions for validation set
+	for(int itemNo = 0; itemNo < validN; itemNo++)
+	{
+		__predsumsV[itemNo] = tree.predict(itemNo, VALID);
+	}
+
+#ifndef _WIN32
+ReturnMutex.Lock();
+#endif
+	// Unlike predsumsV, computing attrCounts is invariant to bagging order
+	if(doFS)
+		for(size_t attrNo = 0; attrNo < attrCounts.size(); attrNo++)
+			attrCounts[attrNo] += curAttrCounts[attrNo] / sample.getBagV();
+
+	_predsumsV[bagNo] = __predsumsV;
+#ifndef _WIN32
+ReturnMutex.Unlock();
+#endif
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+	if(doOut)
+		cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << " (end)" << endl;
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+
+	return;
+}
+
+// XW. Wrap the doTrain function by TJob to be submitted to a thread pool
+#ifndef _WIN32
+class TrainJob: public TThreadPool::TJob
+{
+public:
+	void Run(void* ptr)
+	{
+		doTrain((trainArg*) ptr);
+	}
+};
+#endif
+
 int main(int argc, char* argv[])
 {	
 	try{
@@ -150,11 +276,13 @@ int main(int argc, char* argv[])
 	CTree::setData(data);
 	CTreeNode::setData(data);
 
+	/*// XW. Disable parallel node split cause parallel bagging consumes all CPUs
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
 	CTree::setPool(pool);
 #endif
+	*///
 
 //3. Train models
 	doublev validTar, validWt;
@@ -204,34 +332,58 @@ int main(int argc, char* argv[])
 		fbagroc.close();
 	}
 
-	//make bags, build trees, collect predictions
+// XW. 3.a) Make bags, build trees, collect predictions in parallel if not Windows
+	doublevv _predsumsV(ti.bagN, doublev(validN, 0));
+#ifdef _WIN32
+	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
+	{
+		doTrain(new trainArg(
+				doOut,
+				bagNo,
+				ti,
+				data,
+				attrCounts,
+				doFS,
+				modelFName,
+				validN,
+				_predsumsV
+				));
+	}
+#else
+	TThreadPool pool(threadN);
+	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
+	{
+		trainArg* ptr = new trainArg(
+				doOut,
+				bagNo,
+				ti,
+				data,
+				attrCounts,
+				doFS,
+				modelFName,
+				validN,
+				_predsumsV
+				);
+		pool.Run(new TrainJob, ptr);
+	}
+	pool.SyncAll();
+#endif
+	telog << "Info: All of the threads have been synchronized\n"; // XW
+
+// XW. 3.b) Aggregate results
 	doublev predictions(validN);
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
 	{
-		if(doOut)
-			cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << endl;
-
-		// XW
-		unsigned int state = bagNo; // TODO. time(NULL) + bagNo;
-		INDsample sample(state, data);
-		sample.newBag();
-
 		CTree tree(ti.alpha);
-
-		// XW
-		tree.setRoot(sample);
-		doublev curAttrCounts(attrCounts.size(), 0);
-		tree.growBT(doFS, curAttrCounts, sample);
-		if(doFS)
-			for(size_t attrNo = 0; attrNo < attrCounts.size(); attrNo++)
-				attrCounts[attrNo] += curAttrCounts[attrNo] / sample.getBagV();
-		
+		string _modelFName = insertSuffix(modelFName, "b." + itoa(bagNo, 10));
+		fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::in);
+		tree.load(fload);
 		tree.save(modelFName.c_str());
 
 		//generate predictions for validation set
 		for(int itemNo = 0; itemNo < validN; itemNo++)
 		{
-			predsumsV[itemNo] += tree.predict(itemNo, VALID);
+			predsumsV[itemNo] += _predsumsV[bagNo][itemNo];
 			predictions[itemNo] = predsumsV[itemNo] / (bagNo + 1);
 		}
 		rmsV[bagNo] = rmse(predictions, validTar, validWt);
@@ -252,7 +404,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	
 //4. Output
 		
 	//output results 

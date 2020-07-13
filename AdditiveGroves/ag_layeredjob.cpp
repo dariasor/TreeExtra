@@ -68,7 +68,6 @@ StdOutMutex.Unlock();
 	if (! modelFName.empty())
 	{
 		string _modelFName = insertSuffix(modelFName, "b." + itoa(bagNo, 10));
-
 		// XW. Clear previous temp files as the save function appends to the files
 		fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
 		fload.close();
