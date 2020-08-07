@@ -22,6 +22,11 @@
 #include <errno.h>
 #include <cmath>
 
+// XW. Programmatically decide the number of cores
+#ifdef __APPLE__
+#include <thread>
+#endif
+
 // XW. Used for passing arguments to a job submitted to a thread pool
 struct trainArg
 {
@@ -176,6 +181,19 @@ int main(int argc, char* argv[])
 
 #ifndef _WIN32
 	int threadN = 6;	//number of threads
+#ifndef __APPLE__
+	int nCore = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+	int nCore = std::thread::hardware_concurrency();
+#endif
+	// XW. Need to handle 0 which is returned when unable to detect
+	if (nCore > 0) {
+		if (nCore == 1)
+			threadN = 1;
+		else
+			threadN = nCore / 2;
+	}
+	// std::cout << "Default number of cores is " << threadN << std::endl;
 #endif
 
 	TrainInfo ti; //model training parameters

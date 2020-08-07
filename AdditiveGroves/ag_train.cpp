@@ -19,6 +19,11 @@
 
 #include <errno.h>
 
+// XW. Programmatically decide the number of cores
+#ifdef __APPLE__
+#include <thread>
+#endif
+
 // XW. The reference arguments are used for the following two reasons:
 //	(1) To pass large sized variables without copying
 //	(2) To modify variables from the main function
@@ -263,6 +268,19 @@ int main(int argc, char* argv[])
 	TrainInfo ti;
 #ifndef _WIN32
 	int threadN = 6;	//number of threads
+#ifndef __APPLE__
+	int nCore = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+	int nCore = std::thread::hardware_concurrency();
+#endif
+	// XW. Need to handle 0 which is returned when unable to detect
+	if (nCore > 0) {
+		if (nCore == 1)
+			threadN = 1;
+		else
+			threadN = nCore / 2;
+	}
+	// std::cout << "Default number of cores is " << threadN << std::endl;
 #endif
 
 	//parse and save input parameters
