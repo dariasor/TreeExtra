@@ -494,7 +494,6 @@ int main(int argc, char* argv[])
 		unsigned int state = bagNo; // TODO. time(NULL) + bagNo;
 		INDsample sample(state, data);
 		sample.newBag();
-
 		sample.correlations(ti.trainFName);
 	}
 
