@@ -366,7 +366,6 @@ int main(int argc, char* argv[])
 		DeleteFile(fullName.c_str());
 	} 
 	CreateDirectory("AGTemp", NULL);
-
 #else 
 	system("rm -rf ./AGTemp/");
 	system("mkdir ./AGTemp/");

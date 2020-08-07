@@ -104,7 +104,7 @@ StdOutMutex.Unlock();
 	doublev curAttrCounts(attrCounts.size(), 0);
 	tree.growBT(doFS, curAttrCounts, sample);
 
-	string _modelFName = insertSuffix(modelFName, "b." + itoa(bagNo, 10));
+	string _modelFName =  getModelFName(modelFName, bagNo);
 	// XW. Clear previous temp files as the save function appends to the files
 	fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
 	fload.close();
@@ -276,8 +276,26 @@ int main(int argc, char* argv[])
 
 	if((ti.alpha < 0) || (ti.alpha > 1))
 		throw ALPHA_ERR;
-	
-//1.a) Set log file
+
+//1.a) delete all temp files from the previous run and create a directory BTTemp
+#ifdef WIN32	//in windows
+	WIN32_FIND_DATA fn;			//structure that will contain the name of file
+	HANDLE hFind;				//current file
+	hFind = FindFirstFile("./BTTemp/*.*", &fn);	//"."	
+	FindNextFile(hFind, &fn);						//".." 
+	//delete all files in the directory
+	while(FindNextFile(hFind, &fn) != 0) 
+	{
+		string fullName = "BTTemp/" + (string)fn.cFileName;
+		DeleteFile(fullName.c_str());
+	} 
+	CreateDirectory("BTTemp", NULL);
+#else 
+	system("rm -rf ./BTTemp/");
+	system("mkdir ./BTTemp/");
+#endif
+
+//1.b) Set log file
 	LogStream telog;
 	LogStream::init(doOut);
 	telog << "\n-----\nbt_train ";
@@ -285,7 +303,7 @@ int main(int argc, char* argv[])
 		telog << argv[argNo] << " ";
 	telog << "\n\n";
 
-//1.b) Initialize random number generator. 
+//1.c) Initialize random number generator. 
 	srand(ti.seed);
 
 //2. Load data
@@ -393,7 +411,7 @@ int main(int argc, char* argv[])
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
 	{
 		CTree tree(ti.alpha);
-		string _modelFName = insertSuffix(modelFName, "b." + itoa(bagNo, 10));
+		string _modelFName = getModelFName(modelFName, bagNo);
 		fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::in);
 		tree.load(fload);
 		tree.save(modelFName.c_str());

@@ -67,7 +67,7 @@ StdOutMutex.Unlock();
 	// XW. Multiple threads write to different temp files
 	if (! modelFName.empty())
 	{
-		string _modelFName = insertSuffix(modelFName, "b." + itoa(bagNo, 10));
+		string _modelFName = getModelFName(modelFName, bagNo);
 		// XW. Clear previous temp files as the save function appends to the files
 		fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
 		fload.close();
@@ -167,7 +167,7 @@ double layeredGroves(
 		if (! modelFName.empty())
 		{
 			CGrove grove(ti.minAlpha, ti.maxTiGN, ti.interaction);
-			string _modelFName = insertSuffix(modelFName, "b." + itoa(bagNo, 10));
+			string _modelFName = getModelFName(modelFName, bagNo);
 			fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::in);
 			grove.load(fload);
 			grove.save(modelFName.c_str());
@@ -228,5 +228,13 @@ double meanLG(
 	resStd = sqrt(resStd);
 
 	return resMean;
+}
+
+// XW
+string getModelFName(string modelFName, int bagNo)
+{
+	string _modelFName = string("./AGTemp/") 
+			+ insertSuffix(modelFName, "b." + itoa(bagNo, 10));
+	return _modelFName;
 }
 

@@ -36,3 +36,5 @@ double meanLG(
 		string modelFName,
 		TThreadPool& pool
 		); // XW
+
+string getModelFName(string modelFName, int bagNo); // XW
