@@ -486,13 +486,14 @@ int main(int argc, char* argv[])
 		if(topAttrN > attrN)
 			topAttrN = attrN;
 
-		fstream ffeatures("feature_scores.txt", ios_base::out);	
-		ffeatures << "Top " << topAttrN << " features\n";
-		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
+		fstream ffeatures("feature_scores.txt", ios_base::out);
+		// ffeatures << "Top " << topAttrN << " features\n";
+		ffeatures << "All " << attrN << " features in descending order of scores\n"; // XW
+		for (int attrNo = 0; attrNo < attrN; attrNo ++) // XW
 			ffeatures << data.getAttrName(attrCountsP[attrNo].first) << "\t" 
 				<< attrCountsP[attrNo].second / ti.bagN << "\n";
 		ffeatures << "\n\nColumn numbers (beginning with 1)\n";
-		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
+		for (int attrNo = 0; attrNo < attrN; attrNo ++) // XW
 			ffeatures << data.getColNo(attrCountsP[attrNo].first) + 1 << " ";
 		ffeatures << "\nLabel column number: " << data.getTarColNo() + 1;
 		ffeatures.close();
