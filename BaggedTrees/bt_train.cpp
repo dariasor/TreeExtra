@@ -199,10 +199,11 @@ int main(int argc, char* argv[])
 	TrainInfo ti; //model training parameters
 	string modelFName = "model.bin";	//name of the output file for the model
 	string predFName = "preds.txt";		//name of the output file for predictions
-	int topAttrN = -1;  //how many top attributes to output and keep in the cut data 
+	int topAttrN = -1;		//how many top attributes to output and keep in the cut data 
 							//(0 = do not do feature selection)
 							//(-1 = output all available features)
-	bool doOut = true; //whether to output log information to stdout
+	int splitAttrN = -1;	// XW. How many split attributes to leave in output attribute file
+	bool doOut = true;		//whether to output log information to stdout
 
 	//parse and save input parameters
 	//indicators of presence of required flags in the input
@@ -267,8 +268,11 @@ int main(int argc, char* argv[])
 #else
 			throw WIN_ERR;
 #endif
-		else
+		else if (!args[argNo].compare("-s")) {
+			splitAttrN = atoiExt(argv[argNo + 1]);
+		} else {
 			throw INPUT_ERR;
+		}
 	}//end for(int argNo = 1; argNo < argc; argNo += 2) //parse and save input parameters
 
 	if(!(hasTrain && hasVal && hasAttr))
@@ -347,6 +351,10 @@ int main(int argc, char* argv[])
 	int attrN = data.getAttrN();
 	if(topAttrN == -1)
 		topAttrN = attrN;
+	// XW. Default number of split attributes to leave is 3
+	if (splitAttrN == -1)
+		splitAttrN = 3;
+	
 	doublev attrCounts(attrN, 0); //counts of attribute importance
 	idpairv attrCountsP(attrN, idpair(0, 0)); //another structure for counts of attribute importance, will need it later for sorting
 	bool doFS = (topAttrN != 0);	//whether feature selection is requested
@@ -498,9 +506,31 @@ int main(int argc, char* argv[])
 		ffeatures << "\nLabel column number: " << data.getTarColNo() + 1;
 		ffeatures.close();
 
+		// XW
+		intset splitAttrs = data.getSplitAttrs();
+		telog << "Aim to leave " << splitAttrN << " out of " << splitAttrs.size() << " attributes marked by split\n";
+		int splitN = 0;
+		for (int attrNo = 0; attrNo < topAttrN; attrNo ++) {
+			if (splitAttrs.find(attrCountsP[attrNo].first) != splitAttrs.end()) {
+				splitN ++;
+				telog << "\t" << data.getAttrName(attrCountsP[attrNo].first) << " (split)\n";
+			}
+		}
+		telog << "Find " << splitN << " attributes marked by split and within top " << topAttrN << "\n";
+		splitN = splitAttrN - splitN;
+		telog << "Keep " << splitN << " attributes marked by split but not within top " << topAttrN << "\n";
+
 		//output new attribute file
-		for(int attrNo = topAttrN; attrNo < attrN; attrNo++)
-			data.ignoreAttr(attrCountsP[attrNo].first);
+		for (int attrNo = topAttrN; attrNo < attrN; attrNo ++) {
+			// XW. Do not ignore if an attribute is marked by split and there are less than TK split attributes
+			if ((splitAttrs.find(attrCountsP[attrNo].first) != splitAttrs.end()) && (splitN > 0)) {
+				splitN --;
+				telog << "\t" << data.getAttrName(attrCountsP[attrNo].first) << " (split)\n";
+			} else {
+				data.ignoreAttr(attrCountsP[attrNo].first);
+			}
+		}
+		telog << "\n";
 		data.outAttr(ti.attrFName);
 	}
 
@@ -527,7 +557,7 @@ int main(int argc, char* argv[])
 				errlog << "Usage: bt_train -t _train_set_ -v _validation_set_ -r _attr_file_ "
 					<< "[-a _alpha_value_] [-b _bagging_iterations_] [-i _init_random_] " 
 					<< "[-m _model_file_name_] [-k _attributes_to_leave_] [-c rms|roc] "
-					<< "[-l log|nolog] | -version\n";
+					<< "[-l log|nolog] [-s _split_attributes_to_leave_] | -version\n"; // XW
 				break;
 			case ALPHA_ERR:
 				errlog << "Error: alpha value is out of [0;1] range.\n";

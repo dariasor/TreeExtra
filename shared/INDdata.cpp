@@ -94,6 +94,11 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				throw ATTR_TYPE_ERR;
 		}
 
+		// XW. Memorize the attributes that are marked by split
+		if (attrStr.find("(split)") != -1) {
+			splitAttrs.insert(attrId);
+		}
+
 		getLineExt(fattr, buf);
 	}
 	attrN = attrId;
