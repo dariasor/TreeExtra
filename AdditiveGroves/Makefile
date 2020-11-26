@@ -11,7 +11,7 @@ ADDOBJS = $(OBJS) ag_layeredjob.o
 PGMS = ag_predict ag_train ag_save ag_expand ag_merge ag_fs \
 	ag_interactions ag_nway ag_mergepreds ag_savemerge
 PGMOBJS = ag_predict.o ag_train.o ag_save.o ag_expand.o ag_merge.o ag_fs.o \
-	ag_interactions.o ag_nway.o ag_mergepreds.o ag_savemerge.o
+	ag_interactions.o ag_nway.o ag_mergepreds.o ag_savemerge.o ag_layeredjob.o
 # XW. List of programs where parallel bagging is needed
 # PGMS = ag_train ag_expand ag_fs ag_interactions ag_nway
 # PGMOBJS = ag_train.o ag_expand.o ag_fs.o ag_interactions.o ag_nway.o
