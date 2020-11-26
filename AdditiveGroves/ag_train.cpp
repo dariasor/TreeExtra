@@ -9,6 +9,9 @@
 #include "LogStream.h"
 #include "ErrLogStream.h"
 
+#include <errno.h>
+#include <unistd.h>
+
 #ifndef _WIN32
 #include "thread_pool.h"
 #endif
@@ -16,8 +19,6 @@
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-#include <errno.h>
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__

@@ -9,12 +9,13 @@
 #include "ErrLogStream.h"
 #include "ag_definitions.h"
 
+#include <errno.h>
+#include <algorithm>
+#include <unistd.h>
+
 #ifndef _WIN32
 #include "thread_pool.h"
 #endif
-
-#include <errno.h>
-#include <algorithm>
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__

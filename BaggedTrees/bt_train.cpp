@@ -14,13 +14,14 @@
 #include "ErrLogStream.h"
 #include "bt_definitions.h"
 
-#ifndef _WIN32
-#include "thread_pool.h"
-#endif
-
 #include <algorithm>
 #include <errno.h>
 #include <cmath>
+#include <unistd.h>
+
+#ifndef _WIN32
+#include "thread_pool.h"
+#endif
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__

@@ -15,6 +15,7 @@
 
 #include <errno.h>
 #include <algorithm>
+#include <unistd.h>
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__

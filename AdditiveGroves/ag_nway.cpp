@@ -13,7 +13,9 @@
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
+
 #include <errno.h>
+#include <unistd.h>
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__
