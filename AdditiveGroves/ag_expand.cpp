@@ -143,6 +143,9 @@ StdOutMutex.Unlock();
 			//XW. Temp file keeps models corresponding to bagNo, alpha, and tigN
 			string _tempFName = getPrefix(bagNo, alpha, tigN) + ".tmp";
 
+			try
+			{
+
 			if(bagNo < prev.bagN)
 			{
 // XW. TODO. oldGrove is never used elsewhere
@@ -163,6 +166,27 @@ StdOutMutex.Unlock();
 				//skip the rest of the iteration when the model is already built
 				if((tigNNo < prevTiGNN) && (alphaNo < prevAlphaN))
 					continue;
+			}
+
+			}catch(TE_ERROR err){
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+				ErrLogStream errlog;
+				switch(err)
+				{
+					case TREE_LOAD_ERR:
+						errlog << "TREE_LOAD_ERR (doExpand): temporary files from previous runs of train/expand "
+							<< "are corrupted.\n";
+						break;
+					default:
+						te_errMsg((TE_ERROR)err);
+				}
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+				exit(1);
 			}
 			
 			CGrove leftGrove(alpha, tigN); //(alpha, tigN) grove grown from the left neighbor
@@ -469,7 +493,7 @@ int main(int argc, char* argv[])
 	//outer array: column (by TiGN)
 	//middle array: row	(by alpha)
 	//inner array: data points in the validation set
-	
+
 	//load part of predsumsV that is already filled
 	fstream fsums;
 	fsums.open("./AGTemp/predsums.bin", ios_base::binary | ios_base::in);
@@ -521,6 +545,8 @@ int main(int argc, char* argv[])
 		fdir.close();
 	}
 
+	// telog << "You are supposed to see this\n";  // XW. Debug
+
 	//direction of initialization (1 - up, 0 - right), collects statistics in the slow mode
 	doublevv dirStat(max(tigNN, prevTiGNN), doublev(max(alphaN, prevAlphaN), 0));
 	fstream fdirStat;	
@@ -534,6 +560,8 @@ int main(int argc, char* argv[])
 	if(fdirStat.fail())
 		throw TEMP_ERR;
 	fdirStat.close();
+
+	// telog << "You are not supposed to see this\n";  // XW. Debug
 
 	// XW. Each temp file saves only one grove now rather than prev.bagN groves
 	//temp files containing earlier groves on the edge of grid
@@ -695,7 +723,7 @@ int main(int argc, char* argv[])
 		switch(err)
 		{
 			case TREE_LOAD_ERR:
-				errlog << "Error: temporary files from previous runs of train/expand "
+				errlog << "Error (TREE_LOAD_ERR): temporary files from previous runs of train/expand "
 					<< "are corrupted.\n";
 				break;
 			case MODEL_ATTR_MISMATCH_ERR:
@@ -712,7 +740,7 @@ int main(int argc, char* argv[])
 		switch(err)
 		{
 			case TEMP_ERR:
-				errlog << "Error: temporary files from previous runs of train/expand "
+				errlog << "Error (TEMP_ERR): temporary files from previous runs of train/expand "
 					<< "are missing or corrupted.\n";
 				break;
 			case INPUT_ERR:
