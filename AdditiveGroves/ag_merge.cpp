@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
 		string fdirStatPathName = folders[folderNo] + "/AGTemp/dirstat.txt";
 		fstream fdirStat;	
 		// fdirStat.open("./AGTemp/dirstat.txt", ios_base::in);
-		fdirStat.open(fdirStatPathName, ios_base::in);
+		fdirStat.open(fdirStatPathName.c_str(), ios_base::in);
 		for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
 			for(int tigNNo = 0; tigNNo < tigNN; tigNNo++)
 			{
@@ -324,8 +324,8 @@ int main(int argc, char* argv[])
 					string srcFName = folders[folderNo] + getPrefix(srcBagNo, alpha, tigN).substr(1) + ".tmp";
 					string dstFName = getPrefix(dstBagNo, alpha, tigN) + ".tmp";
 					cout << "\t\t\tCopy from " << srcFName << " to " << dstFName << endl;
-					ifstream src(srcFName, std::ios::binary);
-					ofstream dst(dstFName,  std::ios::binary);
+					ifstream src(srcFName.c_str(), std::ios::binary);
+					ofstream dst(dstFName.c_str(),  std::ios::binary);
 					dst << src.rdbuf();
 				}
 
