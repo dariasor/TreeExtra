@@ -199,6 +199,10 @@ int main(int argc, char* argv[])
 
 		// XW
 		unsigned int state = time(NULL) + treeNo;
+		if (ti.iSet)
+		{
+			state = (unsigned int) ti.seed + treeNo;
+		}
 		INDsample sample(state, data);
 		if(subsample == -1)
 			sample.newBag();

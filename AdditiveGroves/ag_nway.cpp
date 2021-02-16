@@ -145,7 +145,10 @@ int main(int argc, char* argv[])
 				throw INPUT_ERR;
 		}
 		else if(!args[argNo].compare("-i"))
+		{
 			ti.seed = atoiExt(argv[argNo + 1]);
+			ti.iSet = true;
+		}
 		else if(!args[argNo].compare("-m"))
 		{
 			modelFName = args[argNo + 1];

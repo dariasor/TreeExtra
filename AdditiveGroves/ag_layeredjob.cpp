@@ -47,6 +47,10 @@ void doLayered(LayeredArg* ptr)
 
 	// XW
 	unsigned int state = time(NULL) + bagNo;
+	if (ti.iSet)
+	{
+		state = (unsigned int) ti.seed + bagNo;
+	}
 	INDsample sample(state, data);
 
 	doublev __predsumsV(validN, 0);

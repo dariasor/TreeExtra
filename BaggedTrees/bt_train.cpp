@@ -95,6 +95,10 @@ StdOutMutex.Unlock();
 
 	// XW
 	unsigned int state = time(NULL) + bagNo;
+	if (ti.iSet)
+	{
+		state = (unsigned int) ti.seed + bagNo;
+	}
 	INDsample sample(state, data);
 	sample.newBag();
 
@@ -234,7 +238,10 @@ int main(int argc, char* argv[])
 		else if(!args[argNo].compare("-b"))
 			ti.bagN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-i"))
+		{
 			ti.seed = atoiExt(argv[argNo + 1]);
+			ti.iSet = true;
+		}
 		else if(!args[argNo].compare("-k"))
 			topAttrN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-m"))
@@ -541,7 +548,11 @@ int main(int argc, char* argv[])
 	{
 		// XW
 		int bagNo = ti.bagN - 1;
-		unsigned int state = bagNo; // TODO. time(NULL) + bagNo;
+		unsigned int state = time(NULL) + bagNo;
+		if (ti.iSet)
+		{
+			state = (unsigned int) ti.seed + bagNo;
+		}
 		INDsample sample(state, data);
 		sample.newBag();
 		sample.correlations(ti.trainFName);

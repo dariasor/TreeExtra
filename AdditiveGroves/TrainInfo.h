@@ -17,6 +17,8 @@ public:
 	bool rms;			//which performance metric is used (rms/roc)
 	int seed;			//random number initializer
 
+	bool iSet;			// Whether -i argument is set and -i is used to set seed
+
 	//file names
 	string trainFName;	//train set
 	string validFName;	//validation set
@@ -26,5 +28,5 @@ public:
 	intv interaction;	//a higher-order interaction between all these attributes 
 							//should not be allowed in the model (model is restricted on interaction)
 
-	TrainInfo(): minAlpha(0.01), maxTiGN(8), bagN(60), mode(FAST), rms(true), seed(1){};
+	TrainInfo(): minAlpha(0.01), maxTiGN(8), bagN(60), mode(FAST), rms(true), seed(1), iSet(false){};
 };

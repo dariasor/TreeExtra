@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 
 //3. Calculate and output correlations
 	// XW
-	unsigned int state = 0; // TODO. time(NULL);
+	unsigned int state = time(NULL);
 	INDsample sample(state, data);
 	sample.newBag();
 	sample.correlations(trainFName);

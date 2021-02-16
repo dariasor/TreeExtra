@@ -95,6 +95,10 @@ void doExpand(ExpandArg* ptr)
 
 	// XW
 	unsigned int state = time(NULL) + bagNo;
+	if (ti.iSet)
+	{
+		state = (unsigned int) ti.seed + bagNo;
+	}
 	INDsample sample(state, data);
 
 #ifndef _WIN32
@@ -383,7 +387,10 @@ int main(int argc, char* argv[])
 		else if(!args[argNo].compare("-b"))
 			ti.bagN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-i"))
+		{
 			ti.seed = atoiExt(argv[argNo + 1]);
+			ti.iSet = true;
+		}
 		else if(!args[argNo].compare("-h"))
 #ifndef _WIN32 
 			threadN = atoiExt(argv[argNo + 1]);

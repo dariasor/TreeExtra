@@ -98,6 +98,10 @@ void doTrain(trainArg* ptr)
 
 	// XW
 	unsigned int state = time(NULL) + bagNo;
+	if (ti.iSet)
+	{
+		state = (unsigned int) ti.seed + bagNo;
+	}
 	INDsample sample(state, data);
 
 #ifndef _WIN32
@@ -334,7 +338,10 @@ int main(int argc, char* argv[])
 				throw INPUT_ERR;
 		}
 		else if(!args[argNo].compare("-i"))
+		{
 			ti.seed = atoiExt(argv[argNo + 1]);
+			ti.iSet = true;
+		}
 		else if(!args[argNo].compare("-h"))
 #ifndef _WIN32 
 			threadN = atoiExt(argv[argNo + 1]);
