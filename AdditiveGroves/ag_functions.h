@@ -4,8 +4,6 @@
 #include "TrainInfo.h"
 #include "INDdata.h"
 
-#include "thread_pool.h" // XW
-
 //saves a vector into a binary file
 fstream& operator << (fstream& fbin, doublev& vec);
 

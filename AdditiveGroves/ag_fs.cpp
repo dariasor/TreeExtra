@@ -15,7 +15,6 @@
 
 #include <errno.h>
 #include <algorithm>
-#include <unistd.h>
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__
@@ -24,6 +23,7 @@
 
 #ifndef _WIN32
 #include "thread_pool.h"
+#include <unistd.h>
 #endif
 
 int main(int argc, char* argv[])

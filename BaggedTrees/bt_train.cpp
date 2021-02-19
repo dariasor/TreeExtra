@@ -17,15 +17,15 @@
 #include <algorithm>
 #include <errno.h>
 #include <cmath>
-#include <unistd.h>
-
-#ifndef _WIN32
-#include "thread_pool.h"
-#endif
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__
 #include <thread>
+#endif
+
+#ifndef _WIN32
+#include "thread_pool.h"
+#include <unistd.h>
 #endif
 
 // XW. Used for passing arguments to a job submitted to a thread pool

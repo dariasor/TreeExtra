@@ -11,15 +11,15 @@
 
 #include <errno.h>
 #include <algorithm>
-#include <unistd.h>
-
-#ifndef _WIN32
-#include "thread_pool.h"
-#endif
 
 // XW. Programmatically decide the number of cores
 #ifdef __APPLE__
 #include <thread>
+#endif
+
+#ifndef _WIN32
+#include "thread_pool.h"
+#include <unistd.h>
 #endif
 
 // XW
