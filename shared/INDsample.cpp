@@ -27,7 +27,9 @@ void INDsample::newBag(void)
 
 	for(int itemNo = 0; itemNo < trainN; itemNo++)
 	{//put a new item into bag
-		double randCoef = rand_coef(state); // XW. Use rand_r for thread safety
+		// double randCoef = rand_coef(state); // XW. Use rand_r for thread safety
+		double randCoef = rand_coef();
+
 		int nextItem = (int) ((trainN - 1) * randCoef);
 		bootstrap[itemNo] = nextItem;
 		oobInx[nextItem] = false;
@@ -74,7 +76,9 @@ void INDsample::newSample(int sampleN)
 
 	for(int i = 0; i < sampleN; i++)
 	{
-		double randCoef = rand_coef(state); // XW. Use rand_r for thread safety
+		// double randCoef = rand_coef(state); // XW. Use rand_r for thread safety
+		double randCoef = rand_coef();
+
 		int nextItem = (int) ((trainN - 1 - i) * randCoef);
 		bootstrap[i] = inxv[nextItem];
 		bagV += trainWt[i];
