@@ -177,6 +177,14 @@ int main(int argc, char* argv[])
 	if(ti.maxTiGN < 1)
 		throw TIGN_ERR;
 
+//1.a) delete all temp files from the previous run and create a directory AGTemp
+#ifdef WIN32	//in windows
+	CreateDirectory("AGTemp", NULL);
+#else // in linux
+	system("rm -rf ./AGTemp/");
+	system("mkdir ./AGTemp/");
+#endif
+
 //1.b) Initialize random number generator. 
 	srand(ti.seed);
 

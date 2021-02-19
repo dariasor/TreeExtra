@@ -3,6 +3,7 @@
 // (c) Xiaojie Wang
 
 #include "ag_layeredjob.h"
+#include "ErrLogStream.h"
 
 // XW. Too many arguments are needed to pass to jobs
 struct LayeredArg
@@ -63,6 +64,8 @@ StdOutMutex.Lock();
 StdOutMutex.Unlock();
 #endif
 
+	try
+	{
 	CGrove grove(ti.minAlpha, ti.maxTiGN, ti.interaction);
 	grove.trainLayered(sample); // XW
 	for (int itemNo = 0; itemNo < validN; itemNo ++)
@@ -76,6 +79,21 @@ StdOutMutex.Unlock();
 		fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
 		fload.close();
 		grove.save(_modelFName.c_str());
+	}
+	}catch(TE_ERROR err){
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+		ErrLogStream errlog;
+		switch(err)
+		{
+			default:
+				te_errMsg((TE_ERROR)err);
+		}
+		exit(1);
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
 	}
 
 	// XW. Only use mutex once here and not everywhere
