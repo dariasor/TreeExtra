@@ -8,7 +8,6 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
-#include "ag_layeredjob.h"
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -24,7 +23,9 @@
 #ifndef _WIN32
 #include "thread_pool.h"
 #include <unistd.h>
+#include "ag_layeredjob.h"
 #endif
+
 
 int main(int argc, char* argv[])
 {	
@@ -156,15 +157,11 @@ int main(int argc, char* argv[])
 	if(ti.maxTiGN < 1)
 		throw TIGN_ERR;
 
-//1.a) delete all temp files from the previous run and create a directory AGTemp
-#ifdef WIN32	//in windows
-	CreateDirectory("AGTemp", NULL);
-#else // in linux
-	system("rm -rf ./AGTemp/");
+#ifndef _WIN32 // only need AGTemp in linux in the multithreaded version
 	system("mkdir ./AGTemp/");
 #endif
 
-//1.b) Initialize random number generator. 
+//1. Initialize random number generator. 
 	srand(ti.seed);
 
 //2. Load data
@@ -220,7 +217,11 @@ int main(int argc, char* argv[])
 		removedAny = false;	
 		int firstNotRemoved = -1; //first attribute after the last that was removed
 
+#ifdef _WIN32	//in windows, singlethreaded
+		mean = meanLG(data, ti, 10, std, modelFName);
+#else // multithreaded
 		mean = meanLG(data, ti, 10, std, modelFName, pool); // XW
+#endif
 		telog << "\n\nAverage performance: " << mean << ", std: " << std << ", importance threshold: " << std*3 << "\n\n";
 
 		intv::reverse_iterator attrRIt = attrs.rbegin();
@@ -243,7 +244,11 @@ int main(int argc, char* argv[])
 			else
 			{
 				telog << "Testing " << data.getAttrName(*attrRIt) << ":\n"; 
+#ifdef _WIN32	//in windows, singlethreaded
+				testPerf = layeredGroves(data, ti, string(""));
+#else // multithreaded
 				testPerf = layeredGroves(data, ti, string(""), pool); // XW
+#endif
 			}
 			if((ti.rms && (testPerf <= mean + std * 3)) || (!ti.rms && (testPerf >= mean - std * 3)))
 			{//remove attribute completely

@@ -1,4 +1,4 @@
-//INDsample.cpp: Sample a bag of data from INDdata and use a state for sampling
+//INDsample.cpp: Sample a bag of data from INDdata 
 //
 // (c) Xiaojie Wang
 
@@ -9,8 +9,7 @@
 #include <algorithm> // Solve error: 'sort' was not declared in this scope
 #include <cmath> // Solve error: use of undeclared identifier 'isnan'
 
-INDsample::INDsample(unsigned int state, INDdata& data):
-	state(state), data(data)
+INDsample::INDsample(INDdata& data): data(data)
 {
 	bootstrap.resize(data.getTrainN());
 }
@@ -27,7 +26,6 @@ void INDsample::newBag(void)
 
 	for(int itemNo = 0; itemNo < trainN; itemNo++)
 	{//put a new item into bag
-		// double randCoef = rand_coef(state); // XW. Use rand_r for thread safety
 		double randCoef = rand_coef();
 
 		int nextItem = (int) ((trainN - 1) * randCoef);
@@ -76,7 +74,6 @@ void INDsample::newSample(int sampleN)
 
 	for(int i = 0; i < sampleN; i++)
 	{
-		// double randCoef = rand_coef(state); // XW. Use rand_r for thread safety
 		double randCoef = rand_coef();
 
 		int nextItem = (int) ((trainN - 1 - i) * randCoef);

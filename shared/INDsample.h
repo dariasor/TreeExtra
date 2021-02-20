@@ -8,7 +8,7 @@
 class INDsample
 {
 public:
-	INDsample(unsigned int state, INDdata& data);
+	INDsample(INDdata& data);
 
 //get functions for private members
 	double getBagV() { return bagV; }

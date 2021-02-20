@@ -31,15 +31,15 @@ struct LayeredArg
 	doublevv& _predsumsV;
 };
 
-// XW
-#ifndef _WIN32
 TMutex StdOutMutex; // Make sure only one thread is using the standard output
 TMutex DirMutex; // Probably not needed as only the first thread writes to dir
 TMutex ReturnMutex; // Write to the variables computed and returned by threads
-#endif
+
 // XW. Can be used in both a single-threaded setting and a multi-threaded setting
 void doLayered(LayeredArg* ptr)
 {
+	try
+	{
 	int bagNo = ptr->bagNo;
 	INDdata& data = ptr->data;
 	TrainInfo& ti = ptr->ti;
@@ -47,25 +47,14 @@ void doLayered(LayeredArg* ptr)
 	string modelFName = ptr->modelFName;
 
 	// XW
-	unsigned int state = time(NULL) + bagNo;
-	if (ti.iSet)
-	{
-		state = (unsigned int) ti.seed + bagNo;
-	}
-	INDsample sample(state, data);
-
+	INDsample sample(data);
 	doublev __predsumsV(validN, 0);
 
-#ifndef _WIN32
-StdOutMutex.Lock();
-#endif
-	cout << "\t\tIteration " << bagNo + 1 << " out of " << ti.bagN << " (begin)" << endl;
-#ifndef _WIN32
-StdOutMutex.Unlock();
-#endif
 
-	try
-	{
+StdOutMutex.Lock();
+	cout << "\t\tIteration " << bagNo + 1 << " out of " << ti.bagN << " (begin)" << endl;
+StdOutMutex.Unlock();
+
 	CGrove grove(ti.minAlpha, ti.maxTiGN, ti.interaction);
 	grove.trainLayered(sample); // XW
 	for (int itemNo = 0; itemNo < validN; itemNo ++)
@@ -76,14 +65,11 @@ StdOutMutex.Unlock();
 	{
 		string _modelFName = getModelFName(modelFName, bagNo);
 		// XW. Clear previous temp files as the save function appends to the files
-		fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
-		fload.close();
+		system(("rm -f " + _modelFName).c_str());
 		grove.save(_modelFName.c_str());
 	}
 	}catch(TE_ERROR err){
-#ifndef _WIN32
 StdOutMutex.Lock();
-#endif
 		ErrLogStream errlog;
 		switch(err)
 		{
@@ -91,35 +77,26 @@ StdOutMutex.Lock();
 				te_errMsg((TE_ERROR)err);
 		}
 		exit(1);
-#ifndef _WIN32
 StdOutMutex.Unlock();
-#endif
 	}
 
 	// XW. Only use mutex once here and not everywhere
-#ifndef _WIN32
 ReturnMutex.Lock();
-#endif
+
 	// XW. Mutex is not needed because threads access different slices (memory addresses)
 	ptr->_predsumsV[bagNo] = __predsumsV;
-#ifndef _WIN32
+
 ReturnMutex.Unlock();
-#endif
 	// XW. Add mutex here doesn't reduce training time but improves reproducibility
 
-#ifndef _WIN32
 StdOutMutex.Lock();
-#endif
 	cout << "\t\tIteration " << bagNo + 1 << " out of " << ti.bagN << " (end)" << endl;
-#ifndef _WIN32
 StdOutMutex.Unlock();
-#endif
 
 	return;
 }
 
 // XW. Wrap the doLayered function by TJob to be submitted to a thread pool
-#ifndef _WIN32
 class LayeredJob: public TThreadPool::TJob
 {
 public:
@@ -128,7 +105,6 @@ public:
 		doLayered((LayeredArg*) ptr);
 	}
 };
-#endif
 
 //trains a Layered Groves ensemble (Additive Groves trained in layered style) 
 //if modelFName is not empty, saves the model
@@ -155,20 +131,8 @@ double layeredGroves(
 
 	// XW. Build bagged models, calculate sums of predictions
 	doublevv _predsumsV(ti.bagN, doublev((validN, 0)));
-#ifdef _WIN32
-	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
-	{
-		runBag(new LayeredArg(
-				bagNo, 
-				data, 
-				ti, 
-				validN, 
-				modelFName, 
-				_predsumsV
-				));
-	}
-#else
-	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
+
+	for(int bagNo = 0; bagNo < ti.bagN; bagNo ++)
 	{
 		LayeredArg* ptr = new LayeredArg(
 				bagNo, 
@@ -181,18 +145,19 @@ double layeredGroves(
 		pool.Run(new LayeredJob, ptr);
 	}
 	pool.SyncAll();
-#endif
 
 	// XW
 	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
 	{
-		if (! modelFName.empty())
+		if (!modelFName.empty())
 		{
 			CGrove grove(ti.minAlpha, ti.maxTiGN, ti.interaction);
 			string _modelFName = getModelFName(modelFName, bagNo);
 			fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::in);
 			grove.load(fload);
 			grove.save(modelFName.c_str());
+			fload.close();
+			system(("rm -f " + _modelFName).c_str());
 		}
 
 		for (int itemNo = 0; itemNo < validN; itemNo ++)

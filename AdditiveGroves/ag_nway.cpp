@@ -9,7 +9,6 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
-#include "ag_layeredjob.h" // XW
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -24,6 +23,7 @@
 #ifndef _WIN32
 #include "thread_pool.h"
 #include <unistd.h>
+#include "ag_layeredjob.h"
 #endif
 
 int main(int argc, char* argv[])
@@ -177,15 +177,11 @@ int main(int argc, char* argv[])
 	if(ti.maxTiGN < 1)
 		throw TIGN_ERR;
 
-//1.a) delete all temp files from the previous run and create a directory AGTemp
-#ifdef WIN32	//in windows
-	CreateDirectory("AGTemp", NULL);
-#else // in linux
-	system("rm -rf ./AGTemp/");
+#ifndef _WIN32 // only need AGTemp in linux in the multithreaded version
 	system("mkdir ./AGTemp/");
 #endif
 
-//1.b) Initialize random number generator. 
+//1.Initialize random number generator. 
 	srand(ti.seed);
 
 //2. Load data
@@ -250,8 +246,12 @@ int main(int argc, char* argv[])
 	for(int nwayNo = 0; nwayNo < (int)ti.interaction.size() - 1; nwayNo++)
 		telog << data.getAttrName(ti.interaction[nwayNo]) << ", "; 
 	telog << data.getAttrName(ti.interaction[ti.interaction.size() - 1]) << "\n";
-		
+
+#ifdef _WIN32	//in windows, singlethreaded
+	double rPerf = layeredGroves(data, ti, modelFName);
+#else // multithreaded
 	double rPerf = layeredGroves(data, ti, modelFName, pool); // XW
+#endif
 	double score = (meanPerf - rPerf) / stdPerf;
 	if(ti.rms)
 		score *= -1; 

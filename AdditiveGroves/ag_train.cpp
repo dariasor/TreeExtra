@@ -16,14 +16,13 @@
 #include <thread>
 #endif
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include "thread_pool.h"
 #include <unistd.h>
 #endif
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 // XW. The reference arguments are used for the following two reasons:
 //	(1) To pass large sized variables without copying
@@ -80,7 +79,9 @@ TMutex ReturnMutex; // Write to the variables computed and returned by threads
 // XW. Can be used in both a single-threaded setting and a multi-threaded setting
 void doTrain(trainArg* ptr)
 {
-	// XW. These variables are read-only and can be shared across threads
+	try
+	{
+		// XW. These variables are read-only and can be shared across threads
 	int bagNo = ptr->bagNo;
 	TrainInfo& ti = ptr->ti;
 	int tigNN = ptr->tigNN;
@@ -97,12 +98,7 @@ void doTrain(trainArg* ptr)
 	doublevvv __predsumsV(tigNN, doublevv(alphaN, doublev(validN, 0)));
 
 	// XW
-	unsigned int state = time(NULL) + bagNo;
-	if (ti.iSet)
-	{
-		state = (unsigned int) ti.seed + bagNo;
-	}
-	INDsample sample(state, data);
+	INDsample sample(data);
 
 #ifndef _WIN32
 StdOutMutex.Lock();
@@ -224,8 +220,18 @@ StdOutMutex.Lock();
 #ifndef _WIN32
 StdOutMutex.Unlock();
 #endif
-
 	return;
+	}catch(TE_ERROR err){
+
+#ifndef _WIN32
+		StdOutMutex.Lock();
+#endif
+		te_errMsg((TE_ERROR)err);
+#ifndef _WIN32
+		StdOutMutex.Unlock();
+#endif
+		exit(1);
+	}
 }
 
 // XW. Wrap the doTrain function by TJob to be submitted to a thread pool

@@ -10,14 +10,11 @@
 
 #include <fstream>
 #include <cmath>
-
-#ifndef _WIN32
 #include "thread_pool.h"
 
 struct LayeredArg;
 void doLayered(LayeredArg* ptr);
 class LayeredJob;
-#endif
 
 //trains and saves a Layered Groves ensemble (Additive Groves trained in layered style)
 double layeredGroves(
@@ -38,3 +35,4 @@ double meanLG(
 		); // XW
 
 string getModelFName(string modelFName, int bagNo); // XW
+

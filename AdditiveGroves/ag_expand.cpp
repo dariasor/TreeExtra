@@ -78,6 +78,8 @@ TMutex ReturnMutex; // Write to the variables computed and returned by threads
 // XW. Can be used in both a single-threaded setting and a multi-threaded setting
 void doExpand(ExpandArg* ptr)
 {
+	try
+	{
 	int bagNo = ptr->bagNo;
 	INDdata& data = ptr->data;
 	TrainInfo& ti = ptr->ti;
@@ -94,12 +96,7 @@ void doExpand(ExpandArg* ptr)
 	doublevvv __predsumsV(tigNN, doublevv(alphaN, doublev(validN, 0)));
 
 	// XW
-	unsigned int state = time(NULL) + bagNo;
-	if (ti.iSet)
-	{
-		state = (unsigned int) ti.seed + bagNo;
-	}
-	INDsample sample(state, data);
+	INDsample sample(data);
 
 #ifndef _WIN32
 StdOutMutex.Lock();
@@ -147,9 +144,6 @@ StdOutMutex.Unlock();
 			//XW. Temp file keeps models corresponding to bagNo, alpha, and tigN
 			string _tempFName = getPrefix(bagNo, alpha, tigN) + ".tmp";
 
-			try
-			{
-
 			if(bagNo < prev.bagN)
 			{
 // XW. TODO. oldGrove is never used elsewhere
@@ -170,27 +164,6 @@ StdOutMutex.Unlock();
 				//skip the rest of the iteration when the model is already built
 				if((tigNNo < prevTiGNN) && (alphaNo < prevAlphaN))
 					continue;
-			}
-
-			}catch(TE_ERROR err){
-
-#ifndef _WIN32
-StdOutMutex.Lock();
-#endif
-				ErrLogStream errlog;
-				switch(err)
-				{
-					case TREE_LOAD_ERR:
-						errlog << "TREE_LOAD_ERR (doExpand): temporary files from previous runs of train/expand "
-							<< "are corrupted.\n";
-						break;
-					default:
-						te_errMsg((TE_ERROR)err);
-				}
-#ifndef _WIN32
-StdOutMutex.Unlock();
-#endif
-				exit(1);
 			}
 			
 			CGrove leftGrove(alpha, tigN); //(alpha, tigN) grove grown from the left neighbor
@@ -270,6 +243,17 @@ StdOutMutex.Unlock();
 #endif
 
 	return;
+	}catch(TE_ERROR err){
+
+#ifndef _WIN32
+		StdOutMutex.Lock();
+#endif
+		te_errMsg((TE_ERROR)err);
+#ifndef _WIN32
+		StdOutMutex.Unlock();
+#endif
+	exit(1);
+	}
 }
 
 // XW. Wrap the doExpand function by TJob to be submitted to a thread pool
