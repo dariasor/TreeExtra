@@ -9,7 +9,6 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
-#include "ag_layered.h"
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -21,7 +20,9 @@
 #include <thread>
 #endif
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include "ag_layered.h"
+#else
 #include "thread_pool.h"
 #include <unistd.h>
 #include "ag_layeredjob.h"
