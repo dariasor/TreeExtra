@@ -94,12 +94,7 @@ StdOutMutex.Unlock();
 #endif
 
 	// XW
-	unsigned int state = time(NULL) + bagNo;
-	if (ti.iSet)
-	{
-		state = (unsigned int) ti.seed + bagNo;
-	}
-	INDsample sample(state, data);
+	INDsample sample(data);
 	sample.newBag();
 
 	CTree tree(ti.alpha);
@@ -547,13 +542,7 @@ int main(int argc, char* argv[])
 	else
 	{
 		// XW
-		int bagNo = ti.bagN - 1;
-		unsigned int state = time(NULL) + bagNo;
-		if (ti.iSet)
-		{
-			state = (unsigned int) ti.seed + bagNo;
-		}
-		INDsample sample(state, data);
+		INDsample sample(data);
 		sample.newBag();
 		sample.correlations(ti.trainFName);
 	}
