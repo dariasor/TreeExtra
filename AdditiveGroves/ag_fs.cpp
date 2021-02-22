@@ -8,6 +8,7 @@
 #include "ag_definitions.h"
 #include "functions.h"
 #include "ag_functions.h"
+#include "ag_layered.h"
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"

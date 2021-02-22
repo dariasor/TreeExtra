@@ -1,6 +1,7 @@
 // Additive Groves / ag_functions.h: declarations of Additive Groves global functions
 // (c) Daria Sorokina
 
+#pragma once
 #include "TrainInfo.h"
 #include "INDdata.h"
 
@@ -56,10 +57,3 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 bool bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo);
 
 string getPrefix(int bagNo, double alpha, int tigN); // XW
-
-//trains and saves a Layered Groves ensemble (Additive Groves trained in layered style)
-double layeredGroves(INDdata& data, TrainInfo& ti, string modelFName);
-
-//runs Layered Groves repeatN times, returns average performance and standard deviation
-//saves the model from the last run
-double meanLG(INDdata& data, TrainInfo ti, int repeatN, double& resStd, string modelFName);

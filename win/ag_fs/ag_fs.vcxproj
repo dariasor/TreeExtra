@@ -62,6 +62,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\AdditiveGroves\ag_fs.cpp" />
     <ClCompile Include="..\..\AdditiveGroves\ag_functions.cpp" />
+    <ClCompile Include="..\..\AdditiveGroves\ag_layered.cpp" />
     <ClCompile Include="..\..\shared\functions.cpp" />
     <ClCompile Include="..\..\AdditiveGroves\Grove.cpp" />
     <ClCompile Include="..\..\shared\INDdata.cpp" />
@@ -73,6 +74,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\AdditiveGroves\ag_definitions.h" />
     <ClInclude Include="..\..\AdditiveGroves\ag_functions.h" />
+    <ClInclude Include="..\..\AdditiveGroves\ag_layered.h" />
     <ClInclude Include="..\..\shared\definitions.h" />
     <ClInclude Include="..\..\shared\ErrLogStream.h" />
     <ClInclude Include="..\..\AdditiveGroves\Grove.h" />
