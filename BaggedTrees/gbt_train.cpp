@@ -198,12 +198,7 @@ int main(int argc, char* argv[])
 			cout << "\titeration " << treeNo + 1 << " out of " << treeN << endl;
 
 		// XW
-		unsigned int state = time(NULL) + treeNo;
-		if (ti.iSet)
-		{
-			state = (unsigned int) ti.seed + treeNo;
-		}
-		INDsample sample(state, data);
+		INDsample sample(data);
 		if(subsample == -1)
 			sample.newBag();
 		else

@@ -6,7 +6,7 @@
 #include "functions.h"
 #include "LogStream.h"
 #include "Grove.h"
-#include "INDSample.h"
+#include "INDsample.h"
 
 #include <algorithm>
 #include <fstream>

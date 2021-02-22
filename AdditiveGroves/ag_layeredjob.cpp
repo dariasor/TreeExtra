@@ -68,17 +68,6 @@ StdOutMutex.Unlock();
 		system(("rm -f " + _modelFName).c_str());
 		grove.save(_modelFName.c_str());
 	}
-	}catch(TE_ERROR err){
-StdOutMutex.Lock();
-		ErrLogStream errlog;
-		switch(err)
-		{
-			default:
-				te_errMsg((TE_ERROR)err);
-		}
-		exit(1);
-StdOutMutex.Unlock();
-	}
 
 	// XW. Only use mutex once here and not everywhere
 ReturnMutex.Lock();
@@ -92,7 +81,17 @@ ReturnMutex.Unlock();
 StdOutMutex.Lock();
 	cout << "\t\tIteration " << bagNo + 1 << " out of " << ti.bagN << " (end)" << endl;
 StdOutMutex.Unlock();
-
+	}catch(TE_ERROR err){
+StdOutMutex.Lock();
+		ErrLogStream errlog;
+		switch(err)
+		{
+			default:
+				te_errMsg((TE_ERROR)err);
+		}
+		exit(1);
+StdOutMutex.Unlock();
+	}
 	return;
 }
 
