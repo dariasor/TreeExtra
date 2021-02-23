@@ -566,7 +566,7 @@ int main(int argc, char* argv[])
 	// XW
 	doublevvv _dirStat(ti.bagN, doublevv(tigNN, doublev(alphaN, 0)));
 	doublevvvv _predsumsV(ti.bagN, doublevvv(tigNN, doublevv(alphaN, doublev(validN, 0))));
-	if (ti.mode == FAST)
+	if (ti.mode == FAST && bagNo < ti.bagN)
 	{
 		// Mutex is not needed because only one thread will write to dir (and dirStat)
 		doExpand(new ExpandArg(
