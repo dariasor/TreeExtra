@@ -12,6 +12,8 @@ public:
 	double alpha;		//min proportion of train set in the leaf (controls size of tree)
 	bool rms;			//rms/roc performance metric
 
+	bool iSet;			// Whether -i argument is set and -i is used to set seed
+
 	//file names
 	string trainFName;	//train set
 	string validFName;	//validation set

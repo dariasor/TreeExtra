@@ -7,6 +7,7 @@
 #include "functions.h"
 #include "vis_definitions.h"
 #include "INDdata.h"
+#include "INDsample.h"
 
 #include <errno.h>
 
@@ -68,7 +69,11 @@ int main(int argc, char* argv[])
 	INDdata data(trainFName.c_str(), "", "", attrFName.c_str());
 
 //3. Calculate and output correlations
-	data.correlations(trainFName);		
+	// XW
+	INDsample sample(data);
+	sample.newBag();
+	sample.correlations(trainFName);
+
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);

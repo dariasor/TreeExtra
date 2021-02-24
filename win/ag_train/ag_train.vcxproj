@@ -66,6 +66,7 @@
     <ClCompile Include="..\..\shared\functions.cpp" />
     <ClCompile Include="..\..\AdditiveGroves\Grove.cpp" />
     <ClCompile Include="..\..\shared\INDdata.cpp" />
+    <ClCompile Include="..\..\shared\INDsample.cpp" />
     <ClCompile Include="..\..\shared\LogStream.cpp" />
     <ClCompile Include="..\..\shared\SplitInfo.cpp" />
     <ClCompile Include="..\..\shared\TreeNode.cpp" />
@@ -79,6 +80,7 @@
     <ClInclude Include="..\..\AdditiveGroves\Grove.h" />
     <ClInclude Include="..\..\shared\gtest-internal.h" />
     <ClInclude Include="..\..\shared\INDdata.h" />
+    <ClInclude Include="..\..\shared\INDsample.h" />
     <ClInclude Include="..\..\shared\ItemInfo.h" />
     <ClInclude Include="..\..\shared\LogStream.h" />
     <ClInclude Include="..\..\shared\SplitInfo.h" />

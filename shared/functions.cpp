@@ -511,6 +511,18 @@ double rand_coef()
 #endif
 }
 
+#ifndef _WIN32
+// XW. Make the rand_coef function thread-safe
+double rand_coef(unsigned int& state)
+{
+#if RAND_MAX > 32767
+		return (double) rand_r(&state) / RAND_MAX;
+#else
+		return (double) ((rand_r(&state) << int(log(RAND_MAX + 1.0) / log(2.0) + 0.5)) + rand_r(&state) ) / ((RAND_MAX + 1) * (RAND_MAX + 1) - 1);
+#endif
+}
+#endif
+
 //less function with NaN greater than numbers
 bool lessNaN(double i, double j) 
 { 
@@ -582,4 +594,57 @@ bool ltSecond(fipair p1, fipair p2)
 bool gtAbsThird(ssdtriple t1, ssdtriple t2)
 {
 	return abs(t1.second) > abs(t2.second);
+}
+
+//The following code for linux-compatible string itoa is copied from the web site of Stuart Lowe
+//http://www.jb.man.ac.uk/~slowe/cpp/itoa.html
+/**
+	
+ * C++ version std::string style "itoa":
+	
+ */
+	
+std::string itoa(int value, int base) {
+	
+
+	
+	enum { kMaxDigits = 35 };
+	
+	std::string buf;
+	
+	buf.reserve( kMaxDigits ); // Pre-allocate enough space.
+	
+
+	
+	// check that the base if valid
+	
+	if (base < 2 || base > 16) return buf;
+	
+
+	
+	int quotient = value;
+	
+
+	
+	// Translating number to string with base:
+	
+	do {
+	
+		buf += "0123456789abcdef"[ std::abs( quotient % base ) ];
+	
+		quotient /= base;
+	
+	} while ( quotient );
+	
+
+	
+	// Append the negative sign for base 10
+	
+	if ( value < 0 && base == 10) buf += '-';
+	
+
+	
+	std::reverse( buf.begin(), buf.end() );
+	
+	return buf;
 }

@@ -27,10 +27,10 @@ public:
 	CGrove(double alpha, int tigN, intv& interaction);
 
 	//rebuilds grove until convergence with predictions of other grove as starting point
-	ddpair converge(doublevv& sinpreds, doublev& jointpreds);
+	ddpair converge(doublevv& sinpreds, doublev& jointpreds, INDsample& sample); // XW
 
 	//trains the grove using "layered" version of the algorithm (fixed #trees, increase alpha on every step)
-	void trainLayered();
+	void trainLayered(INDsample& sample); // XW
 
 	//saves the grove into the binary file
 	void save(const char* fileName);
@@ -49,13 +49,13 @@ public:
 
 private:
 	//trains a single tree as part of training a grove
-	void genTreeInGrove(doublev& sinpredsx, doublev& jointpreds, int treeNo);
+	void genTreeInGrove(doublev& sinpredsx, doublev& jointpreds, int treeNo, INDsample& sample); // XW
 
 	//grows a tree 
-	void growTree(CTreeNode& root);
+	void growTree(CTreeNode& root, INDsample& sample); // XW
 
 	//trains several restricted trees, chooses the best
-	void chooseTree(CTreeNode& root, doublev& othpreds);
+	void chooseTree(CTreeNode& root, doublev& othpreds, INDsample& sample); // XW
 
 	//calculates prediction of a single tree for a single item
 	double localPredict(CTreeNode& root, int itemNo, DATA_SET dset);

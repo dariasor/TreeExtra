@@ -12,10 +12,20 @@
 #include "Grove.h"
 #include "LogStream.h"
 #include "ErrLogStream.h"
+
 #include <errno.h>
 
-#ifndef _WIN32
+// XW. Programmatically decide the number of cores
+#ifdef __APPLE__
+#include <thread>
+#endif
+
+#ifdef _WIN32
+#include "ag_layered.h"
+#else
 #include "thread_pool.h"
+#include <unistd.h>
+#include "ag_layeredjob.h"
 #endif
 
 int main(int argc, char* argv[])
@@ -51,6 +61,19 @@ int main(int argc, char* argv[])
 
 #ifndef _WIN32
 	int threadN = 6;	//number of threads
+#ifndef __APPLE__
+	int nCore = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+	int nCore = std::thread::hardware_concurrency();
+#endif
+	// XW. Need to handle 0 which is returned when unable to detect
+	if (nCore > 0) {
+		if (nCore == 1)
+			threadN = 1;
+		else
+			threadN = nCore / 2;
+	}
+	// std::cout << "Default number of cores is " << threadN << std::endl;
 #endif
 
 	//parse and save input parameters
@@ -116,7 +139,10 @@ int main(int argc, char* argv[])
 				throw INPUT_ERR;
 		}
 		else if(!args[argNo].compare("-i"))
+		{
 			ti.seed = atoiExt(argv[argNo + 1]);
+			ti.iSet = true;
+		}
 		else if(!args[argNo].compare("-m"))
 			modelFName = args[argNo + 1];
 		else if(!args[argNo].compare("-h"))
@@ -152,7 +178,8 @@ int main(int argc, char* argv[])
 		fdistr.close();
 	}
 
-//1.b) Initialize random number generator. 
+
+//1. Initialize random number generator. 
 	srand(ti.seed);
 
 //2. Load data
@@ -188,7 +215,10 @@ int main(int argc, char* argv[])
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
+	// XW
+	/*
 	CGrove::setPool(pool);
+	*/
 #endif
 
 	//3. Main part - run interaction detection
@@ -210,7 +240,11 @@ int main(int argc, char* argv[])
 			ti.interaction[1] = attrs[attrNo2];
 			telog << "\nRestricting interaction between " << data.getAttrName(attrs[attrNo1]) << " and " 
 				<< data.getAttrName(attrs[attrNo2]) << "\n";
+#ifdef _WIN32	//in windows, singlethreaded
 			double rPerf = layeredGroves(data, ti, string(""));
+#else // multithreaded
+			double rPerf = layeredGroves(data, ti, string(""), pool); // XW
+#endif			
 			double score = (meanPerf - rPerf) / stdPerf;
 			if(ti.rms)
 				score *= -1; 

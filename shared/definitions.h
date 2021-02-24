@@ -13,6 +13,11 @@
 #include <limits>
 #include <stack>
 
+// XW. Solve an error: unknown type name 'streamsize'
+#ifdef __APPLE__
+#include <ios>
+#endif
+
 #include <string.h>
 #include <stdlib.h>
 #include <float.h>
@@ -29,6 +34,7 @@ typedef vector<intvv> intvvv;
 typedef vector<double> doublev;
 typedef vector<doublev> doublevv;
 typedef vector<doublevv> doublevvv;
+typedef vector<doublevvv> doublevvvv;
 typedef vector<float> floatv;
 typedef vector<floatv> floatvv;
 typedef vector<string> stringv;

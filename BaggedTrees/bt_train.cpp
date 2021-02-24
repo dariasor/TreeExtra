@@ -14,13 +14,146 @@
 #include "ErrLogStream.h"
 #include "bt_definitions.h"
 
-#ifndef _WIN32
-#include "thread_pool.h"
-#endif
-
 #include <algorithm>
 #include <errno.h>
 #include <cmath>
+
+// XW. Programmatically decide the number of cores
+#ifdef __APPLE__
+#include <thread>
+#endif
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include "thread_pool.h"
+#include <unistd.h>
+#endif
+
+// XW. Used for passing arguments to a job submitted to a thread pool
+struct trainArg
+{
+	trainArg(
+			bool doOut,
+			int bagNo,
+			TrainInfo& ti,
+			INDdata& data,
+			doublev& attrCounts,
+			bool doFS,
+			string modelFName,
+			int validN,
+			doublevv& _predsumsV
+			):
+		doOut(doOut),
+		bagNo(bagNo),
+		ti(ti),
+		data(data),
+		attrCounts(attrCounts),
+		doFS(doFS),
+		modelFName(modelFName),
+		validN(validN),
+		_predsumsV(_predsumsV)
+		{}
+	bool doOut;
+	int bagNo;
+	TrainInfo& ti;
+	INDdata& data;
+	doublev& attrCounts;
+	bool doFS;
+	string modelFName;
+	int validN;
+	doublevv& _predsumsV;
+};
+
+// XW. Use mutex to access shared resources like variables within a thread
+#ifndef _WIN32
+TMutex StdOutMutex; // Make sure only one thread is using the standard output
+TMutex ReturnMutex; // Write to the variables computed and returned by threads
+#endif
+
+// XW. Can be used in both a single-threaded setting and a multi-threaded setting
+void doTrain(trainArg* ptr)
+{
+	bool doOut = ptr->doOut;
+	int bagNo = ptr->bagNo;
+	TrainInfo& ti = ptr->ti;
+	INDdata& data = ptr->data;
+	doublev& attrCounts = ptr->attrCounts;
+	bool doFS = ptr->doFS;
+	string modelFName = ptr->modelFName;
+	int validN = ptr->validN;
+	doublevv& _predsumsV = ptr->_predsumsV;
+
+	doublev __predsumsV(validN, 0);
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+	if(doOut)
+		cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << " (begin)" << endl;
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+
+	// XW
+	INDsample sample(data);
+	sample.newBag();
+
+	CTree tree(ti.alpha);
+
+	// XW
+	tree.setRoot(sample);
+	doublev curAttrCounts(attrCounts.size(), 0);
+	tree.growBT(doFS, curAttrCounts, sample);
+
+	string _modelFName =  getModelFName(modelFName, bagNo);
+	// XW. Clear previous temp files as the save function appends to the files
+	fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
+	fload.close();
+	tree.save(_modelFName.c_str());
+
+	//generate predictions for validation set
+	for(int itemNo = 0; itemNo < validN; itemNo++)
+	{
+		__predsumsV[itemNo] = tree.predict(itemNo, VALID);
+	}
+
+#ifndef _WIN32
+ReturnMutex.Lock();
+#endif
+	// Unlike predsumsV, computing attrCounts is invariant to bagging order
+	if(doFS)
+		for(size_t attrNo = 0; attrNo < attrCounts.size(); attrNo++)
+			attrCounts[attrNo] += curAttrCounts[attrNo] / sample.getBagV();
+
+	_predsumsV[bagNo] = __predsumsV;
+#ifndef _WIN32
+ReturnMutex.Unlock();
+#endif
+
+#ifndef _WIN32
+StdOutMutex.Lock();
+#endif
+	if(doOut)
+		cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << " (end)" << endl;
+#ifndef _WIN32
+StdOutMutex.Unlock();
+#endif
+
+	return;
+}
+
+// XW. Wrap the doTrain function by TJob to be submitted to a thread pool
+#ifndef _WIN32
+class TrainJob: public TThreadPool::TJob
+{
+public:
+	void Run(void* ptr)
+	{
+		doTrain((trainArg*) ptr);
+	}
+};
+#endif
 
 int main(int argc, char* argv[])
 {	
@@ -50,15 +183,29 @@ int main(int argc, char* argv[])
 
 #ifndef _WIN32
 	int threadN = 6;	//number of threads
+#ifndef __APPLE__
+	int nCore = sysconf(_SC_NPROCESSORS_ONLN);
+#else
+	int nCore = std::thread::hardware_concurrency();
+#endif
+	// XW. Need to handle 0 which is returned when unable to detect
+	if (nCore > 0) {
+		if (nCore == 1)
+			threadN = 1;
+		else
+			threadN = nCore / 2;
+	}
+	// std::cout << "Default number of cores is " << threadN << std::endl;
 #endif
 
 	TrainInfo ti; //model training parameters
 	string modelFName = "model.bin";	//name of the output file for the model
 	string predFName = "preds.txt";		//name of the output file for predictions
-	int topAttrN = -1;  //how many top attributes to output and keep in the cut data 
+	int topAttrN = -1;		//how many top attributes to output and keep in the cut data 
 							//(0 = do not do feature selection)
 							//(-1 = output all available features)
-	bool doOut = true; //whether to output log information to stdout
+	int splitAttrN = 3;	// XW. How many split attributes to leave in output attribute file
+	bool doOut = true;		//whether to output log information to stdout
 
 	//parse and save input parameters
 	//indicators of presence of required flags in the input
@@ -88,7 +235,10 @@ int main(int argc, char* argv[])
 		else if(!args[argNo].compare("-b"))
 			ti.bagN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-i"))
+		{
 			ti.seed = atoiExt(argv[argNo + 1]);
+			ti.iSet = true;
+		}
 		else if(!args[argNo].compare("-k"))
 			topAttrN = atoiExt(argv[argNo + 1]);
 		else if(!args[argNo].compare("-m"))
@@ -123,8 +273,11 @@ int main(int argc, char* argv[])
 #else
 			throw WIN_ERR;
 #endif
-		else
+		else if (!args[argNo].compare("-s")) {
+			splitAttrN = atoiExt(argv[argNo + 1]);
+		} else {
 			throw INPUT_ERR;
+		}
 	}//end for(int argNo = 1; argNo < argc; argNo += 2) //parse and save input parameters
 
 	if(!(hasTrain && hasVal && hasAttr))
@@ -132,8 +285,26 @@ int main(int argc, char* argv[])
 
 	if((ti.alpha < 0) || (ti.alpha > 1))
 		throw ALPHA_ERR;
-	
-//1.a) Set log file
+
+//1.a) delete all temp files from the previous run and create a directory BTTemp
+#ifdef _WIN32	//in windows
+	WIN32_FIND_DATA fn;			//structure that will contain the name of file
+	HANDLE hFind;				//current file
+	hFind = FindFirstFile("./BTTemp/*.*", &fn);	//"."	
+	FindNextFile(hFind, &fn);						//".." 
+	//delete all files in the directory
+	while(FindNextFile(hFind, &fn) != 0) 
+	{
+		string fullName = "BTTemp/" + (string)fn.cFileName;
+		DeleteFile(fullName.c_str());
+	} 
+	CreateDirectory("BTTemp", NULL);
+#else 
+	system("rm -rf ./BTTemp/");
+	system("mkdir ./BTTemp/");
+#endif
+
+//1.b) Set log file
 	LogStream telog;
 	LogStream::init(doOut);
 	telog << "\n-----\nbt_train ";
@@ -141,7 +312,7 @@ int main(int argc, char* argv[])
 		telog << argv[argNo] << " ";
 	telog << "\n\n";
 
-//1.b) Initialize random number generator. 
+//1.c) Initialize random number generator. 
 	srand(ti.seed);
 
 //2. Load data
@@ -150,11 +321,13 @@ int main(int argc, char* argv[])
 	CTree::setData(data);
 	CTreeNode::setData(data);
 
+	/*// XW. Disable parallel node split cause parallel bagging consumes all CPUs
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
 	CTree::setPool(pool);
 #endif
+	*///
 
 //3. Train models
 	doublev validTar, validWt;
@@ -183,6 +356,7 @@ int main(int argc, char* argv[])
 	int attrN = data.getAttrN();
 	if(topAttrN == -1)
 		topAttrN = attrN;
+	
 	doublev attrCounts(attrN, 0); //counts of attribute importance
 	idpairv attrCountsP(attrN, idpair(0, 0)); //another structure for counts of attribute importance, will need it later for sorting
 	bool doFS = (topAttrN != 0);	//whether feature selection is requested
@@ -204,23 +378,58 @@ int main(int argc, char* argv[])
 		fbagroc.close();
 	}
 
-	//make bags, build trees, collect predictions
+// XW. 3.a) Make bags, build trees, collect predictions in parallel if not Windows
+	doublevv _predsumsV(ti.bagN, doublev(validN, 0));
+#ifdef _WIN32
+	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
+	{
+		doTrain(new trainArg(
+				doOut,
+				bagNo,
+				ti,
+				data,
+				attrCounts,
+				doFS,
+				modelFName,
+				validN,
+				_predsumsV
+				));
+	}
+#else
+	TThreadPool pool(threadN);
+	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
+	{
+		trainArg* ptr = new trainArg(
+				doOut,
+				bagNo,
+				ti,
+				data,
+				attrCounts,
+				doFS,
+				modelFName,
+				validN,
+				_predsumsV
+				);
+		pool.Run(new TrainJob, ptr);
+	}
+	pool.SyncAll();
+#endif
+	telog << "Info: All of the threads have been synchronized\n"; // XW
+
+// XW. 3.b) Aggregate results
 	doublev predictions(validN);
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
 	{
-		if(doOut)
-			cout << "Iteration " << bagNo + 1 << " out of " << ti.bagN << endl;
-
-		data.newBag();
 		CTree tree(ti.alpha);
-		tree.setRoot();
-		tree.grow(doFS, attrCounts);
+		string _modelFName = getModelFName(modelFName, bagNo);
+		fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::in);
+		tree.load(fload);
 		tree.save(modelFName.c_str());
 
 		//generate predictions for validation set
 		for(int itemNo = 0; itemNo < validN; itemNo++)
 		{
-			predsumsV[itemNo] += tree.predict(itemNo, VALID);
+			predsumsV[itemNo] += _predsumsV[bagNo][itemNo];
 			predictions[itemNo] = predsumsV[itemNo] / (bagNo + 1);
 		}
 		rmsV[bagNo] = rmse(predictions, validTar, validWt);
@@ -241,7 +450,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	
 //4. Output
 		
 	//output results 
@@ -288,27 +496,57 @@ int main(int argc, char* argv[])
 		if(topAttrN > attrN)
 			topAttrN = attrN;
 
-		fstream ffeatures("feature_scores.txt", ios_base::out);	
-		ffeatures << "Top " << topAttrN << " features\n";
-		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
+		fstream ffeatures("feature_scores.txt", ios_base::out);
+		// ffeatures << "Top " << topAttrN << " features\n";
+		ffeatures << "All " << attrN << " features in descending order of scores\n"; // XW
+		for (int attrNo = 0; attrNo < attrN; attrNo ++) // XW
 			ffeatures << data.getAttrName(attrCountsP[attrNo].first) << "\t" 
 				<< attrCountsP[attrNo].second / ti.bagN << "\n";
 		ffeatures << "\n\nColumn numbers (beginning with 1)\n";
-		for(int attrNo = 0; attrNo < topAttrN; attrNo++)
+		for (int attrNo = 0; attrNo < attrN; attrNo ++) // XW
 			ffeatures << data.getColNo(attrCountsP[attrNo].first) + 1 << " ";
 		ffeatures << "\nLabel column number: " << data.getTarColNo() + 1;
 		ffeatures.close();
 
+		// XW
+		intset splitAttrs = data.getSplitAttrs();
+		int splitN = 0;
+		if(!splitAttrs.empty())
+		{
+			telog << "Aiming to leave " << splitAttrN << " out of " << splitAttrs.size() << " attributes marked by split\n";
+			for (int attrNo = 0; attrNo < topAttrN; attrNo ++) {
+				if (splitAttrs.find(attrCountsP[attrNo].first) != splitAttrs.end()) {
+					splitN ++;
+					telog << "\t" << data.getAttrName(attrCountsP[attrNo].first) << " (split)\n";
+				}
+			}
+			telog << "Found " << splitN << " attributes marked by split and within top " << topAttrN << "\n";
+			splitN = splitAttrN - splitN;
+			telog << "Keeping " << splitN << " attributes marked by split but not within top " << topAttrN << "\n";
+		}
 		//output new attribute file
-		for(int attrNo = topAttrN; attrNo < attrN; attrNo++)
-			data.ignoreAttr(attrCountsP[attrNo].first);
+		for (int attrNo = topAttrN; attrNo < attrN; attrNo ++) {
+			// XW. Do not ignore if an attribute is marked by split and there are less than TK split attributes
+			if ((splitAttrs.find(attrCountsP[attrNo].first) != splitAttrs.end()) && (splitN > 0)) {
+				splitN --;
+				telog << "\t" << data.getAttrName(attrCountsP[attrNo].first) << " (split)\n";
+			} else {
+				data.ignoreAttr(attrCountsP[attrNo].first);
+			}
+		}
+		telog << "\n";
 		data.outAttr(ti.attrFName);
 	}
 
 	if(data.getHasActiveMV())
 		telog << "Warning: the data has missing values in active attributes, correlations can not be calculated.\n\n";
 	else
-		data.correlations(ti.trainFName);
+	{
+		// XW
+		INDsample sample(data);
+		sample.newBag();
+		sample.correlations(ti.trainFName);
+	}
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);
@@ -321,7 +559,7 @@ int main(int argc, char* argv[])
 				errlog << "Usage: bt_train -t _train_set_ -v _validation_set_ -r _attr_file_ "
 					<< "[-a _alpha_value_] [-b _bagging_iterations_] [-i _init_random_] " 
 					<< "[-m _model_file_name_] [-k _attributes_to_leave_] [-c rms|roc] "
-					<< "[-l log|nolog] | -version\n";
+					<< "[-l log|nolog] [-s _split_attributes_to_leave_] | -version\n"; // XW
 				break;
 			case ALPHA_ERR:
 				errlog << "Error: alpha value is out of [0;1] range.\n";

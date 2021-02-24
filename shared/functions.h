@@ -69,6 +69,9 @@ double diff10d(double d1, double d2);
 //returns random double between 0 and 1
 double rand_coef();
 
+// XW. Make the rand_coef function thread-safe
+double rand_coef(unsigned int& state);
+
 //less function with NaN greater than numbers
 bool lessNaN(double i, double j); 
 
@@ -98,3 +101,6 @@ bool ltSecond(fipair p1, fipair p2);
 
 //greater function comparing by the absolute value of the third item
 bool gtAbsThird(ssdtriple t1, ssdtriple t2);
+
+//converts number to string
+std::string itoa(int value, int base);
