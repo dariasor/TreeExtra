@@ -2,7 +2,9 @@ SHAREDDIR = ../shared
 AGDIR = ../AdditiveGroves
 LIBDIR=../ThreadPool
 CXXFLAGS = -I$(SHAREDDIR) -I$(AGDIR) -I$(LIBDIR)
-OBJS = $(AGDIR)/ag_functions.o $(AGDIR)/Grove.o $(SHAREDDIR)/SplitInfo.o  $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/TreeNode.o  $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o $(LIBDIR)/thread_pool.o
+OBJS = $(AGDIR)/ag_functions.o $(AGDIR)/Grove.o $(LIBDIR)/thread_pool.o \
+	$(SHAREDDIR)/SplitInfo.o  $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o \
+	$(SHAREDDIR)/TreeNode.o  $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o # XW
 PGMS = vis_iplot vis_effect vis_correlations
 PGMOBJS = vis_iplot.o vis_effect.o vis_correlations.o
 LIBS = -lpthread
@@ -21,10 +23,11 @@ clean:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
 $(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
+$(SHAREDDIR)/INDsample.o: $(SHAREDDIR)/definitions.h # XW
 $(SHAREDDIR)/functions.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/SplitInfo.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/LogStream.o: $(SHAREDDIR)/definitions.h
-$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o
+$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o # XW
 
 
 vis_iplot.o: $(OBJS)

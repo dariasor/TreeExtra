@@ -1,6 +1,4 @@
 // definitions.h: constants, enumerators, typedefs and macros
-//
-// (c) Daria Sorokina
 
 #pragma once
 #pragma warning(disable : 4996)
@@ -12,6 +10,10 @@
 #include <map>
 #include <limits>
 #include <stack>
+
+#ifdef __APPLE__
+#include <ios>
+#endif
 
 #include <string.h>
 #include <stdlib.h>
@@ -29,6 +31,7 @@ typedef vector<intvv> intvvv;
 typedef vector<double> doublev;
 typedef vector<doublev> doublevv;
 typedef vector<doublevv> doublevvv;
+typedef vector<doublevvv> doublevvvv;
 typedef vector<float> floatv;
 typedef vector<floatv> floatvv;
 typedef vector<string> stringv;
@@ -113,7 +116,7 @@ enum AG_TRAIN_MODE
 
 
 
-#define VERSION "2.6.0" //release version
+#define VERSION "2.7.0" //release version
 #define LINE_LEN 500000	//maximum length of line in the input file
 #define QNAN flim::quiet_NaN()
 

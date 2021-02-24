@@ -130,6 +130,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\shared\functions.cpp" />
     <ClCompile Include="..\..\shared\INDdata.cpp" />
+    <ClCompile Include="..\..\shared\INDsample.cpp" />
     <ClCompile Include="..\..\shared\LogStream.cpp" />
     <ClCompile Include="..\..\Visualization\vis_correlations.cpp" />
   </ItemGroup>
@@ -137,6 +138,7 @@
     <ClInclude Include="..\..\shared\ErrLogStream.h" />
     <ClInclude Include="..\..\shared\functions.h" />
     <ClInclude Include="..\..\shared\INDdata.h" />
+    <ClInclude Include="..\..\shared\INDsample.h" />
     <ClInclude Include="..\..\shared\LogStream.h" />
     <ClInclude Include="..\..\Visualization\vis_definitions.h" />
   </ItemGroup>

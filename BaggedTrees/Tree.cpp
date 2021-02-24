@@ -1,6 +1,4 @@
 // Bagged Trees / Tree.cpp: implementation of class CTree
-//
-// (c) Daria Sorokina
 
 #include "Tree.h"
 #include "functions.h"
@@ -27,6 +25,7 @@ public:
 		nodeip curNH = pJD->curNH;
 		TCondition& nodesCond = *pJD->pNodesCond;
 		doublev* pAttrCounts = pJD->pAttrCounts;
+		INDsample& sample = pJD->sample;
 
 		double nodeV = 0;
 		double entropy = 0;
@@ -38,7 +37,7 @@ public:
 		}
 		double h = curNH.second;
 		double curAlpha = (pJD->H == 0) ? 1 : pow(2, - ( pJD->b +  pJD->H) * h /  pJD->H +  pJD->b);
-		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
+		bool notLeaf = curNH.first->split(curAlpha, sample, pEntropy);
 		
 		nodesCond.Lock();
 		if(notLeaf)
@@ -69,10 +68,10 @@ CTree::CTree(double alphaIn): alpha(alphaIn), root()
 }
 
 //Generates a tree and increases attribute counts
-void CTree::grow(bool doFS, doublev& attrCounts)
+void CTree::growGBT(bool doFS, doublev& attrCounts, INDsample& sample)
 {
-	double b = - log((double) pData->getBagDataN()) / log(2.0); 
-//thought about replacing getTrainN with getBagV, decided against it. The tree should not change if we multiple all weights by 2.
+	double b = - log((double) sample.getBagDataN()) / log(2.0);
+//thought about replacing getBagDataN with getBagV, decided against it. The tree should not change if we multiple all weights by 2.
 	double H = - log((double) alpha) / log(2.0);
 
 	if(b >= -H)
@@ -102,7 +101,7 @@ void CTree::grow(bool doFS, doublev& attrCounts)
 		}	
 		double h = curNH.second;
 		double curAlpha = (H == 0) ? 1 : pow(2, - (b + H) * h / H + b);
-		bool notLeaf = curNH.first->split(curAlpha, pEntropy);
+		bool notLeaf = curNH.first->split(curAlpha, sample, pEntropy);
 	
 		if(notLeaf)
 		{//process child nodes of this node
@@ -132,7 +131,16 @@ void CTree::grow(bool doFS, doublev& attrCounts)
 			doublev* pCurAttrCounts = NULL;
 			if(doFS)
 				pCurAttrCounts = &curAttrCounts;
-			JobData* pJD = new JobData(curNH, &nodes, &nodesCond, &toDoN, pCurAttrCounts, b, H);
+			JobData* pJD = new JobData(
+					curNH, 
+					&nodes, 
+					&nodesCond, 
+					&toDoN, 
+					pCurAttrCounts, 
+					b, 
+					H,
+					sample
+					);
 			pPool->Run(new CNodeSplitJob(), pJD, true);
 		}
 		else
@@ -141,7 +149,53 @@ void CTree::grow(bool doFS, doublev& attrCounts)
 #endif
 	if(doFS)
 		for(size_t attrNo = 0; attrNo < attrCounts.size(); attrNo++)
-			attrCounts[attrNo] += curAttrCounts[attrNo] / pData->getBagV();
+			attrCounts[attrNo] += curAttrCounts[attrNo] / sample.getBagV();
+}
+
+//Generates a tree and increases attribute counts
+void CTree::growBT(bool doFS, doublev& curAttrCounts, INDsample& sample)
+{
+	double b = - log((double) sample.getBagDataN()) / log(2.0);
+//thought about replacing getTrainN with getBagV, decided against it. The tree should not change if we multiple all weights by 2.
+	double H = - log((double) alpha) / log(2.0);
+
+	if(b >= -H)
+		b = -H;
+
+	//place root into the stack of nodes for splitting
+	nodehstack nodes;	//stack
+	nodes.push(nodeip(&root, 0));
+	
+	//grow the tree: take nodes from the stack, try to split them, 
+	//if the result is positive, place child nodes into the same stack
+	while(!nodes.empty())
+	{
+		nodeip curNH = nodes.top();
+		nodes.pop();
+		
+		double nodeV = 0;
+		double entropy = 0;
+		double* pEntropy = NULL;
+		if(doFS)
+		{
+			nodeV = curNH.first->getNodeV();
+			pEntropy = &entropy;
+		}	
+		double h = curNH.second;
+		double curAlpha = (H == 0) ? 1 : pow(2, - (b + H) * h / H + b);
+		bool notLeaf = curNH.first->split(curAlpha, sample, pEntropy);
+	
+		if(notLeaf)
+		{//process child nodes of this node
+			if (doFS)
+			{
+				entropy = max(entropy, 1.0);
+				curAttrCounts[curNH.first->getDivAttr()] += nodeV / entropy;
+			}
+			nodes.push(nodeip(curNH.first->left, curNH.second + 1));
+			nodes.push(nodeip(curNH.first->right, curNH.second + 1));
+		}
+	}
 }
 
 //Saves the tree into the binary file. 
@@ -254,6 +308,6 @@ void CTree::resetRoot(doublev& othpreds){
 }
 
 //loads data into the root
-void CTree::setRoot(){
-	root.setRoot();
+void CTree::setRoot(INDsample& sample) {
+	root.setRoot(sample);
 }

@@ -1,6 +1,4 @@
 //Additive Groves / ag_save.cpp: main function of executable ag_save
-//
-//(c) Daria Sorokina
 
 #include "ag_functions.h"
 #include "functions.h"

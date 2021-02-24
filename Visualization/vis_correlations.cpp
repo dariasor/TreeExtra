@@ -1,12 +1,11 @@
 //Visualization / vis_correlations.cpp: main function of the executable vis_correlations
-//
-//(c) Daria Sorokina
 
 #include "LogStream.h"
 #include "ErrLogStream.h"
 #include "functions.h"
 #include "vis_definitions.h"
 #include "INDdata.h"
+#include "INDsample.h"
 
 #include <errno.h>
 
@@ -68,7 +67,10 @@ int main(int argc, char* argv[])
 	INDdata data(trainFName.c_str(), "", "", attrFName.c_str());
 
 //3. Calculate and output correlations
-	data.correlations(trainFName);		
+	INDsample sample(data);
+	sample.newBag();
+	sample.correlations(trainFName);
+
 
 	}catch(TE_ERROR err){
 		te_errMsg((TE_ERROR)err);

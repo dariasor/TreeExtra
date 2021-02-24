@@ -11,8 +11,6 @@
 // attributes. Because of this, splitting of each node (except for the root) takes linear time. 
 // 5. Some stl variables are implemented as pointers in order to ensure that unused memory can be 
 // freed fast enough. ( someData.clear() does not free memory, delete pSomeData does ) 
-// 
-// (c) Daria Sorokina
 
 #include "TreeNode.h"
 #include "functions.h"
@@ -127,7 +125,7 @@ CTreeNode::CTreeNode(const CTreeNode& rhs)
 
 //Deletes old tree, gets data from the dataset container into the node 
 //This function is intended for root nodes only
-void CTreeNode::setRoot()
+void CTreeNode::setRoot(INDsample& sample)
 {
 	del();	//delete old tree
 
@@ -137,11 +135,11 @@ void CTreeNode::setRoot()
 
 	if(pSorted == NULL)
 		pSorted = new fipairvv();
-	pData->getSortedData(*pSorted);
+	sample.getSortedData(*pSorted);
 	
 	if(pItemSet == NULL)
 		pItemSet = new ItemInfov();
-	pData->getCurBag(*pItemSet);
+	sample.getCurBag(*pItemSet);
 }
 
 //input: predictions for train set data points produced by the rest of the model (not by this tree)	
@@ -175,14 +173,14 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 // Returns true if succeeds, false if this node becomes a leaf
 // input: alpha - min possible ratio of internal node train subset volume to the whole train set size, 
 //		when surpassed,	the node becomes a leaf
-bool CTreeNode::split(double alpha, double* pEntropy)
+bool CTreeNode::split(double alpha, INDsample& sample, double* pEntropy)
 {	
 //1. check basic leaf conditions
 	double nodeV, nodeSum;
 	bool isStD0 = getStats(nodeV, nodeSum);
 	int itemN = pItemSet->size();
 
-	if(((double)itemN / pData->getBagDataN() < alpha) || isStD0)
+	if(((double)itemN / sample.getBagDataN() < alpha) || isStD0)
 	{
 		makeLeaf(nodeSum / nodeV);
 		return false;

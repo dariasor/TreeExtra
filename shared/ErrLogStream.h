@@ -1,6 +1,5 @@
 // ErrLogStream.h: implementation of ErrLogStream class and << operator
 // Redirects output to both cerr (console error output) and file log.txt
-// (c) Daria Sorokina
 
 #pragma once
 

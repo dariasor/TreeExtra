@@ -1,6 +1,4 @@
 //INDdata.cpp: implementation of INDdata class
-//
-// (c) Daria Sorokina
 
 #include "INDdata.h"
 #include "functions.h"
@@ -92,6 +90,11 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				boolAttrs.insert(attrId);
 			else if(attrStr.find("cont") == string::npos) 
 				throw ATTR_TYPE_ERR;
+		}
+
+		// Memorize the attributes that are marked by split
+		if (attrStr.find("(split)") != -1) {
+			splitAttrs.insert(attrId);
 		}
 
 		getLineExt(fattr, buf);
@@ -252,10 +255,6 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			fmisval.close();
 			telog << "Warning: active attributes have missing values. More information in missing_values.txt.\n\n";
 		}
-
-		//initialize bootstrap (bag of data)
-		bootstrap.resize(trainN); 
-		newBag();	
 	}
 	else //no train set
 		trainN = 0;
@@ -400,103 +399,6 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 	  throw ATTR_DATA_MISMATCH_G_ERR;
 }
 
-//Puts bootstrapped ids (indices) of train set data points into bootstrap vector
-void INDdata::newBag(void)
-{
-	boolv oobInx(trainN, true); //true if item is not in current bag
-	bagV = 0;
-
-	for(int itemNo = 0; itemNo < trainN; itemNo++)
-	{//put a new item into bag
-		double randCoef = rand_coef();
-		int nextItem = (int) ((trainN - 1) * randCoef);
-		bootstrap[itemNo] = nextItem;
-		oobInx[nextItem] = false;
-		bagV += trainWt[itemNo];
-	}
-
-	//calculate number of oob cases
-	oobN = 0;
-	for(int itemNo = 0; itemNo < trainN; itemNo++)
-		if(oobInx[itemNo])
-			oobN++;
-		
-	if(oobN == 0)
-		newBag(); //we need out of bag data, so try again
-
-	//fill out of bag data
-	oobData.resize(oobN);
-	int oobNo = 0;
-	for(int itemNo = 0; itemNo < trainN; itemNo++)
-		if(oobInx[itemNo])
-		{
-			oobData[oobNo] = itemNo;
-			oobNo++;
-		}
-
-	//create versions of data sorted by values of attributes
-	sortItems();
-}
-
-//subsampling without replacement
-void INDdata::newSample(int sampleN)
-{
-	intv inxv(trainN);
-	for(int i = 0; i < trainN; i++)
-		inxv[i] = i;
-
-	bootstrap.clear();
-	bootstrap.resize(sampleN);
-	bagV = 0;
-
-	for(int i = 0; i < sampleN; i++)
-	{
-		double randCoef = rand_coef();
-		int nextItem = (int) ((trainN - 1 - i) * randCoef);
-		bootstrap[i] = inxv[nextItem];
-		bagV += trainWt[i];
-		inxv[nextItem] = inxv[trainN - 1 - i];
-	}
-
-	//create versions of data sorted by values of attributes
-	sortItems();
-}
-
-//In order to decrease the training time, we keep indexes of current training data sorted by values of 
-//each attribute. This function does the initial sorting and 
-//initializes sortedItems - a vector of vectors corresponding to active continuous attributes. 
-//At the end each vector should contain pairs (data point id, attribute value), and be
-//sorted by attribute values. Only data points where the attribute of interest is defined are included
-void INDdata::sortItems()
-{
-	//get a list of defined attributes
-	intv attrs;
-	getActiveAttrs(attrs);
-	int actAttrN = (int)attrs.size();
-
-	int sampleN = (int)bootstrap.size();
-
-	//reserve space for sortedItems
-	sortedItems.clear();
-	sortedItems.resize(actAttrN);
-	for(int attrNo = 0; attrNo < actAttrN; attrNo++)
-		if(!boolAttr(attrs[attrNo]))
-			sortedItems[attrNo].reserve(sampleN);
-
-	//fill sortedItems 
-	for(int attrNo = 0; attrNo < actAttrN; attrNo++)
-		if(!boolAttr(attrs[attrNo]))
-		{
-			for(int itemNo = 0; itemNo < sampleN; itemNo++)
-			{
-				float value = train[bootstrap[itemNo]][attrs[attrNo]];
-				if(!isnan(value))
-					sortedItems[attrNo].push_back(fipair(value, itemNo));
-			}
-			sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
-		}
-}
-
 //Returns ids of all active attributes (attributes that are allowed to use in the model)
 void INDdata::getActiveAttrs(intv& attrs)
 {
@@ -523,22 +425,6 @@ int INDdata::getAttrId(string attrName)
 	return -1;
 }
 
-//Gets out of bag data info (oobData, oobTar, oobN)
-int INDdata::getOutOfBag(intv& oobData_out, doublev& oobTar, doublev& oobWt)
-{
-	oobData_out = oobData;
-	oobTar.resize(oobN);
-	oobWt.resize(oobN);
-	
-	for(int oobNo = 0; oobNo < oobN; oobNo++)
-	{
-		oobTar[oobNo] = trainTar[oobData[oobNo]];
-		oobWt[oobNo] = trainWt[oobData[oobNo]];
-	}
-
-	return oobN;
-}
-
 //Gets validaton data info (validTar, validN)
 int INDdata::getTargets(doublev& targets, doublev& weights, DATA_SET dset)
 {
@@ -560,43 +446,6 @@ int INDdata::getTargets(doublev& targets, doublev& weights, DATA_SET dset)
 		weights = testWt;
 		return testN;
 	}
-}
-
-//Fills itemSet with ids and responses of data points in the current bag
-void INDdata::getCurBag(ItemInfov& itemSet)
-{ 
-	int sampleN = (int)bootstrap.size();
-	itemSet.resize(sampleN);
-
-	for(int i = 0; i < sampleN; i++)
-	{
-		itemSet[i].key = bootstrap[i];
-		itemSet[i].response = trainTar[bootstrap[i]];
-		itemSet[i].coef = trainWt[bootstrap[i]];
-	}
-}
-
-//Returns ids and responses of data points in the current bag
-int INDdata::getCurBag(intv& bagData, doublev& bagTar, doublev& bagWt)
-{ 
-	int sampleN = (int)bootstrap.size();
-	bagData = bootstrap;
-	bagTar.resize(sampleN);
-	bagWt.resize(sampleN);
-
-	for(int i = 0; i < sampleN; i++)
-	{
-		bagTar[i] = trainTar[bootstrap[i]];
-		bagWt[i] = trainWt[bootstrap[i]];
-	}
-
-	return sampleN;
-}
-
-//Creates a copy of sortedItems
-void INDdata::getSortedData(fipairvv& sorted)
-{
-	sorted = sortedItems;
 }
 
 //gets the value of a given attribute (attrId) for a given case (itemNo) in a given data set (dset)
@@ -829,110 +678,6 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 			valCounts[uValsN - 1].second++;
 
 	return uValsN;
-}
-
-//Calculates and outputs correlation scores between active attributes based on the training set. Weights are ignored.
-void INDdata::correlations(string trainFName)
-{
-	LogStream telog;
-
-	//get a list of defined attributes
-	intv attrs;
-	getActiveAttrs(attrs);
-	size_t activeN = attrs.size();
-
-	size_t itemN = getTrainN();
-
-	//reserve space for sortedItems
-	sortedItems.clear();
-	sortedItems.resize(activeN);
-	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
-		sortedItems[attrNo].reserve(itemN);
-
-	//fill sortedItems 
-	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
-	{
-		for(size_t itemNo = 0; itemNo < itemN; itemNo++)
-		{
-			float value = train[bootstrap[itemNo]][attrs[attrNo]];
-			if(isnan(value))
-				throw CORR_MV_ERR;
-
-			sortedItems[attrNo].push_back(fipair(value, itemNo));
-		}
-		sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
-		
-		//replace actual values with ranks. Ties get average rank.
-		int lastDone = -1;
-		float curVal = sortedItems[attrNo][0].first;
-		for(size_t itemNo = 1; itemNo <= itemN; itemNo++)
-			if((itemNo == itemN) || (sortedItems[attrNo][itemNo].first != curVal))
-			{
-				if(itemNo != itemN)
-					curVal = sortedItems[attrNo][itemNo].first;
-				float rank = (float)((lastDone + itemNo) / 2.0 + 1);
-				for(size_t fillNo = lastDone + 1; fillNo < itemNo; fillNo++)
-					sortedItems[attrNo][fillNo].first = rank;
-				lastDone = itemNo - 1;
-			}
-
-		//re-sort by itemId
-		sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end(), ltSecond);
-	}
-
-	//calculate Spearman's rank correlation values
-	double coef = 6.0 / (itemN * ((double)itemN * itemN - 1.0));
-
-	doublev stub(activeN, 0);
-	doublevv correlations(activeN, stub);
-
-	ssdtriplev corrv;
-	corrv.reserve(activeN * (activeN - 1));
-
-	for(size_t attrNo1 = 0; attrNo1 < activeN; attrNo1++)
-		for(size_t attrNo2 = 0; attrNo2 < activeN; attrNo2++)
-			if(attrNo1 > attrNo2)
-				correlations[attrNo1][attrNo2] = correlations[attrNo2][attrNo1];
-			else if(attrNo1 == attrNo2)
-				correlations[attrNo1][attrNo2] = QNAN;
-			else
-			{
-				double corr = 0;
-				for(size_t itemNo = 0; itemNo < itemN; itemNo++)
-				{
-					double d = sortedItems[attrNo1][itemNo].first - sortedItems[attrNo2][itemNo].first;
-					corr += coef * d * d;
-				}
-				correlations[attrNo1][attrNo2] = 1 - corr;
-				corrv.push_back(ssdtriple(sspair(getAttrName(attrs[attrNo1]), getAttrName(attrs[attrNo2])), 1 - corr));
-			}
-
-	//open output file
-	string outFName = /*beforeLastDot(trainFName) + "." + */"correlations.txt";
-	fstream fcorr(outFName.c_str(), ios_base::out);
-
-	//output in the sorted list of triples format
-	sort(corrv.begin(), corrv.end(), gtAbsThird);
-	for(size_t pairNo = 0; pairNo < corrv.size(); pairNo++)
-		fcorr << corrv[pairNo].first.first << "\t" << corrv[pairNo].first.second << "\t" << corrv[pairNo].second << endl;
-
-
-	// output in the table format
-	fcorr << "\n" << QNAN;
-	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
-		fcorr << "\t" << getAttrName(attrs[attrNo]);
-	fcorr << endl;
-
-	for(size_t attrNo1 = 0; attrNo1 < activeN; attrNo1++)
-	{
-		fcorr << getAttrName(attrs[attrNo1]); 
-		for(size_t attrNo2 = 0; attrNo2 < activeN; attrNo2++)
-			fcorr << "\t" << correlations[attrNo1][attrNo2];
-		fcorr << endl;
-	}
-	fcorr.close();
-
-	telog << "Correlation scores are saved into the file " << outFName << ".\n";
 }
 
 //return name of the column (attribute or target)

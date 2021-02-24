@@ -1,6 +1,4 @@
 // Additive Groves / ag_definitions.h: constants, enumerators, typedefs and macros
-//
-// (c) Daria Sorokina
 
 #pragma once
 #pragma warning(disable : 4996)

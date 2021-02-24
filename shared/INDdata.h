@@ -1,6 +1,4 @@
 // INDdata.h: interface for the INDdata class
-//
-// (c) Daria Sorokina
 
 #pragma once
 #include "ItemInfo.h"
@@ -15,15 +13,16 @@ public:
 //get functions for private members  
 	int getAttrN(){return attrN;}	
 	int getTrainN(){return trainN;}
-	double getBagV(){return bagV;}
-	int getBagDataN(){return bootstrap.size();}
 	int getTarColNo(){return tarColNo;}
 	int getTargets(doublev& targets, doublev& weights, DATA_SET dset);
-	int getOutOfBag(intv& oobData, doublev& oobTar, doublev& oobWt);
 	bool getHasWeights(){return weightColNo != -1;}
 	bool getHasActiveMV(){return hasActiveMV;}
 	bool useCoef(){return hasActiveMV || (weightColNo != -1);}
 	int getColNo(int attrId){return aIdToColNo[attrId];}
+	//Return data references to avoid copying large sized data
+	doublev& getTrainTar() { return trainTar; }
+	doublev& getTrainWt() { return trainWt; }
+	floatvv& getTrain() { return train; }
 
 //untrivial get functions
 
@@ -36,13 +35,6 @@ public:
 	//gets a list of active attributes
 	void getActiveAttrs(intv& attrs);
 
-	//gets current bag of training data 
-	void getCurBag(ItemInfov& itemSet);
-	int getCurBag(intv& bagData, doublev& bagTar, doublev& bagWt);
-
-	//gets sorted indexes of current training data
-	void getSortedData(fipairvv& sorted);
-
 	//gets a value of a given attribute for a given case in a given data set
 	double getValue(int itemNo, int attrId, DATA_SET dset);
 
@@ -54,7 +46,6 @@ public:
 
 	//returns std of response
 	double getTarStD(DATA_SET ds);
-
 
 //"question" functions
 
@@ -75,12 +66,6 @@ public:
 	//actuvates the attribute
 	void useAttr(int attrId);
 
-	//replaces bootstrap in the bag
-	void newBag(void);
-
-	//subsampling without replacement
-	void newSample(int sampleN);
-
 	//inserts a new data point into the data set
 	int addTestItem(idpairv& values); 
 
@@ -93,25 +78,24 @@ public:
 	//gets all values of a specific attribute in the validation set
 	void getValues(int attrId, doublev& values);
 
-	//calculates and outputs correlation scores between active attributes based on the training set
-	void correlations(string trainFName);
+	intset& getSplitAttrs() { return splitAttrs; }
 
 private:
 	//gets a line of text, returns a vector with data points
 	void readData(char* buf, streamsize buflen, floatv& retv, int retvlen); 
 
-	//create versions of bootstrap data sorted by active continuous attributes 
-	void sortItems(); 
-
 private:
 	int attrN;			//number of attributes
 	int colN;			//number of columns in the data file
+	
 	intv aIdToColNo;	//attribute ids to column numbers
 	intset boolAttrs;	//boolean attributes
 	intset nomAttrs;	//nominal attributes
 	//boolv rawNom;		//boolean vector with the original number of columns, marks columns with nominal attributes
-	intset ignoreAttrs; //attributes that should be ignored
-	boolv rawIgnore;		//boolean vector with the original number of columns, marks columns with the attributes that should not be used
+	intset ignoreAttrs;	//attributes that should be ignored
+	intset splitAttrs;	//Attributes that are allowed to split nodes of FirTree (usually query-level features)
+
+	boolv rawIgnore;	//boolean vector with the original number of columns, marks columns with the attributes that should not be used
 	stringv attrNames;	//names of attributes
 	string tarName;		//name of the response attribute
 	int tarColNo;		//response column number
@@ -131,16 +115,6 @@ private:
 	floatvv test;		//test set data w/o response
 	doublev testTar;	//test set response
 	doublev testWt;		//test set weights
-
-	intv bootstrap;		//indexes of data points currently in the bag, can be repeating
-	int oobN;			//number of out-of-bag data points
-	intv oobData;		//indexes of out-of-bag data points
-
-	double bagV;		//sum of weights
-
-	fipairvv sortedItems; //several copies of sorted data points in the bag
-							//separate vector for sorting by each attribute
-							//each data point represented as (id, attrvalue) pair
 
 	bool hasMV;			//data has missing values
 	bool hasActiveMV;	//data has missing values in active attributes

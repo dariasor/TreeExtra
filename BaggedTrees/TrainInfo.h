@@ -1,6 +1,5 @@
 // Bagged Trees / TrainInfo.h: implementation of the TrainInfo structure
 // This structure contains all parameters relevant to training Bagged Trees
-// (c) Daria Sorokina
 
 #pragma once
 
@@ -11,6 +10,8 @@ public:
 	int seed;			//random number initializer
 	double alpha;		//min proportion of train set in the leaf (controls size of tree)
 	bool rms;			//rms/roc performance metric
+
+	bool iSet;			// Whether -i argument is set and -i is used to set seed
 
 	//file names
 	string trainFName;	//train set

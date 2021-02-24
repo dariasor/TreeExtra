@@ -1,6 +1,4 @@
 //Visualization / vis_effect.cpp: main function of executable vis_effect
-//
-//(c) Daria Sorokina
 
 #include "Grove.h"
 #include "TrainInfo.h"
