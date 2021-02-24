@@ -1,6 +1,4 @@
 //Additive Groves / ag_predict.cpp: main function of executable ag_predict
-//
-//(c) Daria Sorokina
 
 #include "Grove.h"
 #include "TrainInfo.h"

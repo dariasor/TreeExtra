@@ -1,8 +1,6 @@
 // Additive Groves / TrainInfo.h: implementation of the TrainInfo structure
 // This structure contains all parameters relevant to training an Additive Groves model
 
-// (c) Daria Sorokina
-
 #pragma once
 #include "ag_definitions.h"
 #include "definitions.h"

@@ -1,6 +1,4 @@
 //Visualization / vis_iplot.cpp: main function of executable vis_iplot
-//
-//(c) Daria Sorokina
 
 #include "Grove.h"
 #include "TrainInfo.h"

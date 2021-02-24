@@ -1,6 +1,4 @@
 //Bagged Trees / bt_predict.cpp: main function of executable bt_predict
-//
-//(c) Daria Sorokina
 
 #include <errno.h>
 

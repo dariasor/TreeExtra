@@ -1,6 +1,4 @@
 //Visualization / vis_correlations.cpp: main function of the executable vis_correlations
-//
-//(c) Daria Sorokina
 
 #include "LogStream.h"
 #include "ErrLogStream.h"
@@ -69,7 +67,6 @@ int main(int argc, char* argv[])
 	INDdata data(trainFName.c_str(), "", "", attrFName.c_str());
 
 //3. Calculate and output correlations
-	// XW
 	INDsample sample(data);
 	sample.newBag();
 	sample.correlations(trainFName);

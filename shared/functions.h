@@ -1,6 +1,4 @@
 // functions.h: declarations of global functions
-//
-// (c) Daria Sorokina
 
 #pragma once
 #include "definitions.h"
@@ -69,7 +67,7 @@ double diff10d(double d1, double d2);
 //returns random double between 0 and 1
 double rand_coef();
 
-// XW. Make the rand_coef function thread-safe
+//Make the rand_coef function thread-safe
 double rand_coef(unsigned int& state);
 
 //less function with NaN greater than numbers

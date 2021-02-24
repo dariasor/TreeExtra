@@ -1,5 +1,4 @@
 // Additive Groves / ag_layered.cpp: implementations of functions for training layered Additive Groves models
-// (c) Daria Sorokina
 
 #include "ag_layered.h"
 #include "Grove.h"

@@ -1,6 +1,5 @@
 // LogStream.cpp: implementation of LogStream class and << operator
 // Redirects output to both console and file log.txt
-// (c) Daria Sorokina
 
 #include "LogStream.h"
 #include "definitions.h"

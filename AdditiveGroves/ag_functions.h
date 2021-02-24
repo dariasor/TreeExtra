@@ -1,5 +1,4 @@
 // Additive Groves / ag_functions.h: declarations of Additive Groves global functions
-// (c) Daria Sorokina
 
 #pragma once
 #include "TrainInfo.h"
@@ -56,4 +55,5 @@ void outIPlots(INDdata& data, iipairv interactions, int quantN1, int quantN2, st
 //calculate the best place on the performance grid for the interaction detection
 bool bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo);
 
-string getPrefix(int bagNo, double alpha, int tigN); // XW
+//adds bagNo to prefix of file names to be used in a multi-threaded setting
+string getPrefix(int bagNo, double alpha, int tigN);

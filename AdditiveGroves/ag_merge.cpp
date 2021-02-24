@@ -1,6 +1,4 @@
 //Additive Groves / ag_merge.cpp: main function of executable ag_merge
-//
-//(c) Daria Sorokina
 
 #include "LogStream.h"
 #include "ErrLogStream.h"

@@ -5,7 +5,7 @@
 #include "ag_layeredjob.h"
 #include "ErrLogStream.h"
 
-// XW. Too many arguments are needed to pass to jobs
+// Too many arguments are needed to pass to jobs
 struct LayeredArg
 {
 	LayeredArg(
@@ -35,7 +35,7 @@ TMutex StdOutMutex; // Make sure only one thread is using the standard output
 TMutex DirMutex; // Probably not needed as only the first thread writes to dir
 TMutex ReturnMutex; // Write to the variables computed and returned by threads
 
-// XW. Can be used in both a single-threaded setting and a multi-threaded setting
+// Can be used in both a single-threaded setting and a multi-threaded setting
 void doLayered(LayeredArg* ptr)
 {
 	try
@@ -46,7 +46,6 @@ void doLayered(LayeredArg* ptr)
 	int validN = ptr->validN;
 	string modelFName = ptr->modelFName;
 
-	// XW
 	INDsample sample(data);
 	doublev __predsumsV(validN, 0);
 
@@ -56,27 +55,27 @@ StdOutMutex.Lock();
 StdOutMutex.Unlock();
 
 	CGrove grove(ti.minAlpha, ti.maxTiGN, ti.interaction);
-	grove.trainLayered(sample); // XW
+	grove.trainLayered(sample);
 	for (int itemNo = 0; itemNo < validN; itemNo ++)
-		__predsumsV[itemNo] = grove.predict(itemNo, VALID); // XW
+		__predsumsV[itemNo] = grove.predict(itemNo, VALID);
 
-	// XW. Multiple threads write to different temp files
+	// Multiple threads write to different temp files
 	if (! modelFName.empty())
 	{
 		string _modelFName = getModelFName(modelFName, bagNo);
-		// XW. Clear previous temp files as the save function appends to the files
+		// Clear previous temp files as the save function appends to the files
 		system(("rm -f " + _modelFName).c_str());
 		grove.save(_modelFName.c_str());
 	}
 
-	// XW. Only use mutex once here and not everywhere
+	// Only use mutex once here and not everywhere
 ReturnMutex.Lock();
 
-	// XW. Mutex is not needed because threads access different slices (memory addresses)
+	// Mutex is not needed because threads access different slices (memory addresses)
 	ptr->_predsumsV[bagNo] = __predsumsV;
 
 ReturnMutex.Unlock();
-	// XW. Add mutex here doesn't reduce training time but improves reproducibility
+	// Adding mutex here doesn't reduce training time but improves reproducibility
 
 StdOutMutex.Lock();
 	cout << "\t\tIteration " << bagNo + 1 << " out of " << ti.bagN << " (end)" << endl;
@@ -95,7 +94,7 @@ StdOutMutex.Unlock();
 	return;
 }
 
-// XW. Wrap the doLayered function by TJob to be submitted to a thread pool
+// Wrap the doLayered function by TJob to be submitted to a thread pool
 class LayeredJob: public TThreadPool::TJob
 {
 public:
@@ -128,7 +127,7 @@ double layeredGroves(
 		fmodel.close();
 	}
 
-	// XW. Build bagged models, calculate sums of predictions
+	// Build bagged models, calculate sums of predictions
 	doublevv _predsumsV(ti.bagN, doublev((validN, 0)));
 
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo ++)
@@ -145,7 +144,6 @@ double layeredGroves(
 	}
 	pool.SyncAll();
 
-	// XW
 	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
 	{
 		if (!modelFName.empty())
@@ -194,10 +192,10 @@ double meanLG(
 		if(repeatNo == repeatN - 1)
 		{
 			//save the last model
-			resVals[repeatNo] = layeredGroves(data, ti, modelFName, pool); // XW
+			resVals[repeatNo] = layeredGroves(data, ti, modelFName, pool);
 		}
 		else
-			resVals[repeatNo] = layeredGroves(data, ti, string(""), pool); // XW
+			resVals[repeatNo] = layeredGroves(data, ti, string(""), pool);
 	}
 
 	//calculate mean
@@ -216,7 +214,6 @@ double meanLG(
 	return resMean;
 }
 
-// XW
 string getModelFName(string modelFName, int bagNo)
 {
 	string _modelFName = string("./AGTemp/") 

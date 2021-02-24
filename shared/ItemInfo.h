@@ -1,6 +1,4 @@
 //ItemInfo.h: ItemInfo structure
-//
-// (c) Daria Sorokina
 
 #pragma once
 #include "definitions.h"

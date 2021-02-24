@@ -1,6 +1,4 @@
 //Additive Groves / ag_fs.cpp: main function of executable ag_fs
-//
-//(c) Daria Sorokina
 
 //ag_fs -t _train_set_ -v _validation_set_ -r _attr_file_ -a _alpha_value_ -n _N_value_ 
 //		-b _bagging_iterations_ [-c rms|roc] [-i seed] [-m _model_file_name_]  | -version
@@ -15,7 +13,6 @@
 #include <errno.h>
 #include <algorithm>
 
-// XW. Programmatically decide the number of cores
 #ifdef __APPLE__
 #include <thread>
 #endif
@@ -66,7 +63,7 @@ int main(int argc, char* argv[])
 #else
 	int nCore = std::thread::hardware_concurrency();
 #endif
-	// XW. Need to handle 0 which is returned when unable to detect
+	//Need to handle 0 which is returned when unable to detect
 	if (nCore > 0) {
 		if (nCore == 1)
 			threadN = 1;
@@ -199,10 +196,6 @@ int main(int argc, char* argv[])
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
-	// XW
-	/*
-	CGrove::setPool(pool);
-	*/
 #endif
 
 //3. main part - feature selection
@@ -222,7 +215,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32	//in windows, singlethreaded
 		mean = meanLG(data, ti, 10, std, modelFName);
 #else // multithreaded
-		mean = meanLG(data, ti, 10, std, modelFName, pool); // XW
+		mean = meanLG(data, ti, 10, std, modelFName, pool);
 #endif
 		telog << "\n\nAverage performance: " << mean << ", std: " << std << ", importance threshold: " << std*3 << "\n\n";
 
@@ -249,7 +242,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32	//in windows, singlethreaded
 				testPerf = layeredGroves(data, ti, string(""));
 #else // multithreaded
-				testPerf = layeredGroves(data, ti, string(""), pool); // XW
+				testPerf = layeredGroves(data, ti, string(""), pool);
 #endif
 			}
 			if((ti.rms && (testPerf <= mean + std * 3)) || (!ti.rms && (testPerf >= mean - std * 3)))

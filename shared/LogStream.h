@@ -1,6 +1,5 @@
 // LogStream.h: declaration of LogStream class and implementation of LogStream << operator
 // Redirects output to both console and file log.txt
-// (c) Daria Sorokina
 
 #pragma once
 

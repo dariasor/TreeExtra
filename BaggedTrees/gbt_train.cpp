@@ -1,7 +1,5 @@
 //Gradient boosting optimizing RMS. gbt_train.cpp: main function of executable gbt_train
 
-//(c) Daria Sorokina
-
 //gbt_train -t _train_set_ -v _validation_set_ -r _attr_file_ 
 //[-a _alpha_value_] [-n _boosting_iterations_] [-i _init_random_] [-c rms|roc]
 // [-sh _shrinkage_ ] [-sub _subsampling_] | -version
@@ -197,7 +195,6 @@ int main(int argc, char* argv[])
 		if(doOut && (treeNo % 10 == 0))
 			cout << "\titeration " << treeNo + 1 << " out of " << treeN << endl;
 
-		// XW
 		INDsample sample(data);
 		if(subsample == -1)
 			sample.newBag();
@@ -205,9 +202,9 @@ int main(int argc, char* argv[])
 			sample.newSample(sampleN);
 
 		CTree tree(ti.alpha);
-		tree.setRoot(sample); // XW
+		tree.setRoot(sample);
 		tree.resetRoot(trainPreds);
-		tree.growGBT(doFS, attrCounts, sample); // XW
+		tree.growGBT(doFS, attrCounts, sample);
 
 		//update predictions
 		for(int itemNo = 0; itemNo < trainN; itemNo++)

@@ -1,6 +1,4 @@
 // functions.cpp: definitions of global functions 
-// 
-// (c) Daria Sorokina
 
 #include "functions.h"
 #include "definitions.h"
@@ -512,7 +510,7 @@ double rand_coef()
 }
 
 #ifndef _WIN32
-// XW. Make the rand_coef function thread-safe
+//Make the rand_coef function thread-safe
 double rand_coef(unsigned int& state)
 {
 #if RAND_MAX > 32767

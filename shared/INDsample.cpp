@@ -17,7 +17,7 @@ INDsample::INDsample(INDdata& data): data(data)
 //Puts bootstrapped ids (indices) of train set data points into bootstrap vector
 void INDsample::newBag(void)
 {
-	// XW. Get data references from INDdata
+	//Get data references from INDdata
 	int trainN = data.getTrainN();
 	doublev& trainWt = data.getTrainWt();
 
@@ -60,7 +60,7 @@ void INDsample::newBag(void)
 //subsampling without replacement
 void INDsample::newSample(int sampleN)
 {
-	// XW. Get data references from INDdata
+	//Get data references from INDdata
 	int trainN = data.getTrainN();
 	doublev& trainWt = data.getTrainWt();
 
@@ -93,12 +93,12 @@ void INDsample::newSample(int sampleN)
 //sorted by attribute values. Only data points where the attribute of interest is defined are included
 void INDsample::sortItems()
 {
-	// XW. Get data references from INDdata
+	//Get data references from INDdata
 	floatvv& train = data.getTrain();
 
 	//get a list of defined attributes
 	intv attrs;
-	data.getActiveAttrs(attrs); // XW
+	data.getActiveAttrs(attrs);
 	int actAttrN = (int)attrs.size();
 
 	int sampleN = (int)bootstrap.size();
@@ -107,12 +107,12 @@ void INDsample::sortItems()
 	sortedItems.clear();
 	sortedItems.resize(actAttrN);
 	for(int attrNo = 0; attrNo < actAttrN; attrNo++)
-		if(!data.boolAttr(attrs[attrNo])) // XW
+		if(!data.boolAttr(attrs[attrNo]))
 			sortedItems[attrNo].reserve(sampleN);
 
 	//fill sortedItems 
 	for(int attrNo = 0; attrNo < actAttrN; attrNo++)
-		if(!data.boolAttr(attrs[attrNo])) // XW
+		if(!data.boolAttr(attrs[attrNo]))
 		{
 			for(int itemNo = 0; itemNo < sampleN; itemNo++)
 			{
@@ -127,7 +127,7 @@ void INDsample::sortItems()
 //Gets out of bag data info (oobData, oobTar, oobN)
 int INDsample::getOutOfBag(intv& oobData_out, doublev& oobTar, doublev& oobWt)
 {
-	// XW. Get data references from INDdata
+	//Get data references from INDdata
 	doublev& trainTar = data.getTrainTar();
 	doublev& trainWt = data.getTrainWt();
 
@@ -147,7 +147,7 @@ int INDsample::getOutOfBag(intv& oobData_out, doublev& oobTar, doublev& oobWt)
 //Fills itemSet with ids and responses of data points in the current bag
 void INDsample::getCurBag(ItemInfov& itemSet)
 {
-	// XW. Get data references from INDdata
+	//Get data references from INDdata
 	doublev& trainTar = data.getTrainTar();
 	doublev& trainWt = data.getTrainWt();
 
@@ -165,7 +165,7 @@ void INDsample::getCurBag(ItemInfov& itemSet)
 //Returns ids and responses of data points in the current bag
 int INDsample::getCurBag(intv& bagData, doublev& bagTar, doublev& bagWt)
 {
-	// XW. Get data references from INDdata
+	//Get data references from INDdata
 	doublev& trainTar = data.getTrainTar();
 	doublev& trainWt = data.getTrainWt();
 
@@ -192,17 +192,17 @@ void INDsample::getSortedData(fipairvv& sorted)
 //Calculates and outputs correlation scores between active attributes based on the training set. Weights are ignored.
 void INDsample::correlations(string trainFName)
 {
-	// XW. Get data references from INDdata
+	//Get data references from INDdata
 	floatvv& train = data.getTrain();
 
 	LogStream telog;
 
 	//get a list of defined attributes
 	intv attrs;
-	data.getActiveAttrs(attrs); // XW
+	data.getActiveAttrs(attrs);
 	size_t activeN = attrs.size();
 
-	size_t itemN = data.getTrainN(); // XW
+	size_t itemN = data.getTrainN();
 
 	//reserve space for sortedItems
 	sortedItems.clear();
@@ -268,7 +268,7 @@ void INDsample::correlations(string trainFName)
 				corrv.push_back(ssdtriple(sspair(
 						data.getAttrName(attrs[attrNo1]), 
 						data.getAttrName(attrs[attrNo2])
-						), 1 - corr)); // XW
+						), 1 - corr));
 			}
 
 	//open output file
@@ -284,12 +284,12 @@ void INDsample::correlations(string trainFName)
 	// output in the table format
 	fcorr << "\n" << QNAN;
 	for(size_t attrNo = 0; attrNo < activeN; attrNo++)
-		fcorr << "\t" << data.getAttrName(attrs[attrNo]); // XW
+		fcorr << "\t" << data.getAttrName(attrs[attrNo]);
 	fcorr << endl;
 
 	for(size_t attrNo1 = 0; attrNo1 < activeN; attrNo1++)
 	{
-		fcorr << data.getAttrName(attrs[attrNo1]); // XW
+		fcorr << data.getAttrName(attrs[attrNo1]);
 		for(size_t attrNo2 = 0; attrNo2 < activeN; attrNo2++)
 			fcorr << "\t" << correlations[attrNo1][attrNo2];
 		fcorr << endl;

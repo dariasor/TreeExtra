@@ -1,6 +1,4 @@
 //Additive Groves / ag_nway.cpp: main function of executable ag_nway
-//
-//(c) Daria Sorokina
 
 //ag_nway -t _train_set_ -v _validation_set_ -r _attr_file_ -a _alpha_value_ -n _N_value_ 
 //		-b _bagging_iterations_ -ave _mean_performance_ -std _std_of_performance_ -w _interaction_file_
@@ -15,7 +13,6 @@
 
 #include <errno.h>
 
-// XW. Programmatically decide the number of cores
 #ifdef __APPLE__
 #include <thread>
 #endif
@@ -68,14 +65,13 @@ int main(int argc, char* argv[])
 #else
 	int nCore = std::thread::hardware_concurrency();
 #endif
-	// XW. Need to handle 0 which is returned when unable to detect
+	// Need to handle 0 which is returned when unable to detect
 	if (nCore > 0) {
 		if (nCore == 1)
 			threadN = 1;
 		else
 			threadN = nCore / 2;
 	}
-	// std::cout << "Default number of cores is " << threadN << std::endl;
 #endif
 
 	//parse and save input parameters
@@ -219,10 +215,6 @@ int main(int argc, char* argv[])
 //2.a) Start thread pool
 #ifndef _WIN32
 	TThreadPool pool(threadN);
-	// XW
-	/*
-	CGrove::setPool(pool);
-	*/
 #endif
 
 //3. Main part - run interaction detection
@@ -252,7 +244,7 @@ int main(int argc, char* argv[])
 #ifdef _WIN32	//in windows, singlethreaded
 	double rPerf = layeredGroves(data, ti, modelFName);
 #else // multithreaded
-	double rPerf = layeredGroves(data, ti, modelFName, pool); // XW
+	double rPerf = layeredGroves(data, ti, modelFName, pool);
 #endif
 	double score = (meanPerf - rPerf) / stdPerf;
 	if(ti.rms)

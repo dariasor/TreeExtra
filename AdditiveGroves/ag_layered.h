@@ -1,5 +1,4 @@
 // Additive Groves / ag_layered.h: declarations of functions for training layered Additive Groves models
-// (c) Daria Sorokina
 
 #pragma once
 

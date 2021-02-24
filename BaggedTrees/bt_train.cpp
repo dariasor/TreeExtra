@@ -1,6 +1,4 @@
 //Bagged Trees / bt_train.cpp: main function of executable bt_train
-//
-//(c) Daria Sorokina
 
 //bt_train -t _train_set_ -v _validation_set_ -r _attr_file_ 
 //[-a _alpha_value_] [-b _bagging_iterations_] [-i _init_random_] [-m_model_file_name_]
@@ -18,7 +16,6 @@
 #include <errno.h>
 #include <cmath>
 
-// XW. Programmatically decide the number of cores
 #ifdef __APPLE__
 #include <thread>
 #endif
@@ -30,7 +27,7 @@
 #include <unistd.h>
 #endif
 
-// XW. Used for passing arguments to a job submitted to a thread pool
+// for passing arguments to a job submitted to a thread pool
 struct trainArg
 {
 	trainArg(
@@ -65,13 +62,13 @@ struct trainArg
 	doublevv& _predsumsV;
 };
 
-// XW. Use mutex to access shared resources like variables within a thread
+// mutex to access shared resources like variables within a thread
 #ifndef _WIN32
 TMutex StdOutMutex; // Make sure only one thread is using the standard output
 TMutex ReturnMutex; // Write to the variables computed and returned by threads
 #endif
 
-// XW. Can be used in both a single-threaded setting and a multi-threaded setting
+// Can be used in both a single-threaded setting and a multi-threaded setting
 void doTrain(trainArg* ptr)
 {
 	bool doOut = ptr->doOut;
@@ -95,19 +92,17 @@ StdOutMutex.Lock();
 StdOutMutex.Unlock();
 #endif
 
-	// XW
 	INDsample sample(data);
 	sample.newBag();
 
 	CTree tree(ti.alpha);
 
-	// XW
 	tree.setRoot(sample);
 	doublev curAttrCounts(attrCounts.size(), 0);
 	tree.growBT(doFS, curAttrCounts, sample);
 
 	string _modelFName =  getModelFName(modelFName, bagNo);
-	// XW. Clear previous temp files as the save function appends to the files
+	// Clear previous temp files as the save function appends to the files
 	fstream fload(_modelFName.c_str(), ios_base::binary | ios_base::out);
 	fload.close();
 	tree.save(_modelFName.c_str());
@@ -143,7 +138,7 @@ StdOutMutex.Unlock();
 	return;
 }
 
-// XW. Wrap the doTrain function by TJob to be submitted to a thread pool
+// Wrap the doTrain function by TJob to be submitted to a thread pool
 #ifndef _WIN32
 class TrainJob: public TThreadPool::TJob
 {
@@ -188,7 +183,7 @@ int main(int argc, char* argv[])
 #else
 	int nCore = std::thread::hardware_concurrency();
 #endif
-	// XW. Need to handle 0 which is returned when unable to detect
+	// Need to handle 0 which is returned when unable to detect
 	if (nCore > 0) {
 		if (nCore == 1)
 			threadN = 1;
@@ -204,7 +199,7 @@ int main(int argc, char* argv[])
 	int topAttrN = -1;		//how many top attributes to output and keep in the cut data 
 							//(0 = do not do feature selection)
 							//(-1 = output all available features)
-	int splitAttrN = 3;	// XW. How many split attributes to leave in output attribute file
+	int splitAttrN = 3;		// How many split attributes to leave in output attribute file
 	bool doOut = true;		//whether to output log information to stdout
 
 	//parse and save input parameters
@@ -321,14 +316,6 @@ int main(int argc, char* argv[])
 	CTree::setData(data);
 	CTreeNode::setData(data);
 
-	/*// XW. Disable parallel node split cause parallel bagging consumes all CPUs
-//2.a) Start thread pool
-#ifndef _WIN32
-	TThreadPool pool(threadN);
-	CTree::setPool(pool);
-#endif
-	*///
-
 //3. Train models
 	doublev validTar, validWt;
 	int validN = data.getTargets(validTar, validWt, VALID);
@@ -378,7 +365,7 @@ int main(int argc, char* argv[])
 		fbagroc.close();
 	}
 
-// XW. 3.a) Make bags, build trees, collect predictions in parallel if not Windows
+// 3.a) Make bags, build trees, collect predictions in parallel if not Windows
 	doublevv _predsumsV(ti.bagN, doublev(validN, 0));
 #ifdef _WIN32
 	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
@@ -414,9 +401,9 @@ int main(int argc, char* argv[])
 	}
 	pool.SyncAll();
 #endif
-	telog << "Info: All of the threads have been synchronized\n"; // XW
+	telog << "Info: All of the threads have been synchronized\n";
 
-// XW. 3.b) Aggregate results
+// 3.b) Aggregate results
 	doublev predictions(validN);
 	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
 	{
@@ -498,17 +485,16 @@ int main(int argc, char* argv[])
 
 		fstream ffeatures("feature_scores.txt", ios_base::out);
 		// ffeatures << "Top " << topAttrN << " features\n";
-		ffeatures << "All " << attrN << " features in descending order of scores\n"; // XW
-		for (int attrNo = 0; attrNo < attrN; attrNo ++) // XW
+		ffeatures << "All " << attrN << " features in descending order of scores\n";
+		for (int attrNo = 0; attrNo < attrN; attrNo ++)
 			ffeatures << data.getAttrName(attrCountsP[attrNo].first) << "\t" 
 				<< attrCountsP[attrNo].second / ti.bagN << "\n";
 		ffeatures << "\n\nColumn numbers (beginning with 1)\n";
-		for (int attrNo = 0; attrNo < attrN; attrNo ++) // XW
+		for (int attrNo = 0; attrNo < attrN; attrNo ++)
 			ffeatures << data.getColNo(attrCountsP[attrNo].first) + 1 << " ";
 		ffeatures << "\nLabel column number: " << data.getTarColNo() + 1;
 		ffeatures.close();
 
-		// XW
 		intset splitAttrs = data.getSplitAttrs();
 		int splitN = 0;
 		if(!splitAttrs.empty())
@@ -526,7 +512,7 @@ int main(int argc, char* argv[])
 		}
 		//output new attribute file
 		for (int attrNo = topAttrN; attrNo < attrN; attrNo ++) {
-			// XW. Do not ignore if an attribute is marked by split and there are less than TK split attributes
+			// Do not ignore if an attribute is marked by split and there are less than TK split attributes
 			if ((splitAttrs.find(attrCountsP[attrNo].first) != splitAttrs.end()) && (splitN > 0)) {
 				splitN --;
 				telog << "\t" << data.getAttrName(attrCountsP[attrNo].first) << " (split)\n";
@@ -542,7 +528,6 @@ int main(int argc, char* argv[])
 		telog << "Warning: the data has missing values in active attributes, correlations can not be calculated.\n\n";
 	else
 	{
-		// XW
 		INDsample sample(data);
 		sample.newBag();
 		sample.correlations(ti.trainFName);
@@ -559,7 +544,7 @@ int main(int argc, char* argv[])
 				errlog << "Usage: bt_train -t _train_set_ -v _validation_set_ -r _attr_file_ "
 					<< "[-a _alpha_value_] [-b _bagging_iterations_] [-i _init_random_] " 
 					<< "[-m _model_file_name_] [-k _attributes_to_leave_] [-c rms|roc] "
-					<< "[-l log|nolog] [-s _split_attributes_to_leave_] | -version\n"; // XW
+					<< "[-l log|nolog] [-s _split_attributes_to_leave_] | -version\n";
 				break;
 			case ALPHA_ERR:
 				errlog << "Error: alpha value is out of [0;1] range.\n";

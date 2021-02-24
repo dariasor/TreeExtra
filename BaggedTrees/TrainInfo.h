@@ -1,6 +1,5 @@
 // Bagged Trees / TrainInfo.h: implementation of the TrainInfo structure
 // This structure contains all parameters relevant to training Bagged Trees
-// (c) Daria Sorokina
 
 #pragma once
 

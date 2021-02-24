@@ -1,6 +1,4 @@
 //Additive Groves / ag_expand.cpp: main function of executable ag_expand
-//
-//(c) Daria Sorokina
 
 #include "Grove.h"
 #include "ag_functions.h"
@@ -12,7 +10,6 @@
 #include <errno.h>
 #include <algorithm>
 
-// XW. Programmatically decide the number of cores
 #ifdef __APPLE__
 #include <thread>
 #endif
@@ -22,7 +19,6 @@
 #include <unistd.h>
 #endif
 
-// XW
 struct ExpandArg
 {
 	ExpandArg(
@@ -69,13 +65,12 @@ struct ExpandArg
 	doublevvvv& _predsumsV;
 };
 
-// XW
 #ifndef _WIN32
 TMutex StdOutMutex; // Make sure only one thread is using the standard output
 TMutex DirMutex; // Probably not needed as only the first thread writes to dir
 TMutex ReturnMutex; // Write to the variables computed and returned by threads
 #endif
-// XW. Can be used in both a single-threaded setting and a multi-threaded setting
+//Can be used in both a single-threaded setting and a multi-threaded setting
 void doExpand(ExpandArg* ptr)
 {
 	try
@@ -95,7 +90,6 @@ void doExpand(ExpandArg* ptr)
 	doublevv __dirStat(tigNN, doublev(alphaN, 0));
 	doublevvv __predsumsV(tigNN, doublevv(alphaN, doublev(validN, 0)));
 
-	// XW
 	INDsample sample(data);
 
 #ifndef _WIN32
@@ -141,17 +135,15 @@ StdOutMutex.Unlock();
 
 			int tigN = tigVal(tigNNo);	//number of trees in the current grove
 
-			//XW. Temp file keeps models corresponding to bagNo, alpha, and tigN
+			//Temp file keeps models corresponding to bagNo, alpha, and tigN
 			string _tempFName = getPrefix(bagNo, alpha, tigN) + ".tmp";
 
 			if(bagNo < prev.bagN)
 			{
-// XW. TODO. oldGrove is never used elsewhere
 				//on old edge, retrieve old models and regenerate sinpreds and jointpreds
 				if((tigNNo == prevTiGNN - 1) && (alphaNo < prevAlphaN) ||
 				   (alphaNo == prevAlphaN - 1) && (tigNNo < prevTiGNN))
 				{
-					// XW
 					fstream fload(_tempFName.c_str(), ios_base::binary | ios_base::in);
 					CGrove oldGrove(alpha, tigN);
 					oldGrove.load(fload);
@@ -160,7 +152,6 @@ StdOutMutex.Unlock();
 					oldGrove.batchPredict(sinpreds[tigNNo], jointpreds[tigNNo]);
 				}
 
-// XW. TODO. predsumsV[tigNNo < prevTiGNN][alphaNo < prevAlphaN][itemNo] = 0
 				//skip the rest of the iteration when the model is already built
 				if((tigNNo < prevTiGNN) && (alphaNo < prevAlphaN))
 					continue;
@@ -179,24 +170,23 @@ StdOutMutex.Unlock();
 				|| ((ti.mode == FAST) && (bagNo > 0) && (dir[tigNNo][alphaNo] == 0))) //fixed direction
 			{
 				//build from left neighbor
-				leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
+				leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample);
 			}
 			else if((alphaNo == 0) || (dir[tigNNo][alphaNo] == 1))	//direction fixed upwards 
 			{//build from lower neighbour 
 				sinpreds[tigNNo] = sinpreds[tigNNo - 1];
 				jointpreds[tigNNo] = jointpreds[tigNNo - 1];
-				bottomGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample); // XW
+				bottomGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample);
 				winGrove = &bottomGrove;
 				if((ti.mode == FAST) && (bagNo == 0))
 					dir[tigNNo][alphaNo] = 1;	//set direction upwards
-				__dirStat[tigNNo][alphaNo] += 1; // XW
+				__dirStat[tigNNo][alphaNo] += 1;
 			}
 			else
 			{//build both groves, compare performances on oob data
 				doublevv sinpreds2 = sinpreds[tigNNo - 1];
 				doublev jointpreds2 = jointpreds[tigNNo - 1];
 
-				// XW
 				ddpair rmse_l = leftGrove.converge(sinpreds[tigNNo], jointpreds[tigNNo], sample);
 				ddpair rmse_b = bottomGrove.converge(sinpreds2, jointpreds2, sample);
 
@@ -207,7 +197,7 @@ StdOutMutex.Unlock();
 					jointpreds[tigNNo] = jointpreds2;
 					if((ti.mode == FAST) && (bagNo == 0))	
 						dir[tigNNo][alphaNo] = 1;	//set direction upwards
-					__dirStat[tigNNo][alphaNo] += 1; // XW
+					__dirStat[tigNNo][alphaNo] += 1;
 				}
 			}
 			
@@ -217,23 +207,23 @@ StdOutMutex.Unlock();
 			//generate predictions for validation set
 			for(int itemNo = 0; itemNo < validN; itemNo++)
 			{
-				__predsumsV[tigNNo][alphaNo][itemNo] = winGrove->predict(itemNo, VALID); // XW
+				__predsumsV[tigNNo][alphaNo][itemNo] = winGrove->predict(itemNo, VALID);
 			}
 		}//end for(int tigNNo = 0; tigNNo < tigNN; tigNNo++) 
 	}//end for(int alphaNo = 0; alphaNo < alphaN; alphaNo++)
 
-	// XW. Only use mutex once here and not everywhere
+	//Only use mutex once here and not everywhere
 #ifndef _WIN32
 ReturnMutex.Lock();
 #endif
-	// XW. Mutex is not needed because threads access different slices (memory addresses)
+	//Mutex is not needed because threads access different slices (memory addresses)
 	ptr->_dirStat[bagNo] = __dirStat;
 	ptr->_predsumsV[bagNo] = __predsumsV;
 #ifndef _WIN32
 ReturnMutex.Unlock();
 #endif
-	// XW. Add mutex here doesn't reduce training time but improves reproducibility
-
+	
+	//Adding mutex here doesn't reduce training time but improves reproducibility
 #ifndef _WIN32
 StdOutMutex.Lock();
 #endif
@@ -256,7 +246,7 @@ StdOutMutex.Unlock();
 	}
 }
 
-// XW. Wrap the doExpand function by TJob to be submitted to a thread pool
+//Wrapping the doExpand function by TJob to be submitted to a thread pool
 #ifndef _WIN32
 class ExpandJob: public TThreadPool::TJob
 {
@@ -295,7 +285,7 @@ int main(int argc, char* argv[])
 #else
 	int nCore = std::thread::hardware_concurrency();
 #endif
-	// XW. Need to handle 0 which is returned when unable to detect
+	//Need to handle 0 which is returned when unable to detect
 	if (nCore > 0) {
 		if (nCore == 1)
 			threadN = 1;
@@ -416,15 +406,6 @@ int main(int argc, char* argv[])
 	CGrove::setData(data);
 	CTreeNode::setData(data);
 
-	// XW
-	/*
-//3.a) Start thread pool
-#ifndef _WIN32
-	TThreadPool pool(threadN);
-	CGrove::setPool(pool);
-#endif
-	*/
-
 //4. Initialize other variables and produce initial output
 	doublev validTar, validWt;
 	int validN = data.getTargets(validTar, validWt, VALID);
@@ -536,8 +517,6 @@ int main(int argc, char* argv[])
 		fdir.close();
 	}
 
-	// telog << "You are supposed to see this\n";  // XW. Debug
-
 	//direction of initialization (1 - up, 0 - right), collects statistics in the slow mode
 	doublevv dirStat(max(tigNN, prevTiGNN), doublev(max(alphaN, prevAlphaN), 0));
 	fstream fdirStat;	
@@ -552,9 +531,7 @@ int main(int argc, char* argv[])
 		throw TEMP_ERR;
 	fdirStat.close();
 
-	// telog << "You are not supposed to see this\n";  // XW. Debug
-
-	// XW. Each temp file saves only one grove now rather than prev.bagN groves
+	//Each temp file saves only one grove now rather than prev.bagN groves
 	//temp files containing earlier groves on the edge of grid
 	// vector<fstream*> ftemps(prevTiGNN + prevAlphaN - 1);
 
@@ -563,7 +540,6 @@ int main(int argc, char* argv[])
 	if((ti.maxTiGN == prev.maxTiGN) && (ti.minAlpha == prev.minAlpha))
 		bagNo = prev.bagN;
 
-	// XW
 	doublevvv _dirStat(ti.bagN, doublevv(tigNN, doublev(alphaN, 0)));
 	doublevvvv _predsumsV(ti.bagN, doublevvv(tigNN, doublevv(alphaN, doublev(validN, 0))));
 	if (ti.mode == FAST && bagNo < ti.bagN)
@@ -630,9 +606,8 @@ int main(int argc, char* argv[])
 	}
 	pool.SyncAll();
 #endif
-	telog << "Info: All of the threads have been synchronized\n"; // XW
+	telog << "Info: All of the threads have been synchronized\n";
 
-	// XW
 	for (int bagNo = 0; bagNo < ti.bagN; bagNo ++)
 	{
 		for (int alphaNo = 0; alphaNo < alphaN; alphaNo ++)
@@ -648,14 +623,12 @@ int main(int argc, char* argv[])
 
 				if(bagNo < prev.bagN)
 				{
-
-// XW. TODO. predictions[tigNNo < prevTiGNN][alphaNo < prevAlphaN] are wrong
-					// XW. These temp files have already been added
+					//These temp files have already been added
 					if((tigNNo < prevTiGNN) && (alphaNo < prevAlphaN))
 						continue;
 				}
 
-				// XW. Load the winning grove saved by threads
+				//Load the winning grove saved by threads
 				CGrove* winGrove = new CGrove(alpha, tigN);
 				string _tempFName = getPrefix(bagNo, alpha, tigN) + ".tmp";
 				fstream fload(_tempFName.c_str(), ios_base::binary | ios_base::in);
@@ -670,17 +643,17 @@ int main(int argc, char* argv[])
 				string tempFName = prefix + ".tmp";
 				winGrove->save(tempFName.c_str());
 
-				// XW. Free the winning grove's memory to avoid being killed
+				//Free the winning grove's memory to avoid being killed
 				delete winGrove;
 
-				// XW. Aggregate the results of all threads
+				//Aggregate the results of all threads
 				dirStat[tigNNo][alphaNo] += _dirStat[bagNo][tigNNo][alphaNo];
 
 				//generate predictions for validation set
 				doublev predictions(validN);
 				for(int itemNo = 0; itemNo < validN; itemNo++)
 				{
-					predsumsV[tigNNo][alphaNo][itemNo] += _predsumsV[bagNo][tigNNo][alphaNo][itemNo]; // XW
+					predsumsV[tigNNo][alphaNo][itemNo] += _predsumsV[bagNo][tigNNo][alphaNo][itemNo];
 					predictions[itemNo] = predsumsV[tigNNo][alphaNo][itemNo] / (bagNo + 1);
 				}
 				if(bagNo == ti.bagN - 1)
@@ -692,7 +665,6 @@ int main(int argc, char* argv[])
 					fpreds.close();
 				}
 
-// XW. TODO. tigNNo < prevTiGNN and alphaNo < prevAlphaN are never best
 				rmsV[tigNNo][alphaNo][bagNo] = rmse(predictions, validTar, validWt);
 				if(!ti.rms)
 					rocV[tigNNo][alphaNo][bagNo] = roc(predictions, validTar, validWt);

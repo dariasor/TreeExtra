@@ -1,6 +1,4 @@
 // definitions.h: constants, enumerators, typedefs and macros
-//
-// (c) Daria Sorokina
 
 #pragma once
 #pragma warning(disable : 4996)
@@ -13,7 +11,6 @@
 #include <limits>
 #include <stack>
 
-// XW. Solve an error: unknown type name 'streamsize'
 #ifdef __APPLE__
 #include <ios>
 #endif
@@ -119,7 +116,7 @@ enum AG_TRAIN_MODE
 
 
 
-#define VERSION "2.6.0" //release version
+#define VERSION "2.7.0" //release version
 #define LINE_LEN 500000	//maximum length of line in the input file
 #define QNAN flim::quiet_NaN()
 

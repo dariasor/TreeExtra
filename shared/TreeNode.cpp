@@ -11,8 +11,6 @@
 // attributes. Because of this, splitting of each node (except for the root) takes linear time. 
 // 5. Some stl variables are implemented as pointers in order to ensure that unused memory can be 
 // freed fast enough. ( someData.clear() does not free memory, delete pSomeData does ) 
-// 
-// (c) Daria Sorokina
 
 #include "TreeNode.h"
 #include "functions.h"
@@ -137,11 +135,11 @@ void CTreeNode::setRoot(INDsample& sample)
 
 	if(pSorted == NULL)
 		pSorted = new fipairvv();
-	sample.getSortedData(*pSorted); // XW
+	sample.getSortedData(*pSorted);
 	
 	if(pItemSet == NULL)
 		pItemSet = new ItemInfov();
-	sample.getCurBag(*pItemSet); // XW
+	sample.getCurBag(*pItemSet);
 }
 
 //input: predictions for train set data points produced by the rest of the model (not by this tree)	
@@ -182,7 +180,7 @@ bool CTreeNode::split(double alpha, INDsample& sample, double* pEntropy)
 	bool isStD0 = getStats(nodeV, nodeSum);
 	int itemN = pItemSet->size();
 
-	if(((double)itemN / sample.getBagDataN() < alpha) || isStD0) // XW
+	if(((double)itemN / sample.getBagDataN() < alpha) || isStD0)
 	{
 		makeLeaf(nodeSum / nodeV);
 		return false;

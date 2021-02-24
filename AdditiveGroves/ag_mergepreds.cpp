@@ -1,6 +1,4 @@
 //Additive Groves / ag_mergepreds.cpp: main function of executable ag_mergepreds
-//
-//(c) Daria Sorokina
 
 #include "LogStream.h"
 #include "ErrLogStream.h"

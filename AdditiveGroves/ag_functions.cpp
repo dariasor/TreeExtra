@@ -1,6 +1,4 @@
 // Additive Groves / ag_functions.cpp: implementations of Additive Groves global functions
-//
-// (c) Daria Sorokina
 
 #include "ag_functions.h"
 #include "functions.h"
@@ -757,7 +755,7 @@ bool bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo)
 	return fit[bestTiGNNo][bestAlphaNo];
 }
 
-// XW. Add bagNo to prefix of file names to be used in a multi-threaded setting
+//adds bagNo to prefix of file names to be used in a multi-threaded setting
 string getPrefix(int bagNo, double alpha, int tigN)
 {
 	string prefix = string("./AGTemp/ag.b.")

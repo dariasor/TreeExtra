@@ -1,6 +1,4 @@
 // Bagged Trees / Tree.h: interface of class CTree
-//
-// (c) Daria Sorokina
 
 #pragma once
 #include "TreeNode.h"
@@ -24,9 +22,9 @@ public:
 	CTree(double alpha = 0);
 
 	//grows a tree, increases attribute counts
-	// XW. Variable attrCounts is shared and modified by different bagging threads
+	// Variable attrCounts is shared and modified by different bagging threads
 	void growGBT(bool doFS, doublev& attrCounts, INDsample& sample);
-	// XW. Variable curAttrCounts is local and specific to a certain bagging thread
+	// Variable curAttrCounts is local and specific to a certain bagging thread
 	void growBT(bool doFS, doublev& curAttrCounts, INDsample& sample);
 
 	//saves the tree into the binary file
@@ -39,7 +37,7 @@ public:
 	double predict(int itemNo, DATA_SET dset);
 
 	//loads data into the root
-	void setRoot(INDsample& sample); // XW
+	void setRoot(INDsample& sample);
 
 	//input: predictions for train set data points produced by the rest of the model (not by this tree)	
 	//Changes ground truth to residuals in the root train set
@@ -69,7 +67,7 @@ struct JobData
 			doublev* in_pAttrCounts, 
 			double in_b, 
 			double in_H,
-			INDsample& sample // XW
+			INDsample& sample
 			):
 		curNH(in_curNH), 
 		pNodes(in_pNodes), 
@@ -78,7 +76,7 @@ struct JobData
 		pAttrCounts(in_pAttrCounts), 
 		b(in_b), 
 		H(in_H),
-		sample(sample) // XW
+		sample(sample)
 		{}
 
 	nodeip curNH; 
@@ -89,6 +87,6 @@ struct JobData
 	doublev* pAttrCounts;
 	double b;
 	double H;
-	INDsample& sample; // XW
+	INDsample& sample;
 };
 #endif

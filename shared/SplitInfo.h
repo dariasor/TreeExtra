@@ -1,6 +1,4 @@
 //SplitInfo.h: SplitInfo structure interface
-//
-// (c) Daria Sorokina
 
 #pragma once
 #include "definitions.h"

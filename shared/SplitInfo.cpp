@@ -1,6 +1,4 @@
 //SplitInfo.cpp: implementation of SplitInfo structure
-//
-// (c) Daria Sorokina
 
 #include "SplitInfo.h"
 #include "math.h"
