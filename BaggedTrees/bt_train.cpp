@@ -23,7 +23,9 @@
 #include <thread>
 #endif
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include "thread_pool.h"
 #include <unistd.h>
 #endif
@@ -202,7 +204,7 @@ int main(int argc, char* argv[])
 	int topAttrN = -1;		//how many top attributes to output and keep in the cut data 
 							//(0 = do not do feature selection)
 							//(-1 = output all available features)
-	int splitAttrN = -1;	// XW. How many split attributes to leave in output attribute file
+	int splitAttrN = 3;	// XW. How many split attributes to leave in output attribute file
 	bool doOut = true;		//whether to output log information to stdout
 
 	//parse and save input parameters
@@ -285,7 +287,7 @@ int main(int argc, char* argv[])
 		throw ALPHA_ERR;
 
 //1.a) delete all temp files from the previous run and create a directory BTTemp
-#ifdef WIN32	//in windows
+#ifdef _WIN32	//in windows
 	WIN32_FIND_DATA fn;			//structure that will contain the name of file
 	HANDLE hFind;				//current file
 	hFind = FindFirstFile("./BTTemp/*.*", &fn);	//"."	
@@ -354,9 +356,6 @@ int main(int argc, char* argv[])
 	int attrN = data.getAttrN();
 	if(topAttrN == -1)
 		topAttrN = attrN;
-	// XW. Default number of split attributes to leave is 3
-	if (splitAttrN == -1)
-		splitAttrN = 3;
 	
 	doublev attrCounts(attrN, 0); //counts of attribute importance
 	idpairv attrCountsP(attrN, idpair(0, 0)); //another structure for counts of attribute importance, will need it later for sorting
@@ -511,18 +510,20 @@ int main(int argc, char* argv[])
 
 		// XW
 		intset splitAttrs = data.getSplitAttrs();
-		telog << "Aim to leave " << splitAttrN << " out of " << splitAttrs.size() << " attributes marked by split\n";
 		int splitN = 0;
-		for (int attrNo = 0; attrNo < topAttrN; attrNo ++) {
-			if (splitAttrs.find(attrCountsP[attrNo].first) != splitAttrs.end()) {
-				splitN ++;
-				telog << "\t" << data.getAttrName(attrCountsP[attrNo].first) << " (split)\n";
+		if(!splitAttrs.empty())
+		{
+			telog << "Aiming to leave " << splitAttrN << " out of " << splitAttrs.size() << " attributes marked by split\n";
+			for (int attrNo = 0; attrNo < topAttrN; attrNo ++) {
+				if (splitAttrs.find(attrCountsP[attrNo].first) != splitAttrs.end()) {
+					splitN ++;
+					telog << "\t" << data.getAttrName(attrCountsP[attrNo].first) << " (split)\n";
+				}
 			}
+			telog << "Found " << splitN << " attributes marked by split and within top " << topAttrN << "\n";
+			splitN = splitAttrN - splitN;
+			telog << "Keeping " << splitN << " attributes marked by split but not within top " << topAttrN << "\n";
 		}
-		telog << "Find " << splitN << " attributes marked by split and within top " << topAttrN << "\n";
-		splitN = splitAttrN - splitN;
-		telog << "Keep " << splitN << " attributes marked by split but not within top " << topAttrN << "\n";
-
 		//output new attribute file
 		for (int attrNo = topAttrN; attrNo < attrN; attrNo ++) {
 			// XW. Do not ignore if an attribute is marked by split and there are less than TK split attributes
