@@ -1,9 +1,7 @@
 SHAREDDIR=../shared
 LIBDIR=../ThreadPool
 CXXFLAGS = -I$(SHAREDDIR) -I$(LIBDIR)
-OBJS = Tree.o bt_functions.o $(LIBDIR)/thread_pool.o \
-	$(SHAREDDIR)/SplitInfo.o $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o \
-	$(SHAREDDIR)/TreeNode.o $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o # XW
+OBJS = Tree.o $(SHAREDDIR)/SplitInfo.o  $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/TreeNode.o bt_functions.o $(SHAREDDIR)/functions.o $(SHAREDDIR)/LogStream.o $(LIBDIR)/thread_pool.o
 PGMS = bt_predict bt_train gbt_train
 PGMOBJS = bt_predict.o bt_train.o gbt_train.o
 LIBS = -lpthread
@@ -14,20 +12,18 @@ directories:
 	mkdir -p ../Bin
 
 clean:
-	# XW. Should not abort if the files do not exist
-	rm -f $(OBJS)
-	rm -f $(PGMOBJS)
-	rm -f ../Bin/bt_predict ../Bin/bt_train ../Bin/gbt_train
+	rm $(OBJS)
+	rm $(PGMOBJS)
+	rm $(PGMS)
 
 .cpp.o:
 	g++ -O3 $(CXXFLAGS) -c $< -o $@
 
 $(SHAREDDIR)/INDdata.o: $(SHAREDDIR)/definitions.h
-$(SHAREDDIR)/INDsample.o: $(SHAREDDIR)/definitions.h # XW
 $(SHAREDDIR)/functions.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/SplitInfo.o: $(SHAREDDIR)/definitions.h
 $(SHAREDDIR)/LogStream.o: $(SHAREDDIR)/definitions.h
-$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o $(SHAREDDIR)/INDsample.o # XW
+$(SHAREDDIR)/TreeNode.o: $(SHAREDDIR)/INDdata.o
 
 bt_functions.o: $(SHAREDDIR)/definitions.h
 Tree.o: $(SHAREDDIR)/TreeNode.o

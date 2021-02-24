@@ -24,10 +24,7 @@ public:
 	CTree(double alpha = 0);
 
 	//grows a tree, increases attribute counts
-	// XW. Variable attrCounts is shared and modified by different bagging threads
-	void growGBT(bool doFS, doublev& attrCounts, INDsample& sample);
-	// XW. Variable curAttrCounts is local and specific to a certain bagging thread
-	void growBT(bool doFS, doublev& curAttrCounts, INDsample& sample);
+	void grow(bool doFS, doublev& attrCounts);
 
 	//saves the tree into the binary file
 	void save(const char* fileName);
@@ -39,7 +36,7 @@ public:
 	double predict(int itemNo, DATA_SET dset);
 
 	//loads data into the root
-	void setRoot(INDsample& sample); // XW
+	void setRoot();
 
 	//input: predictions for train set data points produced by the rest of the model (not by this tree)	
 	//Changes ground truth to residuals in the root train set
@@ -61,25 +58,10 @@ private:
 //Information required for a single node splitting job to run. Used for multithreading
 struct JobData
 {	
-	JobData(
-			nodeip in_curNH, 
-			nodehstack* in_pNodes, 
-			TCondition* in_pNodesCond, 
-			int* in_pToDoN, 
-			doublev* in_pAttrCounts, 
-			double in_b, 
-			double in_H,
-			INDsample& sample // XW
-			):
-		curNH(in_curNH), 
-		pNodes(in_pNodes), 
-		pNodesCond(in_pNodesCond), 
-		pToDoN(in_pToDoN), 
-		pAttrCounts(in_pAttrCounts), 
-		b(in_b), 
-		H(in_H),
-		sample(sample) // XW
-		{}
+	JobData(nodeip in_curNH, nodehstack* in_pNodes, TCondition* in_pNodesCond, int* in_pToDoN, 
+			doublev* in_pAttrCounts, double in_b, double in_H):
+	curNH(in_curNH), pNodes(in_pNodes), pNodesCond(in_pNodesCond), pToDoN(in_pToDoN), 
+	pAttrCounts(in_pAttrCounts), b(in_b), H(in_H){}
 
 	nodeip curNH; 
 	nodehstack* pNodes;
@@ -89,6 +71,5 @@ struct JobData
 	doublev* pAttrCounts;
 	double b;
 	double H;
-	INDsample& sample; // XW
 };
 #endif

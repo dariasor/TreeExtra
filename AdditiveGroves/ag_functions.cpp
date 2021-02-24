@@ -9,6 +9,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <cmath>
 
 //generates all output for train, expand and merge commands except for saving the models themselves
@@ -376,6 +377,134 @@ int adjustTiGN(int tigN)
 {
 	int tigNN = getTiGNN(tigN);
 	return tigVal(tigNN - 1);
+}
+
+//The following code for linux-compatible string itoa is copied from the web site of Stuart Lowe
+//http://www.jb.man.ac.uk/~slowe/cpp/itoa.html
+/**
+	
+ * C++ version std::string style "itoa":
+	
+ */
+	
+std::string itoa(int value, int base) {
+	
+
+	
+	enum { kMaxDigits = 35 };
+	
+	std::string buf;
+	
+	buf.reserve( kMaxDigits ); // Pre-allocate enough space.
+	
+
+	
+	// check that the base if valid
+	
+	if (base < 2 || base > 16) return buf;
+	
+
+	
+	int quotient = value;
+	
+
+	
+	// Translating number to string with base:
+	
+	do {
+	
+		buf += "0123456789abcdef"[ std::abs( quotient % base ) ];
+	
+		quotient /= base;
+	
+	} while ( quotient );
+	
+
+	
+	// Append the negative sign for base 10
+	
+	if ( value < 0 && base == 10) buf += '-';
+	
+
+	
+	std::reverse( buf.begin(), buf.end() );
+	
+	return buf;
+}
+
+
+//trains a Layered Groves ensemble (Additive Groves trained in layered style) 
+//if modelFName is not empty, saves the model
+//returns performance on validation set
+double layeredGroves(INDdata& data, TrainInfo& ti, string modelFName)
+{
+	doublev validTar, validWt; //true response values on validation set
+	int validN = data.getTargets(validTar, validWt, VALID); 
+	doublev predsumsV(validN, 0); 	//sums of predictions for each data point
+	
+	if(!modelFName.empty())
+	{//save the model's header
+		fstream fmodel(modelFName.c_str(), ios_base::binary | ios_base::out);
+		fmodel.write((char*) &ti.mode, sizeof(enum AG_TRAIN_MODE));
+		fmodel.write((char*) &ti.maxTiGN, sizeof(int));
+		fmodel.write((char*) &ti.minAlpha, sizeof(double));
+		fmodel.close();		
+	}
+
+	//build bagged models, calculate sums of predictions
+	for(int bagNo = 0; bagNo < ti.bagN; bagNo++)
+	{
+		cout << "\t\tIteration " << bagNo + 1 << " out of " << ti.bagN << endl;
+		CGrove grove(ti.minAlpha, ti.maxTiGN, ti.interaction);
+		grove.trainLayered();
+		for(int itemNo = 0; itemNo < validN; itemNo++)
+			predsumsV[itemNo] += grove.predict(itemNo, VALID);
+
+		if(!modelFName.empty())
+			grove.save(modelFName.c_str()); 
+	}
+
+	//calculate predictions of the whole ensemble on the validation set
+	doublev predictions(validN); 
+	for(int itemNo = 0; itemNo < validN; itemNo++)
+		predictions[itemNo] = predsumsV[itemNo] / ti.bagN;
+
+	if(ti.rms)
+		return rmse(predictions, validTar, validWt);
+	else
+		return roc(predictions, validTar, validWt);	
+}
+
+//runs Layered Groves repeatN times, returns average performance and standard deviation
+//saves the model from the last run
+double meanLG(INDdata& data, TrainInfo ti, int repeatN, double& resStd, string modelFName)
+{
+	doublev resVals(repeatN);
+	int repeatNo;
+	cout << endl << "Estimating distribution of model performance" << endl;
+	for(repeatNo = 0; repeatNo < repeatN; repeatNo++)
+	{
+		cout << "\tTraining model " << repeatNo + 1 << " out of " << repeatN << endl;		
+		if(repeatNo == repeatN - 1)
+			resVals[repeatNo] = layeredGroves(data, ti, modelFName); //save the last model
+		else
+			resVals[repeatNo] = layeredGroves(data, ti, string(""));
+	}
+
+	//calculate mean
+	double resMean = 0;
+	for(repeatNo = 0; repeatNo < repeatN; repeatNo++)
+		resMean += resVals[repeatNo];
+	resMean /= repeatN;
+
+	//calculate standard deviation
+	resStd = 0;
+	for(repeatNo = 0; repeatNo < repeatN; repeatNo++)
+		resStd += (resMean - resVals[repeatNo])*(resMean - resVals[repeatNo]);
+	resStd /= repeatN;
+	resStd = sqrt(resStd);
+
+	return resMean;
 }
 
 //implementation for erase for reverse iterator
@@ -756,16 +885,3 @@ bool bestForID(doublevvv& surfaceV, bool rms, int& bestTiGNNo, int& bestAlphaNo)
 
 	return fit[bestTiGNNo][bestAlphaNo];
 }
-
-// XW. Add bagNo to prefix of file names to be used in a multi-threaded setting
-string getPrefix(int bagNo, double alpha, int tigN)
-{
-	string prefix = string("./AGTemp/ag.b.")
-			+ itoa(bagNo, 10)
-			+ ".a."
-			+ alphaToStr(alpha)
-			+ ".n." 
-			+ itoa(tigN, 10);
-	return prefix;
-}
-

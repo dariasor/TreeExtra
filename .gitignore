@@ -1,12 +1,4 @@
 #################
-## EasyClangComplete
-#################
-
-# Include paths needed for finding custom libraries
-.clang_complete
-
-
-#################
 ## Eclipse
 #################
 

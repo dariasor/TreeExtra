@@ -197,17 +197,15 @@ int main(int argc, char* argv[])
 		if(doOut && (treeNo % 10 == 0))
 			cout << "\titeration " << treeNo + 1 << " out of " << treeN << endl;
 
-		// XW
-		INDsample sample(data);
 		if(subsample == -1)
-			sample.newBag();
+			data.newBag();
 		else
-			sample.newSample(sampleN);
+			data.newSample(sampleN);
 
 		CTree tree(ti.alpha);
-		tree.setRoot(sample); // XW
+		tree.setRoot();
 		tree.resetRoot(trainPreds);
-		tree.growGBT(doFS, attrCounts, sample); // XW
+		tree.grow(doFS, attrCounts);
 
 		//update predictions
 		for(int itemNo = 0; itemNo < trainN; itemNo++)

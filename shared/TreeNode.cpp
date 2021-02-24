@@ -127,7 +127,7 @@ CTreeNode::CTreeNode(const CTreeNode& rhs)
 
 //Deletes old tree, gets data from the dataset container into the node 
 //This function is intended for root nodes only
-void CTreeNode::setRoot(INDsample& sample)
+void CTreeNode::setRoot()
 {
 	del();	//delete old tree
 
@@ -137,11 +137,11 @@ void CTreeNode::setRoot(INDsample& sample)
 
 	if(pSorted == NULL)
 		pSorted = new fipairvv();
-	sample.getSortedData(*pSorted); // XW
+	pData->getSortedData(*pSorted);
 	
 	if(pItemSet == NULL)
 		pItemSet = new ItemInfov();
-	sample.getCurBag(*pItemSet); // XW
+	pData->getCurBag(*pItemSet);
 }
 
 //input: predictions for train set data points produced by the rest of the model (not by this tree)	
@@ -175,14 +175,14 @@ void CTreeNode::traverse(int itemNo, double inCoef, double& lOutCoef, double& rO
 // Returns true if succeeds, false if this node becomes a leaf
 // input: alpha - min possible ratio of internal node train subset volume to the whole train set size, 
 //		when surpassed,	the node becomes a leaf
-bool CTreeNode::split(double alpha, INDsample& sample, double* pEntropy)
+bool CTreeNode::split(double alpha, double* pEntropy)
 {	
 //1. check basic leaf conditions
 	double nodeV, nodeSum;
 	bool isStD0 = getStats(nodeV, nodeSum);
 	int itemN = pItemSet->size();
 
-	if(((double)itemN / sample.getBagDataN() < alpha) || isStD0) // XW
+	if(((double)itemN / pData->getBagDataN() < alpha) || isStD0)
 	{
 		makeLeaf(nodeSum / nodeV);
 		return false;

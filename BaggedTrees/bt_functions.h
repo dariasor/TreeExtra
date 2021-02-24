@@ -6,5 +6,3 @@
 
 //comparison by the second element
 bool idGreater(idpair id1, idpair id2);
-
-string getModelFName(string modelFName, int bagNo); // XW

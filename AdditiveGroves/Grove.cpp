@@ -30,7 +30,7 @@ public:
 
 		double h = curNH.second;
 		double curAlpha = pow(2, - ( pJD->b +  pJD->H) * h /  pJD->H +  pJD->b);
-		bool notLeaf = false; // curNH.first->split(curAlpha); // XW
+		bool notLeaf = curNH.first->split(curAlpha);
 		
 		nodesCond.Lock();
 		if(notLeaf)
@@ -63,18 +63,18 @@ CGrove::CGrove(double alphaIn, int tigNIn, intv& interactionIn):
 //as a starting point. Keeps regrowing trees until convergence. Returns rmse on on bag data and on oob data.
 //in:	sinpreds - predictions of single trees on the training set
 //		jointpreds - predictions of the whole grove on the training set
-ddpair CGrove::converge(doublevv& sinpreds, doublev& jointpreds, INDsample& sample)
+ddpair CGrove::converge(doublevv& sinpreds, doublev& jointpreds)
 {
 
 	//get out of bag data
 	intv outofbag;	//indexes
 	doublev oobtar, oobwt;	//targets, weights
-	int oobN = sample.getOutOfBag(outofbag, oobtar, oobwt); // XW
+	int oobN = pData->getOutOfBag(outofbag, oobtar, oobwt);
 			
 	//get current bag of data
 	intv bag;		//indexes
 	doublev bagtar, bagwt; //targets, weights
-	int itemN = sample.getCurBag(bag, bagtar, bagwt); // XW
+	int itemN = pData->getCurBag(bag, bagtar, bagwt);
 
 	//calculate previous oob rmse - rmse of the original grove on current oob data
 	doublev oobpreds(oobN);
@@ -97,7 +97,7 @@ ddpair CGrove::converge(doublevv& sinpreds, doublev& jointpreds, INDsample& samp
 		for(int treeNo = 0; treeNo < tigN; treeNo++)
 		{
 			int curTreeNo = (treeNo + tigN - 1) % tigN; //begin from the last (often new) tree
-			genTreeInGrove(sinpreds[curTreeNo], jointpreds, curTreeNo, sample); // XW
+			genTreeInGrove(sinpreds[curTreeNo], jointpreds, curTreeNo);
 		}
 
 		//calculate rmse for out of bag data
@@ -127,7 +127,7 @@ ddpair CGrove::converge(doublevv& sinpreds, doublev& jointpreds, INDsample& samp
 }
 
 //trains the grove using "layered" version of the algorithm (fixed #trees, increase alpha on every step)
-void CGrove::trainLayered(INDsample& sample)
+void CGrove::trainLayered()
 {
 	double minAlpha = alpha;		//alpha parameter of the final grove
 	int itemN = pData->getTrainN();	//number of data points in the train set
@@ -143,16 +143,15 @@ void CGrove::trainLayered(INDsample& sample)
 		else	//this is a special case because minAlpha can be zero
 			alpha = minAlpha;
 
-		// XW
-		sample.newBag();
-		converge(sinpreds, jointpreds, sample);
+		pData->newBag();
+		converge(sinpreds, jointpreds);
 	}
 }
 
 //Generates a tree as part of training the whole additive grove 
 //in-out: sinpredsx - predictions of this tree 
 //in-out: jointpreds - predictions of the whole grove (sum of trees)
-void CGrove::genTreeInGrove(doublev& sinpredsx, doublev& jointpreds, int treeNo, INDsample& sample)
+void CGrove::genTreeInGrove(doublev& sinpredsx, doublev& jointpreds, int treeNo)
 {
 	int itemN = pData->getTrainN(); 
 	doublev othpreds(itemN); //prediction of all other trees
@@ -162,14 +161,14 @@ void CGrove::genTreeInGrove(doublev& sinpredsx, doublev& jointpreds, int treeNo,
 		othpreds[itemNo] = jointpreds[itemNo] - sinpredsx[itemNo];
 	
 	//initialize the root
-	roots[treeNo].setRoot(sample); // XW
+	roots[treeNo].setRoot();
 	roots[treeNo].resetRoot(othpreds);
 
 	//build tree
 	if(interaction.size() == 0)
-		growTree(roots[treeNo], sample); // XW
+		growTree(roots[treeNo]);
 	else
-		chooseTree(roots[treeNo], othpreds, sample); // XW
+		chooseTree(roots[treeNo], othpreds);
 
 	//recalculate single predictions of this tree and joint predictions of the grove
 	for(int itemNo = 0; itemNo < itemN; itemNo++)
@@ -180,7 +179,7 @@ void CGrove::genTreeInGrove(doublev& sinpredsx, doublev& jointpreds, int treeNo,
 }
 
 //Grows the tree. Assumes that the root is all set (contains train set, attrs, etc.).
-void CGrove::growTree(CTreeNode& root, INDsample& sample)
+void CGrove::growTree(CTreeNode& root)
 {	
 	double nzAlpha = (alpha == 0) ? (1.0 / pData->getTrainN()) : alpha; 
 	double b = - log((double) pData->getTrainN()) / log(2.0);
@@ -193,7 +192,7 @@ void CGrove::growTree(CTreeNode& root, INDsample& sample)
 	nodehstack nodes;	//stack
 	nodes.push(nodeip(&root, 0));
 
-#if true // XW
+#ifdef _WIN32	
 	//grow the tree: take nodes from the stack, try to split them, 
 	//if the result is positive, place child nodes into the same stack
 	while(!nodes.empty())
@@ -203,7 +202,7 @@ void CGrove::growTree(CTreeNode& root, INDsample& sample)
 
 		double h = curNH.second;
 		double curAlpha = pow(2, - (b + H) * h / H + b);
-		bool notLeaf = curNH.first->split(curAlpha, sample); // XW
+		bool notLeaf = curNH.first->split(curAlpha);
 		if(notLeaf)
 		{//process child nodes of this node
 			nodes.push(nodeip(curNH.first->left, curNH.second + 1));
@@ -234,12 +233,12 @@ void CGrove::growTree(CTreeNode& root, INDsample& sample)
 }
 
 //trains several restricted trees - each missing an attribute from interaction, chooses the best
-void CGrove::chooseTree(CTreeNode& root, doublev& othpreds, INDsample& sample)
+void CGrove::chooseTree(CTreeNode& root, doublev& othpreds)
 {
 	//get out of bag data
 	intv outofbag;	//indexes
 	doublev oobtar, oobwt;	//targets
-	int oobN = sample.getOutOfBag(outofbag, oobtar, oobwt); // XW
+	int oobN = pData->getOutOfBag(outofbag, oobtar, oobwt);
 	doublev sinoobtar(oobN, 0);
 	for(int oobNo = 0; oobNo < oobN; oobNo++)
 		sinoobtar[oobNo] = oobtar[oobNo] - othpreds[outofbag[oobNo]];
@@ -252,7 +251,7 @@ void CGrove::chooseTree(CTreeNode& root, doublev& othpreds, INDsample& sample)
 	for(int interNo = 0; interNo < interN; interNo++)
 	{
 		rRoots[interNo].delAttr(interaction[interNo]);
-		growTree(rRoots[interNo], sample); // XW
+		growTree(rRoots[interNo]);
 
 		doublev sinoobpreds(oobN, 0);
 		for(int oobNo = 0; oobNo < oobN; oobNo++)

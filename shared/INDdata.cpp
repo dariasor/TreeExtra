@@ -94,11 +94,6 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 				throw ATTR_TYPE_ERR;
 		}
 
-		// XW. Memorize the attributes that are marked by split
-		if (attrStr.find("(split)") != -1) {
-			splitAttrs.insert(attrId);
-		}
-
 		getLineExt(fattr, buf);
 	}
 	attrN = attrId;
@@ -258,12 +253,9 @@ INDdata::INDdata(const char* trainFName, const char* validFName, const char* tes
 			telog << "Warning: active attributes have missing values. More information in missing_values.txt.\n\n";
 		}
 
-		// XW. No need to sample new bag of data when loading data
-		/*
 		//initialize bootstrap (bag of data)
 		bootstrap.resize(trainN); 
-		newBag();
-		*/
+		newBag();	
 	}
 	else //no train set
 		trainN = 0;
@@ -408,8 +400,6 @@ void INDdata::readData(char* buf, streamsize buflen, floatv& retv, int retvlen)
 	  throw ATTR_DATA_MISMATCH_G_ERR;
 }
 
-// XW
-/*
 //Puts bootstrapped ids (indices) of train set data points into bootstrap vector
 void INDdata::newBag(void)
 {
@@ -506,7 +496,6 @@ void INDdata::sortItems()
 			sort(sortedItems[attrNo].begin(), sortedItems[attrNo].end());
 		}
 }
-*/
 
 //Returns ids of all active attributes (attributes that are allowed to use in the model)
 void INDdata::getActiveAttrs(intv& attrs)
@@ -534,8 +523,6 @@ int INDdata::getAttrId(string attrName)
 	return -1;
 }
 
-// XW
-/*
 //Gets out of bag data info (oobData, oobTar, oobN)
 int INDdata::getOutOfBag(intv& oobData_out, doublev& oobTar, doublev& oobWt)
 {
@@ -551,7 +538,6 @@ int INDdata::getOutOfBag(intv& oobData_out, doublev& oobTar, doublev& oobWt)
 
 	return oobN;
 }
-*/
 
 //Gets validaton data info (validTar, validN)
 int INDdata::getTargets(doublev& targets, doublev& weights, DATA_SET dset)
@@ -576,8 +562,6 @@ int INDdata::getTargets(doublev& targets, doublev& weights, DATA_SET dset)
 	}
 }
 
-// XW
-/*
 //Fills itemSet with ids and responses of data points in the current bag
 void INDdata::getCurBag(ItemInfov& itemSet)
 { 
@@ -614,7 +598,6 @@ void INDdata::getSortedData(fipairvv& sorted)
 {
 	sorted = sortedItems;
 }
-*/
 
 //gets the value of a given attribute (attrId) for a given case (itemNo) in a given data set (dset)
 //returns whether the value in question is defined
@@ -848,8 +831,6 @@ int INDdata::getQuantiles(int attrId, int& quantN, dipairv& valCounts)
 	return uValsN;
 }
 
-// XW
-/*
 //Calculates and outputs correlation scores between active attributes based on the training set. Weights are ignored.
 void INDdata::correlations(string trainFName)
 {
@@ -927,7 +908,7 @@ void INDdata::correlations(string trainFName)
 			}
 
 	//open output file
-	string outFName = *//*beforeLastDot(trainFName) + "." + *//*"correlations.txt";
+	string outFName = /*beforeLastDot(trainFName) + "." + */"correlations.txt";
 	fstream fcorr(outFName.c_str(), ios_base::out);
 
 	//output in the sorted list of triples format
@@ -953,7 +934,6 @@ void INDdata::correlations(string trainFName)
 
 	telog << "Correlation scores are saved into the file " << outFName << ".\n";
 }
-*/
 
 //return name of the column (attribute or target)
 string INDdata::colToName(int column)
