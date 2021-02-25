@@ -1,10 +1,10 @@
-rm shared/*.o
-rm AdditiveGroves/*.o
-rm BaggedTrees/*.o
-rm Visualization/*.o
+rm -f shared/*.o
+rm -f AdditiveGroves/*.o
+rm -f BaggedTrees/*.o
+rm -f Visualization/*.o
 cd AdditiveGroves
-gmake --makefile Makefile
+make --makefile Makefile
 cd ../BaggedTrees
-gmake --makefile Makefile
+make --makefile Makefile
 cd ../Visualization
-gmake --makefile Makefile
+make --makefile Makefile
