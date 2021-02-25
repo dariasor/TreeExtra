@@ -176,7 +176,7 @@ int main(int argc, char* argv[])
 		throw TIGN_ERR;
 
 #ifndef _WIN32 // only need AGTemp in linux in the multithreaded version
-	system("mkdir ./AGTemp/");
+	system("mkdir -p ./AGTemp/");
 #endif
 
 //1.Initialize random number generator. 
