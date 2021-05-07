@@ -581,7 +581,7 @@ bool CTreeNode::setSplitW(double nodeV, double nodeSum)
 			}
 			else 
 			{//save if this is one of the best splits
-				if(isnan(bestEval) || (eval < bestEval))
+				if(isnan(bestEval) || (!isinf(eval) && eval < bestEval))
 				{
 					bestEval = eval;
 					bestSplits.clear();
@@ -661,7 +661,7 @@ bool CTreeNode::setSplitW(double nodeV, double nodeSum)
 					double eval = - mean1 * sum1 - mean2 * sum2;
 
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
-					if(isnan(bestEval) || (eval < bestEval))
+					if(isnan(bestEval) || (!isinf(eval) && eval < bestEval))
 					{
 						bestEval = eval;
 						bestSplits.clear();
