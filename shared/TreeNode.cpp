@@ -759,7 +759,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 			double eval = - mean1 * nmSum - mean2 * missSum;
 			
 			//if it is the best (one of the best) so far, keep it
-			if(isnan(bestEval) || (eval < bestEval))
+			if(isnan(bestEval) || (!isinf(eval) && eval < bestEval))
 			{
 				bestEval = eval;
 				bestSplits.clear();
@@ -779,7 +779,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 			if(!isnan(eval))
 			{//save if this is one of the best splits
 				newSplits = true;
-				if(isnan(bestEval) || (eval < bestEval))
+				if(isnan(bestEval) || (!isinf(eval) && eval < bestEval))
 				{
 					bestEval = eval;
 					bestSplits.clear();
@@ -863,7 +863,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 					double eval = sqErr1 + sqErr2 + missSqErr;
 			
 					//evaluate the split point, if it is the best (one of the best) so far, keep it
-					if(isnan(bestEval) || (eval < bestEval))
+					if(isnan(bestEval) || (!isinf(eval) && eval < bestEval))
 					{
 						bestEval = eval;
 						bestSplits.clear();
@@ -903,7 +903,7 @@ bool CTreeNode::setSplitMV(double nodeV, double nodeSum)
 
 	}//end for(int attrNo = 0; attrNo < (int)pAttrs->size();)
 
-//choose a random split from those with best mse
+	//choose a random split from those with best mse
 	if(!isnan(bestEval))
 	{
 		int bestSplitN = (int)bestSplits.size();
